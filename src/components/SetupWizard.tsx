@@ -76,10 +76,6 @@ export default function SetupWizard({ onComplete }: SetupWizardProps) {
     }
   };
 
-  const handleManualSetup = () => {
-    navigate('/settings');
-  };
-
   return (
     <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full p-6 sm:p-8">
@@ -150,12 +146,9 @@ export default function SetupWizard({ onComplete }: SetupWizardProps) {
                 <span>Des sous-dossiers <strong>Factures/</strong> et <strong>Recus/</strong></span>
               </li>
             </ul>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Button onClick={handleAutoSetup} variant="primary" fullWidth>
+            <div className="flex justify-center">
+              <Button onClick={handleAutoSetup} variant="primary" className="min-w-64">
                 Configurer automatiquement
-              </Button>
-              <Button onClick={handleManualSetup} variant="secondary" fullWidth>
-                Configuration manuelle
               </Button>
             </div>
             <p className="text-xs text-gray-500 mt-4">
@@ -308,12 +301,9 @@ export default function SetupWizard({ onComplete }: SetupWizardProps) {
             </div>
             <h2 className="text-2xl font-bold text-gray-900 mb-4">Erreur de configuration</h2>
             <p className="text-red-600 mb-6">{error}</p>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Button onClick={() => setStep('welcome')} variant="primary" fullWidth>
+            <div className="flex justify-center">
+              <Button onClick={() => setStep('welcome')} variant="primary" className="min-w-64">
                 Réessayer
-              </Button>
-              <Button onClick={handleManualSetup} variant="secondary" fullWidth>
-                Configuration manuelle
               </Button>
             </div>
           </div>
