@@ -2,17 +2,21 @@
  * Login Page - With Google OAuth
  */
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGoogleLogin } from '@react-oauth/google';
 import { useAuth } from '@/contexts/AuthContext';
+import { useConfig } from '@/contexts/ConfigContext';
 import Button from '@/components/common/Button';
 import Loading from '@/components/common/Loading';
+import SetupWizard from '@/components/SetupWizard';
 import { ROUTES } from '@/constants';
 
 export default function Login() {
   const navigate = useNavigate();
   const { isAuthenticated, isLoading, error, handleGoogleSuccess } = useAuth();
+  const { isConfigured } = useConfig();
+  const [showSetupWizard, setShowSetupWizard] = useState(false);
 
   // Google Login Hook
   const googleLogin = useGoogleLogin({
@@ -20,7 +24,12 @@ export default function Login() {
       console.log('✅ Google login success:', tokenResponse);
       const success = await handleGoogleSuccess(tokenResponse.access_token);
       if (success) {
-        navigate(ROUTES.DASHBOARD);
+        // Check if config exists
+        if (!isConfigured) {
+          setShowSetupWizard(true);
+        } else {
+          navigate(ROUTES.DASHBOARD);
+        }
       }
     },
     onError: (error) => {
@@ -29,12 +38,16 @@ export default function Login() {
     scope: 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/documents https://www.googleapis.com/auth/drive',
   });
 
-  // Redirect if already authenticated
+  // Redirect if already authenticated and configured
   useEffect(() => {
     if (isAuthenticated) {
-      navigate(ROUTES.DASHBOARD);
+      if (!isConfigured) {
+        setShowSetupWizard(true);
+      } else {
+        navigate(ROUTES.DASHBOARD);
+      }
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, isConfigured, navigate]);
 
   if (isLoading) {
     return (
@@ -42,6 +55,11 @@ export default function Login() {
         <Loading size="lg" message="Chargement..." />
       </div>
     );
+  }
+
+  // Show setup wizard if authenticated but not configured
+  if (showSetupWizard) {
+    return <SetupWizard onComplete={() => navigate(ROUTES.DASHBOARD)} />;
   }
 
   return (

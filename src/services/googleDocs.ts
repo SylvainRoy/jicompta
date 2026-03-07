@@ -4,6 +4,7 @@
  */
 
 import { loadAuthData } from './googleAuth';
+import { getConfigValue } from './googleSetup';
 import type { Paiement, Client, Prestation } from '@/types';
 import { TEMPLATE_PLACEHOLDERS } from '@/constants';
 import { formatDateForDisplay } from '@/utils/dateFormatter';
@@ -234,15 +235,8 @@ export async function generateFacture(
   client: Client,
   prestations: Prestation[]
 ): Promise<string> {
-  const templateId = import.meta.env.VITE_TEMPLATE_FACTURE_ID;
-  const folderId = import.meta.env.VITE_DRIVE_FOLDER_FACTURES_ID;
-
-  if (!templateId) {
-    throw new Error('Template facture ID not configured. Please set VITE_TEMPLATE_FACTURE_ID in .env');
-  }
-  if (!folderId) {
-    throw new Error('Factures folder ID not configured. Please set VITE_DRIVE_FOLDER_FACTURES_ID in .env');
-  }
+  const templateId = getConfigValue('templateFactureId');
+  const folderId = getConfigValue('folderFacturesId');
 
   try {
     // Get or create year subfolder
@@ -300,15 +294,8 @@ export async function generateRecu(
     throw new Error('Cannot generate reçu: payment not yet encaissé');
   }
 
-  const templateId = import.meta.env.VITE_TEMPLATE_RECU_ID;
-  const folderId = import.meta.env.VITE_DRIVE_FOLDER_RECUS_ID;
-
-  if (!templateId) {
-    throw new Error('Template reçu ID not configured. Please set VITE_TEMPLATE_RECU_ID in .env');
-  }
-  if (!folderId) {
-    throw new Error('Reçus folder ID not configured. Please set VITE_DRIVE_FOLDER_RECUS_ID in .env');
-  }
+  const templateId = getConfigValue('templateRecuId');
+  const folderId = getConfigValue('folderRecusId');
 
   try {
     // Get or create year subfolder

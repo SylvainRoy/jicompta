@@ -118,6 +118,7 @@ export const ROUTES = {
   PAIEMENTS: '/paiements',
   PAIEMENTS_NEW: '/paiements/new',
   PAIEMENTS_EDIT: '/paiements/:id',
+  SETTINGS: '/settings',
 } as const;
 
 // Template placeholders for PDF generation

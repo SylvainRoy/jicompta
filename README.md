@@ -1,82 +1,81 @@
 # ComptaClaude
 
-Application de gestion comptable pour petites entreprises françaises.
+Application de gestion comptable pour petites entreprises françaises avec configuration automatique.
+
+## ✨ Caractéristiques principales
+
+- **Configuration automatique**: Setup complet en 10 secondes via un wizard interactif
+- **Multi-utilisateurs**: Chaque utilisateur a ses propres données dans son Google Drive
+- **Génération de PDF**: Factures et reçus générés automatiquement avec templates personnalisables
+- **Mobile-first**: Interface responsive optimisée pour smartphones et tablettes
+- **Sans backend**: Toutes les données restent dans Google Drive de l'utilisateur
 
 ## 🚀 Technologies
 
 - **Frontend**: React 18 + TypeScript
 - **Build Tool**: Vite
-- **Styling**: Tailwind CSS
+- **Styling**: Tailwind CSS v3
 - **Routing**: React Router v6
 - **State Management**: React Context API + Hooks
 - **APIs**: Google OAuth 2.0, Google Sheets, Google Docs, Google Drive
 
-## 📦 Installation
+## 📦 Installation rapide
 
 ### Prérequis
 
 - Node.js 18+ et npm
-- Un compte Google
-- Accès à Google Cloud Console
+- Un compte Google Cloud avec OAuth 2.0 configuré
 
-### Étapes d'installation
+### Installation en 3 étapes
 
-1. **Cloner et installer les dépendances**
+1. **Cloner et installer**
 
 ```bash
+git clone <repository-url>
 cd comptaclaude
 npm install
 ```
 
-2. **Configuration Google Cloud**
+2. **Configurer Google OAuth**
 
 - Créer un projet sur [Google Cloud Console](https://console.cloud.google.com)
-- Activer les APIs:
-  - Google Sheets API
-  - Google Docs API
-  - Google Drive API
-- Créer un OAuth 2.0 Client ID (Type: Application Web)
-- Ajouter les URIs autorisés:
-  - `http://localhost:5173` (développement)
-  - Votre domaine de production
+- Activer les APIs: Google Sheets, Google Docs, Google Drive
+- Créer un OAuth 2.0 Client ID (Application Web)
+- Copier le Client ID
 
-3. **Configuration Google Sheets**
-
-- Créer un nouveau Google Sheet
-- Créer 4 onglets avec les noms exacts:
-  - `Clients`
-  - `TypeDePrestation`
-  - `Prestation`
-  - `Paiement`
-- Ajouter les en-têtes de colonnes (ligne 1) selon la structure définie dans `specification.md`
-
-4. **Configuration des variables d'environnement**
-
-Copier `.env.example` vers `.env` et remplir les valeurs:
+3. **Configurer l'environnement**
 
 ```bash
 cp .env.example .env
 ```
 
-Modifier `.env` avec vos propres valeurs:
+Modifier `.env` avec votre Client ID:
 
 ```env
-VITE_GOOGLE_CLIENT_ID=your_google_client_id.apps.googleusercontent.com
-VITE_GOOGLE_REDIRECT_URI=http://localhost:5173
-VITE_SPREADSHEET_ID=your_google_sheet_id
-VITE_TEMPLATE_FACTURE_ID=your_facture_template_doc_id
-VITE_TEMPLATE_RECU_ID=your_recu_template_doc_id
-VITE_DRIVE_FOLDER_FACTURES_ID=your_factures_folder_id
-VITE_DRIVE_FOLDER_RECUS_ID=your_recus_folder_id
+VITE_GOOGLE_CLIENT_ID=votre-client-id.apps.googleusercontent.com
 ```
 
-5. **Lancer l'application**
+**C'est tout!** Lancez l'application:
 
 ```bash
 npm run dev
 ```
 
 L'application sera accessible sur http://localhost:5173
+
+## 👤 Premier utilisateur
+
+1. Cliquez sur "Se connecter avec Google"
+2. Autorisez les permissions
+3. Le **Setup Wizard** crée automatiquement:
+   - Un tableur ComptaClaude dans votre Drive
+   - Des templates de factures et reçus personnalisables
+   - Une structure de dossiers organisée
+4. Vous êtes prêt à utiliser l'application!
+
+**Durée totale**: ~10-15 secondes
+
+Consultez [INSTALLATION.md](./docs/INSTALLATION.md) pour plus de détails.
 
 ## 📂 Structure du Projet
 
@@ -95,35 +94,46 @@ src/
 └── constants/          # Constantes
 ```
 
-## ✅ Fonctionnalités Implémentées
+## ✅ Fonctionnalités
 
-### Phase 1 - Infrastructure (✅ Terminé)
+### Infrastructure et Configuration (✅ Complet)
 
-- ✅ Setup projet Vite + React + TypeScript + Tailwind
-- ✅ Configuration Google OAuth
-- ✅ Structure de dossiers et architecture
-- ✅ Types TypeScript complets
-- ✅ Utilitaires (formatage dates, montants, validateurs)
-- ✅ Service d'authentification Google
-- ✅ AuthContext avec gestion de session
-- ✅ Service d'intégration Google Sheets
-- ✅ Composants UI communs (Button, Input, Modal, Loading, Toast)
-- ✅ Système de notifications
-- ✅ Layout principal (Header, Sidebar)
-- ✅ Page de connexion
-- ✅ Routing avec routes protégées
-- ✅ Pages placeholder (Dashboard, Clients, Types, Prestations, Paiements)
+- ✅ Setup automatique via wizard interactif
+- ✅ Création automatique du spreadsheet et des templates
+- ✅ Configuration stockée en localStorage
+- ✅ Détection et chargement de configuration existante
+- ✅ Page Paramètres pour gérer la configuration
+- ✅ Google OAuth 2.0 avec gestion de session
+- ✅ Système de notifications toast
 
-### Phase 2 - À Implémenter
+### Gestion des données (✅ Complet)
 
-- ⏳ CRUD complet pour Clients
-- ⏳ CRUD complet pour Types de Prestations
-- ⏳ CRUD complet pour Prestations
-- ⏳ CRUD complet pour Paiements
-- ⏳ Tableau de bord avec statistiques
-- ⏳ Service de génération de PDFs (factures/reçus)
-- ⏳ Filtres et recherche avancés
-- ⏳ Graphiques et visualisations
+- ✅ **Clients**: CRUD complet avec validation
+- ✅ **Types de Prestations**: CRUD complet avec montants suggérés
+- ✅ **Prestations**: CRUD complet avec calcul automatique des statuts
+- ✅ **Paiements**: CRUD complet avec liens vers prestations
+- ✅ Filtres et recherche sur toutes les pages
+- ✅ Intégration Google Sheets en temps réel
+
+### Génération de documents (✅ Complet)
+
+- ✅ Génération automatique de factures en PDF
+- ✅ Génération automatique de reçus en PDF
+- ✅ Templates personnalisables dans Google Docs
+- ✅ Stockage organisé par année dans Google Drive
+- ✅ Variables dynamiques (client, montant, date, etc.)
+- ✅ Boutons contextuels (Générer/Voir selon l'état)
+- ✅ Indicateurs de chargement pendant la génération
+
+### Interface utilisateur (✅ Complet)
+
+- ✅ Design mobile-first responsive
+- ✅ Vue carte (mobile) et tableau (desktop)
+- ✅ Navigation intuitive avec sidebar
+- ✅ Tableau de bord avec statistiques et graphiques
+- ✅ Formulaires avec validation en temps réel
+- ✅ Modales pour création/édition
+- ✅ États de chargement et messages d'erreur
 
 ## 🔧 Scripts Disponibles
 
@@ -136,16 +146,12 @@ npm run lint         # Linter le code
 
 ## 📖 Documentation
 
-- Spécifications complètes: `specification.md`
-- Types TypeScript: `src/types/index.ts`
-- Constantes: `src/constants/index.ts`
-
-## 🔐 Sécurité
-
-- L'authentification utilise Google OAuth 2.0
-- Les tokens sont stockés localement dans localStorage
-- Les tokens expirent automatiquement après 1 heure
-- Validation automatique des tokens au chargement
+- [Installation complète](./docs/INSTALLATION.md) - Guide d'installation détaillé
+- [Configuration Google](./docs/GOOGLE_SETUP.md) - Setup Google Cloud Console
+- [Templates](./docs/TEMPLATES_SETUP.md) - Variables disponibles pour factures/reçus
+- [Test mobile](./docs/MOBILE_TEST_NGROK.md) - Tester sur mobile avec ngrok
+- [Spécifications](./docs/specification.md) - Spécifications fonctionnelles complètes
+- [Progression](./docs/PROGRESS.md) - État d'avancement du projet
 
 ## 🌐 Déploiement
 
@@ -164,11 +170,13 @@ npm run lint         # Linter le code
 3. Configurer les variables d'environnement
 4. Mettre à jour les URIs autorisés dans Google Cloud
 
-## 🐛 Problèmes Connus
+## 🔐 Sécurité et Confidentialité
 
-- Les templates Google Docs pour factures/reçus doivent être créés manuellement
-- Le service de génération de PDF n'est pas encore implémenté
-- Les pages CRUD sont des placeholders
+- **Aucun backend**: L'application ne stocke aucune donnée sur un serveur tiers
+- **Données personnelles**: Tout reste dans le Google Drive de l'utilisateur
+- **Configuration locale**: Les IDs sont stockés uniquement dans le navigateur
+- **OAuth sécurisé**: Authentification via Google OAuth 2.0
+- **Multi-utilisateurs**: Isolation complète entre utilisateurs
 
 ## 📝 Notes de Développement
 

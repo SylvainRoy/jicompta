@@ -139,7 +139,7 @@ export function isRequired(value: string): boolean {
  * Validate minimum length
  */
 export function hasMinLength(value: string, minLength: number): boolean {
-  return value && value.length >= minLength;
+  return !!(value && value.length >= minLength);
 }
 
 /**

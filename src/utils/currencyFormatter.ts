@@ -74,8 +74,8 @@ export function roundCurrency(amount: number): number {
  * Calculate total from an array of amounts
  */
 export function calculateTotal(amounts: (number | string)[]): number {
-  const total = amounts.reduce((sum, amount) => {
-    const num = typeof amount === 'string' ? parseCurrency(amount) : amount;
+  const total = amounts.reduce<number>((sum, amount) => {
+    const num: number = typeof amount === 'string' ? parseCurrency(amount) : amount;
     return sum + (isNaN(num) ? 0 : num);
   }, 0);
 

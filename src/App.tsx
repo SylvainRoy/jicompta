@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { NotificationProvider } from '@/contexts/NotificationContext';
+import { ConfigProvider } from '@/contexts/ConfigContext';
 import { DataProvider } from '@/contexts/DataContext';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import Layout from '@/components/layout/Layout';
@@ -16,6 +17,7 @@ import Clients from '@/pages/Clients';
 import TypesPrestations from '@/pages/TypesPrestations';
 import Prestations from '@/pages/Prestations';
 import Paiements from '@/pages/Paiements';
+import Settings from '@/pages/Settings';
 import { ROUTES } from '@/constants';
 
 function App() {
@@ -26,10 +28,11 @@ function App() {
       <BrowserRouter>
         <AuthProvider>
           <NotificationProvider>
-            <DataProvider>
-              <Routes>
-            {/* Public Routes */}
-            <Route path={ROUTES.LOGIN} element={<Login />} />
+            <ConfigProvider>
+              <DataProvider>
+                <Routes>
+              {/* Public Routes */}
+              <Route path={ROUTES.LOGIN} element={<Login />} />
 
             {/* Protected Routes */}
             <Route
@@ -87,13 +90,25 @@ function App() {
               }
             />
 
+            <Route
+              path={ROUTES.SETTINGS}
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <Settings />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+
             {/* Default Route */}
             <Route path="/" element={<Navigate to={ROUTES.DASHBOARD} replace />} />
 
             {/* 404 - Redirect to dashboard */}
             <Route path="*" element={<Navigate to={ROUTES.DASHBOARD} replace />} />
-              </Routes>
-            </DataProvider>
+                </Routes>
+              </DataProvider>
+            </ConfigProvider>
           </NotificationProvider>
         </AuthProvider>
       </BrowserRouter>

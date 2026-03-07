@@ -4,6 +4,7 @@
  */
 
 import { getAccessToken } from './googleAuth';
+import { getConfigValue } from './googleSetup';
 import { SHEET_TABS } from '@/constants';
 import type {
   Client,
@@ -13,7 +14,6 @@ import type {
   GoogleSheetsResponse,
 } from '@/types';
 
-const SPREADSHEET_ID = import.meta.env.VITE_SPREADSHEET_ID;
 const BASE_URL = 'https://sheets.googleapis.com/v4/spreadsheets';
 
 /**
@@ -30,7 +30,8 @@ async function sheetsRequest<T>(
     throw new Error('Not authenticated');
   }
 
-  const url = `${BASE_URL}/${SPREADSHEET_ID}${endpoint}`;
+  const spreadsheetId = getConfigValue('spreadsheetId');
+  const url = `${BASE_URL}/${spreadsheetId}${endpoint}`;
   const options: RequestInit = {
     method,
     headers: {
