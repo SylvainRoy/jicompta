@@ -204,6 +204,9 @@ export async function createSpreadsheet(): Promise<string> {
 
   const spreadsheetId = spreadsheet.spreadsheetId;
 
+  // Get the actual sheet IDs from the response
+  const sheetIds = spreadsheet.sheets.map((sheet: any) => sheet.properties.sheetId);
+
   // Add headers to each sheet
   const updates = [
     {
@@ -229,78 +232,27 @@ export async function createSpreadsheet(): Promise<string> {
     data: updates,
   });
 
-  // Format headers (bold)
+  // Format headers (bold) using the actual sheet IDs
+  const formatRequests = sheetIds.map((sheetId: number) => ({
+    repeatCell: {
+      range: {
+        sheetId,
+        startRowIndex: 0,
+        endRowIndex: 1,
+      },
+      cell: {
+        userEnteredFormat: {
+          textFormat: {
+            bold: true,
+          },
+        },
+      },
+      fields: 'userEnteredFormat.textFormat.bold',
+    },
+  }));
+
   await sheetsRequest(`/${spreadsheetId}:batchUpdate`, 'POST', {
-    requests: [
-      {
-        repeatCell: {
-          range: {
-            sheetId: 0, // Clients
-            startRowIndex: 0,
-            endRowIndex: 1,
-          },
-          cell: {
-            userEnteredFormat: {
-              textFormat: {
-                bold: true,
-              },
-            },
-          },
-          fields: 'userEnteredFormat.textFormat.bold',
-        },
-      },
-      {
-        repeatCell: {
-          range: {
-            sheetId: 1, // TypesPrestations
-            startRowIndex: 0,
-            endRowIndex: 1,
-          },
-          cell: {
-            userEnteredFormat: {
-              textFormat: {
-                bold: true,
-              },
-            },
-          },
-          fields: 'userEnteredFormat.textFormat.bold',
-        },
-      },
-      {
-        repeatCell: {
-          range: {
-            sheetId: 2, // Prestations
-            startRowIndex: 0,
-            endRowIndex: 1,
-          },
-          cell: {
-            userEnteredFormat: {
-              textFormat: {
-                bold: true,
-              },
-            },
-          },
-          fields: 'userEnteredFormat.textFormat.bold',
-        },
-      },
-      {
-        repeatCell: {
-          range: {
-            sheetId: 3, // Paiements
-            startRowIndex: 0,
-            endRowIndex: 1,
-          },
-          cell: {
-            userEnteredFormat: {
-              textFormat: {
-                bold: true,
-              },
-            },
-          },
-          fields: 'userEnteredFormat.textFormat.bold',
-        },
-      },
-    ],
+    requests: formatRequests,
   });
 
   return spreadsheetId;
