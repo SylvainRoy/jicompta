@@ -3,7 +3,7 @@
  * Manages user-specific configuration stored in localStorage
  */
 
-import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode, useCallback, useMemo } from 'react';
 import type { SetupConfig } from '@/services/googleSetup';
 
 const CONFIG_STORAGE_KEY = 'comptaclaude_config';
@@ -88,7 +88,7 @@ export function ConfigProvider({ children }: ConfigProviderProps) {
     return config.folderRecusId;
   }, [config]);
 
-  const value: ConfigContextValue = {
+  const value: ConfigContextValue = useMemo(() => ({
     config,
     isConfigured: config !== null,
     saveConfig,
@@ -98,7 +98,16 @@ export function ConfigProvider({ children }: ConfigProviderProps) {
     getTemplateRecuId,
     getFolderFacturesId,
     getFolderRecusId,
-  };
+  }), [
+    config,
+    saveConfig,
+    clearConfig,
+    getSpreadsheetId,
+    getTemplateFactureId,
+    getTemplateRecuId,
+    getFolderFacturesId,
+    getFolderRecusId,
+  ]);
 
   return (
     <ConfigContext.Provider value={value}>

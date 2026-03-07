@@ -19,6 +19,7 @@ export default function Login() {
   const { isConfigured, saveConfig } = useConfig();
   const [showSetupWizard, setShowSetupWizard] = useState(false);
   const [isSearchingConfig, setIsSearchingConfig] = useState(false);
+  const [configFound, setConfigFound] = useState(false);
   const hasSearched = useRef(false);
 
   // Search for existing config in Drive
@@ -38,18 +39,19 @@ export default function Login() {
       if (existingConfig) {
         console.log('✅ Configuration trouvée dans Drive!');
         saveConfig(existingConfig);
-        navigate(ROUTES.DASHBOARD);
+        setIsSearchingConfig(false);
+        setConfigFound(true); // Signal that config was found
       } else {
         console.log('❌ Aucune configuration trouvée, affichage du wizard');
+        setIsSearchingConfig(false);
         setShowSetupWizard(true);
       }
     } catch (error) {
       console.error('❌ Erreur lors de la recherche de configuration:', error);
-      setShowSetupWizard(true);
-    } finally {
       setIsSearchingConfig(false);
+      setShowSetupWizard(true);
     }
-  }, [isSearchingConfig, saveConfig, navigate]);
+  }, [isSearchingConfig, saveConfig]);
 
   // Google Login Hook
   const googleLogin = useGoogleLogin({
@@ -72,17 +74,27 @@ export default function Login() {
     scope: 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/documents https://www.googleapis.com/auth/drive',
   });
 
-  // Redirect if already authenticated and configured
+  // Navigate to dashboard when config is found and fully loaded
   useEffect(() => {
-    if (isAuthenticated) {
-      if (!isConfigured && !hasSearched.current && !isSearchingConfig) {
-        // Search in Drive before showing wizard
-        searchForConfig();
-      } else if (isConfigured) {
-        navigate(ROUTES.DASHBOARD);
-      }
+    if (configFound && isConfigured) {
+      console.log('🎯 Navigation vers le dashboard avec la config chargée');
+      navigate(ROUTES.DASHBOARD);
     }
-  }, [isAuthenticated, isConfigured, isSearchingConfig, searchForConfig, navigate]);
+  }, [configFound, isConfigured, navigate]);
+
+  // Trigger search when authenticated but not configured
+  useEffect(() => {
+    if (isAuthenticated && !isConfigured && !hasSearched.current && !isSearchingConfig && !configFound) {
+      searchForConfig();
+    }
+  }, [isAuthenticated, isConfigured, isSearchingConfig, configFound]);
+
+  // Navigate immediately if already configured from localStorage
+  useEffect(() => {
+    if (isAuthenticated && isConfigured && !configFound) {
+      navigate(ROUTES.DASHBOARD);
+    }
+  }, [isAuthenticated, isConfigured, configFound, navigate]);
 
   if (isLoading) {
     return (
