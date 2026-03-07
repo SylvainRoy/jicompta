@@ -274,7 +274,7 @@ export async function createSpreadsheet(folderId: string): Promise<string> {
  * Create a template document (facture or reçu)
  */
 export async function createTemplate(type: 'facture' | 'recu', folderId: string): Promise<string> {
-  const title = type === 'facture' ? 'Template Facture' : 'Template Reçu';
+  const title = type === 'facture' ? 'Modèle de Facture' : 'Modèle de Reçu';
 
   // Create the document
   const doc = await docsRequest('/documents', 'POST', {
@@ -403,7 +403,7 @@ export async function checkExistingSetup(): Promise<SetupConfig | null> {
     }
 
     // Find templates in Modeles folder
-    const templateQuery = `'${templatesFolder.id}' in parents and name contains 'Template' and mimeType='application/vnd.google-apps.document' and trashed=false`;
+    const templateQuery = `'${templatesFolder.id}' in parents and name contains 'Modèle' and mimeType='application/vnd.google-apps.document' and trashed=false`;
     const templatesResponse = await driveRequest(`/files?q=${encodeURIComponent(templateQuery)}&fields=files(id,name)`);
 
     const factureTemplate = templatesResponse.files?.find((f: any) => f.name.includes('Facture'));

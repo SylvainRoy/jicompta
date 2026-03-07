@@ -75,8 +75,8 @@ L'application sera accessible sur `http://localhost:5173`
    - Un dossier `Comptabilite/` dans Google Drive
    - Un tableur `Comptabilite/Compta` avec 4 onglets (Clients, TypesPrestations, Prestations, Paiements)
    - Des modèles dans `Comptabilite/Modeles/`:
-     - Template Facture (personnalisable)
-     - Template Reçu (personnalisable)
+     - Modèle de Facture (personnalisable)
+     - Modèle de Reçu (personnalisable)
    - Des sous-dossiers:
      - `Comptabilite/Factures/` (pour les factures générées)
      - `Comptabilite/Recus/` (pour les reçus générés)
@@ -90,8 +90,8 @@ L'application sera accessible sur `http://localhost:5173`
 Après le setup, l'utilisateur peut personnaliser ses templates:
 
 1. Aller dans "Paramètres"
-2. Cliquer sur "Ouvrir" à côté de "Template Facture" ou "Template Reçu"
-3. Modifier le template dans Google Docs (formatage, logo, informations légales, etc.)
+2. Cliquer sur "Ouvrir" à côté de "Modèle de Facture" ou "Modèle de Reçu"
+3. Modifier le modèle dans Google Docs (formatage, logo, informations légales, etc.)
 4. Sauvegarder - les changements seront appliqués aux prochaines factures/reçus
 
 ## 🌐 Déploiement en production
