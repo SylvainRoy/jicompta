@@ -137,7 +137,7 @@ async function createFolder(name: string, parentId?: string): Promise<string> {
 }
 
 /**
- * Create the folder structure: Comptabilite/Factures, Comptabilite/Recus, and Comptabilite/Templates
+ * Create the folder structure: Comptabilite/Factures, Comptabilite/Recus, and Comptabilite/Modeles
  */
 export async function createFolderStructure(): Promise<{
   folderComptabiliteId: string;
@@ -151,7 +151,7 @@ export async function createFolderStructure(): Promise<{
   // Create subfolders
   const folderFacturesId = await createFolder('Factures', folderComptabiliteId);
   const folderRecusId = await createFolder('Recus', folderComptabiliteId);
-  const folderTemplatesId = await createFolder('Templates', folderComptabiliteId);
+  const folderTemplatesId = await createFolder('Modeles', folderComptabiliteId);
 
   return {
     folderComptabiliteId,
@@ -390,19 +390,19 @@ export async function checkExistingSetup(): Promise<SetupConfig | null> {
 
     const spreadsheetId = spreadsheetResponse.files[0].id;
 
-    // Find subfolders (Factures, Recus, Templates)
+    // Find subfolders (Factures, Recus, Modeles)
     const subfolderQuery = `'${folderComptabiliteId}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`;
     const subfoldersResponse = await driveRequest(`/files?q=${encodeURIComponent(subfolderQuery)}&fields=files(id,name)`);
 
     const facturesFolder = subfoldersResponse.files?.find((f: any) => f.name === 'Factures');
     const recusFolder = subfoldersResponse.files?.find((f: any) => f.name === 'Recus');
-    const templatesFolder = subfoldersResponse.files?.find((f: any) => f.name === 'Templates');
+    const templatesFolder = subfoldersResponse.files?.find((f: any) => f.name === 'Modeles');
 
     if (!facturesFolder || !recusFolder || !templatesFolder) {
       return null;
     }
 
-    // Find templates in Templates folder
+    // Find templates in Modeles folder
     const templateQuery = `'${templatesFolder.id}' in parents and name contains 'Template' and mimeType='application/vnd.google-apps.document' and trashed=false`;
     const templatesResponse = await driveRequest(`/files?q=${encodeURIComponent(templateQuery)}&fields=files(id,name)`);
 

@@ -137,7 +137,7 @@ export default function SetupWizard({ onComplete }: SetupWizardProps) {
                     clipRule="evenodd"
                   />
                 </svg>
-                <span>Des templates personnalisables dans <strong>Templates/</strong></span>
+                <span>Des modèles personnalisables dans <strong>Modeles/</strong></span>
               </li>
               <li className="flex items-start gap-2">
                 <svg className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">

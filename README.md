@@ -70,7 +70,7 @@ L'application sera accessible sur http://localhost:5173
 3. Le **Setup Wizard** crée automatiquement:
    - Un dossier `Comptabilite/` dans votre Drive
    - Un tableur `Compta` avec la structure complète
-   - Des templates dans `Comptabilite/Templates/`
+   - Des modèles dans `Comptabilite/Modeles/`
    - Des dossiers pour factures et reçus
 4. Vous êtes prêt à utiliser l'application!
 

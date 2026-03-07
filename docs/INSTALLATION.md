@@ -74,7 +74,7 @@ L'application sera accessible sur `http://localhost:5173`
 3. **Setup automatique**: Un wizard apparaît et crée automatiquement:
    - Un dossier `Comptabilite/` dans Google Drive
    - Un tableur `Comptabilite/Compta` avec 4 onglets (Clients, TypesPrestations, Prestations, Paiements)
-   - Des templates dans `Comptabilite/Templates/`:
+   - Des modèles dans `Comptabilite/Modeles/`:
      - Template Facture (personnalisable)
      - Template Reçu (personnalisable)
    - Des sous-dossiers:
