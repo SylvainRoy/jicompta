@@ -9,6 +9,7 @@ import * as sheetsService from '@/services/googleSheets';
 import * as docsService from '@/services/googleDocs';
 import { generatePaiementID } from '@/utils/validators';
 import { useAuth } from './AuthContext';
+import { useConfig } from './ConfigContext';
 import { useNotification } from './NotificationContext';
 
 interface DataState {
@@ -60,6 +61,7 @@ interface DataProviderProps {
 
 export function DataProvider({ children }: DataProviderProps) {
   const { isAuthenticated } = useAuth();
+  const { isConfigured } = useConfig();
   const { error: notifyError, success: notifySuccess } = useNotification();
 
   const [state, setState] = useState<DataState>({
@@ -71,12 +73,40 @@ export function DataProvider({ children }: DataProviderProps) {
     error: null,
   });
 
-  // Load all data when authenticated
+  // Declare refreshAll first (hoisted for use in useEffect)
+  const refreshAll = useCallback(async () => {
+    setState((prev) => ({ ...prev, isLoading: true, error: null }));
+
+    try {
+      const [clientsRes, typesRes, prestationsRes, paiementsRes] = await Promise.all([
+        sheetsService.getClients(),
+        sheetsService.getTypesPrestations(),
+        sheetsService.getPrestations(),
+        sheetsService.getPaiements(),
+      ]);
+
+      setState({
+        clients: clientsRes.data,
+        typesPrestations: typesRes.data,
+        prestations: prestationsRes.data,
+        paiements: paiementsRes.data,
+        isLoading: false,
+        error: null,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to load data';
+      setState((prev) => ({ ...prev, error: message, isLoading: false }));
+      notifyError(message);
+    }
+  }, [notifyError]);
+
+  // Load all data when authenticated and configured
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && isConfigured) {
+      console.log('🔄 DataContext: Chargement des données (auth + config OK)');
       refreshAll();
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, isConfigured, refreshAll]);
 
   // ==================== CLIENTS ====================
 
@@ -436,32 +466,7 @@ export function DataProvider({ children }: DataProviderProps) {
   }, [state.paiements, state.clients, state.prestations, refreshPaiements, notifyError, notifySuccess]);
 
   // ==================== GLOBAL ====================
-
-  const refreshAll = useCallback(async () => {
-    setState((prev) => ({ ...prev, isLoading: true, error: null }));
-
-    try {
-      const [clientsRes, typesRes, prestationsRes, paiementsRes] = await Promise.all([
-        sheetsService.getClients(),
-        sheetsService.getTypesPrestations(),
-        sheetsService.getPrestations(),
-        sheetsService.getPaiements(),
-      ]);
-
-      setState({
-        clients: clientsRes.data,
-        typesPrestations: typesRes.data,
-        prestations: prestationsRes.data,
-        paiements: paiementsRes.data,
-        isLoading: false,
-        error: null,
-      });
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to load data';
-      setState((prev) => ({ ...prev, error: message, isLoading: false }));
-      notifyError(message);
-    }
-  }, [notifyError]);
+  // refreshAll is defined earlier in the file before useEffect
 
   const value: DataContextValue = {
     ...state,
