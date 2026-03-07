@@ -71,7 +71,10 @@ L'application sera accessible sur `http://localhost:5173`
 
 1. **Connexion**: L'utilisateur clique sur "Se connecter avec Google"
 2. **Autorisation**: Google demande les permissions (Sheets, Docs, Drive)
-3. **Setup automatique**: Un wizard apparaît et crée automatiquement:
+3. **Détection automatique**: L'application cherche automatiquement un dossier `Comptabilite/` dans Drive
+   - Si trouvé: La configuration est chargée automatiquement → Dashboard
+   - Si absent: Le wizard de setup apparaît
+4. **Setup automatique** (si nécessaire): Le wizard crée automatiquement:
    - Un dossier `Comptabilite/` dans Google Drive
    - Un tableur `Comptabilite/Compta` avec 4 onglets (Clients, TypesPrestations, Prestations, Paiements)
    - Des modèles dans `Comptabilite/Modeles/`:
@@ -80,8 +83,8 @@ L'application sera accessible sur `http://localhost:5173`
    - Des sous-dossiers:
      - `Comptabilite/Factures/` (pour les factures générées)
      - `Comptabilite/Recus/` (pour les reçus générés)
-4. **Configuration locale**: Les IDs des ressources créées sont stockés dans le localStorage du navigateur
-5. **Prêt**: L'utilisateur est redirigé vers le tableau de bord
+5. **Configuration locale**: Les IDs des ressources créées/trouvées sont stockés dans le localStorage du navigateur
+6. **Prêt**: L'utilisateur est redirigé vers le tableau de bord
 
 **Durée totale**: ~10-15 secondes
 
@@ -146,14 +149,20 @@ Pour forcer le wizard au prochain login:
 2. Cliquer sur "Effacer la configuration locale"
 3. Le wizard réapparaîtra à la prochaine connexion
 
-### Changement de navigateur
+### Changement de navigateur ou d'appareil
 
 Si un utilisateur change de navigateur ou d'appareil:
 
-- Le wizard se lancera automatiquement au premier login
-- Il détectera si une configuration existe déjà dans Drive
-- Si oui, il la chargera automatiquement
-- Si non, il créera une nouvelle configuration
+1. **Connexion**: L'utilisateur se connecte avec Google
+2. **Détection automatique**: L'application recherche automatiquement le dossier `Comptabilite/` dans son Drive
+3. **Chargement automatique**: Si trouvé, la configuration est chargée et l'utilisateur accède immédiatement au Dashboard
+4. **Setup si nécessaire**: Si le dossier n'existe pas, le wizard de création s'affiche
+
+**Avantages:**
+- ✅ Aucune manipulation manuelle nécessaire
+- ✅ Accès instantané à ses données sur n'importe quel appareil
+- ✅ Pas besoin de reconfigurer manuellement
+- ✅ Fonctionne même après avoir vidé le cache du navigateur
 
 ## 🔒 Sécurité et confidentialité
 

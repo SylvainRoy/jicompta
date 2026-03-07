@@ -2,11 +2,12 @@
  * Login Page - With Google OAuth
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGoogleLogin } from '@react-oauth/google';
 import { useAuth } from '@/contexts/AuthContext';
 import { useConfig } from '@/contexts/ConfigContext';
+import { checkExistingSetup } from '@/services/googleSetup';
 import Button from '@/components/common/Button';
 import Loading from '@/components/common/Loading';
 import SetupWizard from '@/components/SetupWizard';
@@ -15,8 +16,40 @@ import { ROUTES } from '@/constants';
 export default function Login() {
   const navigate = useNavigate();
   const { isAuthenticated, isLoading, error, handleGoogleSuccess } = useAuth();
-  const { isConfigured } = useConfig();
+  const { isConfigured, saveConfig } = useConfig();
   const [showSetupWizard, setShowSetupWizard] = useState(false);
+  const [isSearchingConfig, setIsSearchingConfig] = useState(false);
+  const hasSearched = useRef(false);
+
+  // Search for existing config in Drive
+  const searchForConfig = useCallback(async () => {
+    // Prevent multiple searches
+    if (hasSearched.current || isSearchingConfig) {
+      return;
+    }
+
+    hasSearched.current = true;
+    setIsSearchingConfig(true);
+
+    try {
+      console.log('🔍 Recherche de configuration dans Google Drive...');
+      const existingConfig = await checkExistingSetup();
+
+      if (existingConfig) {
+        console.log('✅ Configuration trouvée dans Drive!');
+        saveConfig(existingConfig);
+        navigate(ROUTES.DASHBOARD);
+      } else {
+        console.log('❌ Aucune configuration trouvée, affichage du wizard');
+        setShowSetupWizard(true);
+      }
+    } catch (error) {
+      console.error('❌ Erreur lors de la recherche de configuration:', error);
+      setShowSetupWizard(true);
+    } finally {
+      setIsSearchingConfig(false);
+    }
+  }, [isSearchingConfig, saveConfig, navigate]);
 
   // Google Login Hook
   const googleLogin = useGoogleLogin({
@@ -24,9 +57,10 @@ export default function Login() {
       console.log('✅ Google login success:', tokenResponse);
       const success = await handleGoogleSuccess(tokenResponse.access_token);
       if (success) {
-        // Check if config exists
+        // Check if config exists locally
         if (!isConfigured) {
-          setShowSetupWizard(true);
+          // Search in Drive before showing wizard
+          await searchForConfig();
         } else {
           navigate(ROUTES.DASHBOARD);
         }
@@ -41,18 +75,33 @@ export default function Login() {
   // Redirect if already authenticated and configured
   useEffect(() => {
     if (isAuthenticated) {
-      if (!isConfigured) {
-        setShowSetupWizard(true);
-      } else {
+      if (!isConfigured && !hasSearched.current && !isSearchingConfig) {
+        // Search in Drive before showing wizard
+        searchForConfig();
+      } else if (isConfigured) {
         navigate(ROUTES.DASHBOARD);
       }
     }
-  }, [isAuthenticated, isConfigured, navigate]);
+  }, [isAuthenticated, isConfigured, isSearchingConfig, searchForConfig, navigate]);
 
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <Loading size="lg" message="Chargement..." />
+      </div>
+    );
+  }
+
+  // Show loading while searching for config in Drive
+  if (isSearchingConfig) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <Loading size="lg" message="Recherche de votre configuration..." />
+          <p className="text-sm text-gray-500 mt-4">
+            Vérification dans Google Drive...
+          </p>
+        </div>
       </div>
     );
   }

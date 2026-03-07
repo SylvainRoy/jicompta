@@ -63,16 +63,20 @@ npm run dev
 
 L'application sera accessible sur http://localhost:5173
 
-## 👤 Premier utilisateur
+## 👤 Première utilisation
 
 1. Cliquez sur "Se connecter avec Google"
 2. Autorisez les permissions
-3. Le **Setup Wizard** crée automatiquement:
-   - Un dossier `Comptabilite/` dans votre Drive
-   - Un tableur `Compta` avec la structure complète
-   - Des modèles dans `Comptabilite/Modeles/`
-   - Des dossiers pour factures et reçus
+3. **L'application cherche automatiquement** dans votre Drive:
+   - Si un dossier `Comptabilite/` existe → Chargement automatique ✅
+   - Sinon → Le **Setup Wizard** crée tout automatiquement:
+     - Un dossier `Comptabilite/` dans votre Drive
+     - Un tableur `Compta` avec la structure complète
+     - Des modèles dans `Comptabilite/Modeles/`
+     - Des dossiers pour factures et reçus
 4. Vous êtes prêt à utiliser l'application!
+
+**Bonus:** Sur un autre appareil, connectez-vous simplement avec Google → vos données sont automatiquement chargées! 🎉
 
 **Durée totale**: ~10-15 secondes
 
