@@ -137,34 +137,37 @@ async function createFolder(name: string, parentId?: string): Promise<string> {
 }
 
 /**
- * Create the folder structure: Comptabilite/Factures and Comptabilite/Recus
+ * Create the folder structure: Comptabilite/Factures, Comptabilite/Recus, and Comptabilite/Templates
  */
 export async function createFolderStructure(): Promise<{
   folderComptabiliteId: string;
   folderFacturesId: string;
   folderRecusId: string;
+  folderTemplatesId: string;
 }> {
   // Create main Comptabilite folder
   const folderComptabiliteId = await createFolder('Comptabilite');
 
-  // Create Factures and Recus subfolders
+  // Create subfolders
   const folderFacturesId = await createFolder('Factures', folderComptabiliteId);
   const folderRecusId = await createFolder('Recus', folderComptabiliteId);
+  const folderTemplatesId = await createFolder('Templates', folderComptabiliteId);
 
   return {
     folderComptabiliteId,
     folderFacturesId,
     folderRecusId,
+    folderTemplatesId,
   };
 }
 
 /**
- * Create the ComptaClaude spreadsheet with all sheets and headers
+ * Create the Compta spreadsheet with all sheets and headers
  */
-export async function createSpreadsheet(): Promise<string> {
+export async function createSpreadsheet(folderId: string): Promise<string> {
   const spreadsheet = await sheetsRequest('', 'POST', {
     properties: {
-      title: 'ComptaClaude',
+      title: 'Compta',
     },
     sheets: [
       {
@@ -255,6 +258,15 @@ export async function createSpreadsheet(): Promise<string> {
     requests: formatRequests,
   });
 
+  // Move spreadsheet to Comptabilite folder
+  const file = await driveRequest(`/files/${spreadsheetId}?fields=parents`, 'GET');
+  const previousParents = file.parents ? file.parents.join(',') : '';
+
+  await driveRequest(
+    `/files/${spreadsheetId}?addParents=${folderId}&removeParents=${previousParents}`,
+    'PATCH'
+  );
+
   return spreadsheetId;
 }
 
@@ -262,7 +274,7 @@ export async function createSpreadsheet(): Promise<string> {
  * Create a template document (facture or reçu)
  */
 export async function createTemplate(type: 'facture' | 'recu', folderId: string): Promise<string> {
-  const title = type === 'facture' ? 'Template Facture ComptaClaude' : 'Template Reçu ComptaClaude';
+  const title = type === 'facture' ? 'Template Facture' : 'Template Reçu';
 
   // Create the document
   const doc = await docsRequest('/documents', 'POST', {
@@ -358,50 +370,59 @@ Mode d'encaissement: {{MODE_ENCAISSEMENT}}
  */
 export async function checkExistingSetup(): Promise<SetupConfig | null> {
   try {
-    // Search for "ComptaClaude" spreadsheet
-    const query = `name='ComptaClaude' and mimeType='application/vnd.google-apps.spreadsheet' and trashed=false`;
-    const response = await driveRequest(`/files?q=${encodeURIComponent(query)}&fields=files(id,name,createdTime)`);
+    // Search for Comptabilite folder first
+    const folderQuery = `name='Comptabilite' and mimeType='application/vnd.google-apps.folder' and trashed=false`;
+    const folderResponse = await driveRequest(`/files?q=${encodeURIComponent(folderQuery)}&fields=files(id,name)`);
 
-    if (response.files && response.files.length > 0) {
-      const spreadsheetId = response.files[0].id;
-
-      // Try to find the folders and templates
-      const folderQuery = `name='Comptabilite' and mimeType='application/vnd.google-apps.folder' and trashed=false`;
-      const folderResponse = await driveRequest(`/files?q=${encodeURIComponent(folderQuery)}&fields=files(id,name)`);
-
-      if (folderResponse.files && folderResponse.files.length > 0) {
-        const folderComptabiliteId = folderResponse.files[0].id;
-
-        // Find subfolders
-        const subfolderQuery = `'${folderComptabiliteId}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`;
-        const subfoldersResponse = await driveRequest(`/files?q=${encodeURIComponent(subfolderQuery)}&fields=files(id,name)`);
-
-        const facturesFolder = subfoldersResponse.files?.find((f: any) => f.name === 'Factures');
-        const recusFolder = subfoldersResponse.files?.find((f: any) => f.name === 'Recus');
-
-        // Find templates
-        const templateQuery = `name contains 'Template' and name contains 'ComptaClaude' and mimeType='application/vnd.google-apps.document' and trashed=false`;
-        const templatesResponse = await driveRequest(`/files?q=${encodeURIComponent(templateQuery)}&fields=files(id,name)`);
-
-        const factureTemplate = templatesResponse.files?.find((f: any) => f.name.includes('Facture'));
-        const recuTemplate = templatesResponse.files?.find((f: any) => f.name.includes('Reçu'));
-
-        if (facturesFolder && recusFolder && factureTemplate && recuTemplate) {
-          return {
-            spreadsheetId,
-            templateFactureId: factureTemplate.id,
-            templateRecuId: recuTemplate.id,
-            folderComptabiliteId,
-            folderFacturesId: facturesFolder.id,
-            folderRecusId: recusFolder.id,
-            setupDate: response.files[0].createdTime,
-            version: '1.0',
-          };
-        }
-      }
+    if (!folderResponse.files || folderResponse.files.length === 0) {
+      return null;
     }
 
-    return null;
+    const folderComptabiliteId = folderResponse.files[0].id;
+
+    // Search for "Compta" spreadsheet in Comptabilite folder
+    const spreadsheetQuery = `name='Compta' and '${folderComptabiliteId}' in parents and mimeType='application/vnd.google-apps.spreadsheet' and trashed=false`;
+    const spreadsheetResponse = await driveRequest(`/files?q=${encodeURIComponent(spreadsheetQuery)}&fields=files(id,name,createdTime)`);
+
+    if (!spreadsheetResponse.files || spreadsheetResponse.files.length === 0) {
+      return null;
+    }
+
+    const spreadsheetId = spreadsheetResponse.files[0].id;
+
+    // Find subfolders (Factures, Recus, Templates)
+    const subfolderQuery = `'${folderComptabiliteId}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`;
+    const subfoldersResponse = await driveRequest(`/files?q=${encodeURIComponent(subfolderQuery)}&fields=files(id,name)`);
+
+    const facturesFolder = subfoldersResponse.files?.find((f: any) => f.name === 'Factures');
+    const recusFolder = subfoldersResponse.files?.find((f: any) => f.name === 'Recus');
+    const templatesFolder = subfoldersResponse.files?.find((f: any) => f.name === 'Templates');
+
+    if (!facturesFolder || !recusFolder || !templatesFolder) {
+      return null;
+    }
+
+    // Find templates in Templates folder
+    const templateQuery = `'${templatesFolder.id}' in parents and name contains 'Template' and mimeType='application/vnd.google-apps.document' and trashed=false`;
+    const templatesResponse = await driveRequest(`/files?q=${encodeURIComponent(templateQuery)}&fields=files(id,name)`);
+
+    const factureTemplate = templatesResponse.files?.find((f: any) => f.name.includes('Facture'));
+    const recuTemplate = templatesResponse.files?.find((f: any) => f.name.includes('Reçu'));
+
+    if (!factureTemplate || !recuTemplate) {
+      return null;
+    }
+
+    return {
+      spreadsheetId,
+      templateFactureId: factureTemplate.id,
+      templateRecuId: recuTemplate.id,
+      folderComptabiliteId,
+      folderFacturesId: facturesFolder.id,
+      folderRecusId: recusFolder.id,
+      setupDate: spreadsheetResponse.files[0].createdTime,
+      version: '1.0',
+    };
   } catch (error) {
     console.error('Error checking existing setup:', error);
     return null;
@@ -420,16 +441,16 @@ export async function autoSetup(
     const folders = await createFolderStructure();
 
     // Step 2: Create spreadsheet
-    onProgress?.('Création du tableur ComptaClaude...', 40);
-    const spreadsheetId = await createSpreadsheet();
+    onProgress?.('Création du tableur Compta...', 40);
+    const spreadsheetId = await createSpreadsheet(folders.folderComptabiliteId);
 
     // Step 3: Create facture template
     onProgress?.('Création du template de facture...', 60);
-    const templateFactureId = await createTemplate('facture', folders.folderComptabiliteId);
+    const templateFactureId = await createTemplate('facture', folders.folderTemplatesId);
 
     // Step 4: Create reçu template
     onProgress?.('Création du template de reçu...', 80);
-    const templateRecuId = await createTemplate('recu', folders.folderComptabiliteId);
+    const templateRecuId = await createTemplate('recu', folders.folderTemplatesId);
 
     onProgress?.('Configuration terminée!', 100);
 

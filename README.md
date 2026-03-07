@@ -68,9 +68,10 @@ L'application sera accessible sur http://localhost:5173
 1. Cliquez sur "Se connecter avec Google"
 2. Autorisez les permissions
 3. Le **Setup Wizard** crée automatiquement:
-   - Un tableur ComptaClaude dans votre Drive
-   - Des templates de factures et reçus personnalisables
-   - Une structure de dossiers organisée
+   - Un dossier `Comptabilite/` dans votre Drive
+   - Un tableur `Compta` avec la structure complète
+   - Des templates dans `Comptabilite/Templates/`
+   - Des dossiers pour factures et reçus
 4. Vous êtes prêt à utiliser l'application!
 
 **Durée totale**: ~10-15 secondes

@@ -72,10 +72,14 @@ L'application sera accessible sur `http://localhost:5173`
 1. **Connexion**: L'utilisateur clique sur "Se connecter avec Google"
 2. **Autorisation**: Google demande les permissions (Sheets, Docs, Drive)
 3. **Setup automatique**: Un wizard apparaît et crée automatiquement:
-   - Un tableur "ComptaClaude" avec 4 onglets (Clients, TypesPrestations, Prestations, Paiements)
-   - Un template de facture personnalisable
-   - Un template de reçu personnalisable
-   - Une structure de dossiers: `Comptabilite/Factures` et `Comptabilite/Recus`
+   - Un dossier `Comptabilite/` dans Google Drive
+   - Un tableur `Comptabilite/Compta` avec 4 onglets (Clients, TypesPrestations, Prestations, Paiements)
+   - Des templates dans `Comptabilite/Templates/`:
+     - Template Facture (personnalisable)
+     - Template Reçu (personnalisable)
+   - Des sous-dossiers:
+     - `Comptabilite/Factures/` (pour les factures générées)
+     - `Comptabilite/Recus/` (pour les reçus générés)
 4. **Configuration locale**: Les IDs des ressources créées sont stockés dans le localStorage du navigateur
 5. **Prêt**: L'utilisateur est redirigé vers le tableau de bord
 

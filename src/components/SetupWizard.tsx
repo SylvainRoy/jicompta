@@ -117,7 +117,7 @@ export default function SetupWizard({ onComplete }: SetupWizardProps) {
                     clipRule="evenodd"
                   />
                 </svg>
-                <span>Un tableur pour vos données (Clients, Prestations, Paiements)</span>
+                <span>Un dossier <strong>Comptabilite/</strong> dans votre Drive</span>
               </li>
               <li className="flex items-start gap-2">
                 <svg className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
@@ -127,7 +127,7 @@ export default function SetupWizard({ onComplete }: SetupWizardProps) {
                     clipRule="evenodd"
                   />
                 </svg>
-                <span>Des templates de factures et reçus personnalisables</span>
+                <span>Un tableur <strong>Compta</strong> avec vos données (Clients, Prestations, Paiements)</span>
               </li>
               <li className="flex items-start gap-2">
                 <svg className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
@@ -137,7 +137,17 @@ export default function SetupWizard({ onComplete }: SetupWizardProps) {
                     clipRule="evenodd"
                   />
                 </svg>
-                <span>Une structure de dossiers organisée (Comptabilite/Factures/Recus)</span>
+                <span>Des templates personnalisables dans <strong>Templates/</strong></span>
+              </li>
+              <li className="flex items-start gap-2">
+                <svg className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                <span>Des sous-dossiers <strong>Factures/</strong> et <strong>Recus/</strong></span>
               </li>
             </ul>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
