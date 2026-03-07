@@ -180,7 +180,7 @@ export async function createSpreadsheet(folderId: string): Promise<string> {
       },
       {
         properties: {
-          title: 'TypesPrestations',
+          title: 'TypeDePrestation',
           gridProperties: {
             frozenRowCount: 1,
           },
@@ -188,7 +188,7 @@ export async function createSpreadsheet(folderId: string): Promise<string> {
       },
       {
         properties: {
-          title: 'Prestations',
+          title: 'Prestation',
           gridProperties: {
             frozenRowCount: 1,
           },
@@ -196,7 +196,7 @@ export async function createSpreadsheet(folderId: string): Promise<string> {
       },
       {
         properties: {
-          title: 'Paiements',
+          title: 'Paiement',
           gridProperties: {
             frozenRowCount: 1,
           },
@@ -213,19 +213,19 @@ export async function createSpreadsheet(folderId: string): Promise<string> {
   // Add headers to each sheet
   const updates = [
     {
-      range: 'Clients!A1:F1',
-      values: [['nom', 'email', 'telephone', 'adresse', 'numero_siret', 'commentaires']],
+      range: 'Clients!A1:E1',
+      values: [['nom', 'email', 'telephone', 'adresse', 'numero_siret']],
     },
     {
-      range: 'TypesPrestations!A1:C1',
-      values: [['nom', 'description', 'tarif_defaut']],
+      range: 'TypeDePrestation!A1:B1',
+      values: [['nom', 'montant_suggere']],
     },
     {
-      range: 'Prestations!A1:F1',
-      values: [['date', 'nom_client', 'type_prestation', 'montant', 'commentaires', 'paiement_id']],
+      range: 'Prestation!A1:E1',
+      values: [['date', 'nom_client', 'type_prestation', 'montant', 'paiement_id']],
     },
     {
-      range: 'Paiements!A1:G1',
+      range: 'Paiement!A1:G1',
       values: [['reference', 'client', 'total', 'date_encaissement', 'mode_encaissement', 'facture', 'recu']],
     },
   ];
