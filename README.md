@@ -180,6 +180,7 @@ npm run lint         # Lint the code
 
 - [Complete Installation](./docs/INSTALLATION.md) - Detailed installation guide
 - [Firebase Deployment](./docs/FIREBASE_DEPLOYMENT.md) - Complete Firebase Hosting guide
+- [Security Guide](./docs/SECURITY.md) - Credential management and GitHub deployment
 - [Google Configuration](./docs/GOOGLE_SETUP.md) - Google Cloud Console setup
 - [Templates](./docs/TEMPLATES_SETUP.md) - Available variables for invoices/receipts
 - [Mobile Testing](./docs/MOBILE_TEST_NGROK.md) - Test on mobile with ngrok
@@ -249,6 +250,9 @@ Your app will be live at: `https://jicompta.web.app`
   - Each user has their own `Comptabilite/` folder in their Drive
   - No possible interaction between accounts
   - Single shared Client ID (developer side), separate data (user side)
+- **Safe for GitHub**: Client ID is public by design, protected by OAuth redirect URI whitelist
+  - See [Security Guide](./docs/SECURITY.md) for detailed information
+  - Run `./check-security.sh` before pushing to verify no secrets are committed
 
 ## 🎉 Recent Improvements (March 2026)
 
