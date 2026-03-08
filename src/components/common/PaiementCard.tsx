@@ -10,6 +10,7 @@ interface PaiementCardProps {
   paiement: Paiement;
   prestationsCount: number;
   onEdit: () => void;
+  onDelete?: () => void;
   onGenerateFacture: () => void;
   onGenerateRecu: () => void;
   isGeneratingFacture?: boolean;
@@ -20,6 +21,7 @@ export default function PaiementCard({
   paiement,
   prestationsCount,
   onEdit,
+  onDelete,
   onGenerateFacture,
   onGenerateRecu,
   isGeneratingFacture = false,
@@ -111,6 +113,14 @@ export default function PaiementCard({
           >
             Modifier
           </button>
+          {!isEncaisse && onDelete && (
+            <button
+              onClick={onDelete}
+              className="flex-1 px-4 py-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
+            >
+              Supprimer
+            </button>
+          )}
         </div>
         <div className="flex gap-2">
           <button

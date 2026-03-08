@@ -23,6 +23,8 @@ export default function Paiements() {
     isLoading,
     addPaiement,
     updatePaiement,
+    deletePaiement,
+    updatePrestation,
     generateFactureForPaiement,
     generateRecuForPaiement,
   } = useData();
@@ -39,6 +41,10 @@ export default function Paiements() {
   } | null>(null);
   const [generatingFacture, setGeneratingFacture] = useState<number | null>(null);
   const [generatingRecu, setGeneratingRecu] = useState<number | null>(null);
+  const [deletingPaiement, setDeletingPaiement] = useState<{
+    paiement: Paiement;
+    index: number;
+  } | null>(null);
 
   // Filtered paiements based on search and status filter
   const filteredPaiements = useMemo(() => {
@@ -92,6 +98,39 @@ export default function Paiements() {
     if (editingPaiement) {
       await updatePaiement(editingPaiement.index, paiement);
       setEditingPaiement(null);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deletingPaiement) return;
+
+    const { paiement, index } = deletingPaiement;
+
+    // Cannot delete if payment has been received
+    if (paiement.date_encaissement) {
+      return;
+    }
+
+    try {
+      // Find all prestations linked to this payment
+      const linkedPrestations = prestations
+        .map((p, idx) => ({ prestation: p, index: idx }))
+        .filter(({ prestation }) => prestation.paiement_id === paiement.reference);
+
+      // Unlink prestations first
+      for (const { prestation, index: prestationIndex } of linkedPrestations) {
+        const updatedPrestation = { ...prestation, paiement_id: '' };
+        await updatePrestation(prestationIndex, updatedPrestation);
+      }
+
+      // Delete the payment
+      await deletePaiement(index);
+
+      // Close modal
+      setDeletingPaiement(null);
+    } catch (error) {
+      console.error('Error deleting payment:', error);
+      // Modal will stay open so user can retry or cancel
     }
   };
 
@@ -267,6 +306,7 @@ export default function Paiements() {
                   paiement={paiement}
                   prestationsCount={prestationsCount}
                   onEdit={() => setEditingPaiement({ paiement, index: actualIndex })}
+                  onDelete={() => setDeletingPaiement({ paiement, index: actualIndex })}
                   onGenerateFacture={() => handleGenerateFacture(paiement, actualIndex)}
                   onGenerateRecu={() => handleGenerateRecu(paiement, actualIndex)}
                   isGeneratingFacture={generatingFacture === actualIndex}
@@ -363,6 +403,16 @@ export default function Paiements() {
                             >
                               Modifier
                             </button>
+                            {!paiement.date_encaissement && (
+                              <button
+                                onClick={() =>
+                                  setDeletingPaiement({ paiement, index: actualIndex })
+                                }
+                                className="text-red-600 hover:text-red-900 transition-colors"
+                              >
+                                Supprimer
+                              </button>
+                            )}
                             <button
                               onClick={() => handleGenerateFacture(paiement, actualIndex)}
                               disabled={generatingFacture === actualIndex}
@@ -439,6 +489,39 @@ export default function Paiements() {
             onSubmit={handleEdit}
             onCancel={() => setEditingPaiement(null)}
           />
+        </Modal>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deletingPaiement && (
+        <Modal
+          isOpen={true}
+          onClose={() => setDeletingPaiement(null)}
+          title="Supprimer le paiement"
+          size="sm"
+        >
+          <div className="space-y-4">
+            <p className="text-gray-700">
+              Êtes-vous sûr de vouloir supprimer le paiement <span className="font-mono font-semibold">#{deletingPaiement.paiement.reference}</span> ?
+            </p>
+            <p className="text-sm text-gray-600">
+              Les prestations liées seront dissociées de ce paiement.
+            </p>
+            <div className="flex justify-end gap-3 pt-4">
+              <Button
+                onClick={() => setDeletingPaiement(null)}
+                variant="secondary"
+              >
+                Annuler
+              </Button>
+              <Button
+                onClick={handleDelete}
+                variant="danger"
+              >
+                Supprimer
+              </Button>
+            </div>
+          </div>
         </Modal>
       )}
     </div>

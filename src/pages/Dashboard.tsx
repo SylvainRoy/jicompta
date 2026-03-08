@@ -47,6 +47,17 @@ export default function Dashboard() {
       0
     );
 
+    // Paiements encaissés pour l'année courante
+    const paiementsEncaissesThisYear = encaissedPaiements.filter((p) => {
+      if (!p.date_encaissement) return false;
+      const year = parseInt(p.date_encaissement.split('-')[0], 10);
+      return year === currentYear;
+    });
+    const totalPaiementsEncaissesAnnee = paiementsEncaissesThisYear.reduce(
+      (sum, p) => sum + (Number(p.total) || 0),
+      0
+    );
+
     // Paiements en attente (without date_encaissement)
     const pendingPaiements = paiements.filter((p) => !p.date_encaissement);
     const nombrePaiementsEnAttente = pendingPaiements.length;
@@ -59,6 +70,7 @@ export default function Dashboard() {
       totalPrestations,
       totalPrestationsAnnee,
       totalPaiementsEncaisses,
+      totalPaiementsEncaissesAnnee,
       nombrePaiementsEnAttente,
       montantPaiementsEnAttente,
       totalPaid,
@@ -86,7 +98,7 @@ export default function Dashboard() {
         activities.push({
           type: 'prestation',
           date: p.date,
-          description: `Service ${p.type_prestation} - ${p.nom_client}`,
+          description: `Prestation ${p.type_prestation} - ${p.nom_client}`,
           amount: p.montant,
         });
       });
@@ -104,7 +116,7 @@ export default function Dashboard() {
         activities.push({
           type: 'paiement',
           date: p.date_encaissement || '', // Use reference date if no encaissement
-          description: `Payment #${p.reference} - ${p.client}`,
+          description: `Paiement #${p.reference} - ${p.client}`,
           amount: p.total,
         });
       });
@@ -118,7 +130,7 @@ export default function Dashboard() {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center py-12">
-        <Loading size="lg" message="Loading dashboard..." />
+        <Loading size="lg" message="Chargement du tableau de bord..." />
       </div>
     );
   }
@@ -126,7 +138,7 @@ export default function Dashboard() {
   return (
     <div className="w-full">
       <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-3 sm:mb-6">
-        Dashboard
+        Tableau de bord
       </h1>
 
       {/* Quick Stats Summary */}
@@ -136,7 +148,7 @@ export default function Dashboard() {
           <div className="flex items-start gap-2 mb-2">
             <div className="flex-1 min-w-0">
               <h3 className="text-xs sm:text-sm font-medium text-gray-500">
-                Total Services
+                Total des prestations
               </h3>
             </div>
             <svg className="w-6 h-6 sm:w-8 sm:h-8 text-blue-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -147,10 +159,10 @@ export default function Dashboard() {
             {formatCurrency(stats.totalPrestations)}
           </p>
           <p className="text-xs sm:text-sm text-gray-600 mt-1">
-            All time
+            Depuis le début
             {stats.totalPrestationsAnnee > 0 && (
               <span className="ml-2 text-blue-600">
-                ({formatCurrency(stats.totalPrestationsAnnee)} in {stats.currentYear})
+                ({formatCurrency(stats.totalPrestationsAnnee)} en {stats.currentYear})
               </span>
             )}
           </p>
@@ -161,7 +173,7 @@ export default function Dashboard() {
           <div className="flex items-start gap-2 mb-2">
             <div className="flex-1 min-w-0">
               <h3 className="text-xs sm:text-sm font-medium text-gray-500">
-                Received Payments
+                Paiements encaissés
               </h3>
             </div>
             <svg className="w-6 h-6 sm:w-8 sm:h-8 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -171,7 +183,14 @@ export default function Dashboard() {
           <p className="text-lg sm:text-2xl lg:text-3xl font-bold text-green-600 break-all">
             {formatCurrency(stats.totalPaiementsEncaisses)}
           </p>
-          <p className="text-xs sm:text-sm text-gray-600 mt-1">Total amount received</p>
+          <p className="text-xs sm:text-sm text-gray-600 mt-1">
+            Depuis le début
+            {stats.totalPaiementsEncaissesAnnee > 0 && (
+              <span className="ml-2 text-green-600">
+                ({formatCurrency(stats.totalPaiementsEncaissesAnnee)} en {stats.currentYear})
+              </span>
+            )}
+          </p>
         </div>
 
         {/* Pending Payments */}
@@ -179,7 +198,7 @@ export default function Dashboard() {
           <div className="flex items-start gap-2 mb-2">
             <div className="flex-1 min-w-0">
               <h3 className="text-xs sm:text-sm font-medium text-gray-500">
-                Pending Payments
+                Paiements en attente
               </h3>
             </div>
             <svg className="w-6 h-6 sm:w-8 sm:h-8 text-orange-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -190,7 +209,7 @@ export default function Dashboard() {
             {stats.nombrePaiementsEnAttente}
           </p>
           <p className="text-xs sm:text-sm text-gray-600 mt-1">
-            Unreceived payment{stats.nombrePaiementsEnAttente !== 1 ? 's' : ''}
+            Paiement{stats.nombrePaiementsEnAttente !== 1 ? 's' : ''} non encaissé{stats.nombrePaiementsEnAttente !== 1 ? 's' : ''}
           </p>
         </div>
 
@@ -199,7 +218,7 @@ export default function Dashboard() {
           <div className="flex items-start gap-2 mb-2">
             <div className="flex-1 min-w-0">
               <h3 className="text-xs sm:text-sm font-medium text-gray-500">
-                Pending Amount
+                Montant en attente
               </h3>
             </div>
             <svg className="w-6 h-6 sm:w-8 sm:h-8 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -209,7 +228,7 @@ export default function Dashboard() {
           <p className="text-lg sm:text-2xl lg:text-3xl font-bold text-gray-900 break-all">
             {formatCurrency(stats.montantPaiementsEnAttente)}
           </p>
-          <p className="text-xs sm:text-sm text-gray-600 mt-1">To be received</p>
+          <p className="text-xs sm:text-sm text-gray-600 mt-1">À encaisser</p>
         </div>
       </div>
 
@@ -218,7 +237,7 @@ export default function Dashboard() {
         <div className="bg-blue-50 border border-blue-200 p-3 sm:p-4 rounded-lg">
           <div className="flex items-center gap-2">
             <div className="flex-1 min-w-0">
-              <p className="text-xs sm:text-sm text-blue-600 font-medium">Active Clients</p>
+              <p className="text-xs sm:text-sm text-blue-600 font-medium">Clients actifs</p>
               <p className="text-xl sm:text-2xl font-bold text-blue-900 mt-1">{clients.length}</p>
             </div>
             <svg className="w-8 h-8 sm:w-10 sm:h-10 text-blue-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -230,7 +249,7 @@ export default function Dashboard() {
         <div className="bg-purple-50 border border-purple-200 p-3 sm:p-4 rounded-lg">
           <div className="flex items-center gap-2">
             <div className="flex-1 min-w-0">
-              <p className="text-xs sm:text-sm text-purple-600 font-medium">Service Types</p>
+              <p className="text-xs sm:text-sm text-purple-600 font-medium">Types de prestations</p>
               <p className="text-xl sm:text-2xl font-bold text-purple-900 mt-1">{typesPrestations.length}</p>
             </div>
             <svg className="w-8 h-8 sm:w-10 sm:h-10 text-purple-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -242,7 +261,7 @@ export default function Dashboard() {
         <div className="bg-yellow-50 border border-yellow-200 p-3 sm:p-4 rounded-lg">
           <div className="flex items-center gap-2">
             <div className="flex-1 min-w-0">
-              <p className="text-xs sm:text-sm text-yellow-600 font-medium">Unpaid Services</p>
+              <p className="text-xs sm:text-sm text-yellow-600 font-medium">Prestations non facturées</p>
               <p className="text-xl sm:text-2xl font-bold text-yellow-900 mt-1">{stats.unpaidPrestationsCount}</p>
             </div>
             <svg className="w-8 h-8 sm:w-10 sm:h-10 text-yellow-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -255,15 +274,15 @@ export default function Dashboard() {
       {/* Recent Activity */}
       <div className="bg-white rounded-lg shadow overflow-hidden">
         <div className="px-3 sm:px-6 py-3 sm:py-4 border-b border-gray-200">
-          <h2 className="text-base sm:text-lg lg:text-xl font-semibold text-gray-900">Recent Activity</h2>
+          <h2 className="text-base sm:text-lg lg:text-xl font-semibold text-gray-900">Activité récente</h2>
         </div>
         {recentActivity.length === 0 ? (
           <div className="px-3 sm:px-6 py-8 text-center">
             <svg className="w-12 h-12 text-gray-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
-            <p className="text-gray-600">No recent activity</p>
-            <p className="text-sm text-gray-500 mt-1">Create services and payments to see activity</p>
+            <p className="text-gray-600">Aucune activité récente</p>
+            <p className="text-sm text-gray-500 mt-1">Créez des prestations et paiements pour voir l'activité</p>
           </div>
         ) : (
           <div className="divide-y divide-gray-200">
@@ -291,7 +310,7 @@ export default function Dashboard() {
                       {activity.description}
                     </p>
                     <p className="text-xs text-gray-500">
-                      {activity.date ? formatDateForDisplay(activity.date) : 'Unknown date'}
+                      {activity.date ? formatDateForDisplay(activity.date) : 'Date inconnue'}
                     </p>
                   </div>
                   <div className="flex-shrink-0 text-right">

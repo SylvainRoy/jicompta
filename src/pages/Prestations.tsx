@@ -18,6 +18,7 @@ import { formatDateForDisplay } from '@/utils/dateFormatter';
 export default function Prestations() {
   const {
     prestations,
+    paiements,
     clients,
     typesPrestations,
     isLoading,
@@ -50,17 +51,30 @@ export default function Prestations() {
       );
     }
 
-    // Filter by status (based on paiement_id)
+    // Filter by status
     if (filterStatut) {
-      if (filterStatut === 'paid') {
-        filtered = filtered.filter((prestation) => !!prestation.paiement_id);
-      } else if (filterStatut === 'unpaid') {
+      if (filterStatut === 'non_facturee') {
+        // No payment linked
         filtered = filtered.filter((prestation) => !prestation.paiement_id);
+      } else if (filterStatut === 'facturee') {
+        // Payment linked but not received
+        filtered = filtered.filter((prestation) => {
+          if (!prestation.paiement_id) return false;
+          const linkedPaiement = paiements.find(p => p.reference === prestation.paiement_id);
+          return linkedPaiement && !linkedPaiement.date_encaissement;
+        });
+      } else if (filterStatut === 'encaissee') {
+        // Payment received
+        filtered = filtered.filter((prestation) => {
+          if (!prestation.paiement_id) return false;
+          const linkedPaiement = paiements.find(p => p.reference === prestation.paiement_id);
+          return linkedPaiement && !!linkedPaiement.date_encaissement;
+        });
       }
     }
 
     return filtered;
-  }, [prestations, searchQuery, filterStatut]);
+  }, [prestations, paiements, searchQuery, filterStatut]);
 
   // Handlers
   const handleAdd = async (prestation: Prestation) => {
@@ -88,10 +102,29 @@ export default function Prestations() {
   };
 
   const getStatutDisplay = (prestation: Prestation) => {
-    const isPaid = !!prestation.paiement_id;
+    // No payment linked
+    if (!prestation.paiement_id) {
+      return {
+        label: 'Non facturée',
+        color: 'bg-yellow-100 text-yellow-800',
+      };
+    }
+
+    // Find the linked payment
+    const linkedPaiement = paiements.find(p => p.reference === prestation.paiement_id);
+
+    // Payment received (encaissé)
+    if (linkedPaiement && linkedPaiement.date_encaissement) {
+      return {
+        label: 'Encaissée',
+        color: 'bg-green-100 text-green-800',
+      };
+    }
+
+    // Payment created but not received yet
     return {
-      label: isPaid ? 'Payée' : 'En attente',
-      color: isPaid ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800',
+      label: 'Facturée',
+      color: 'bg-blue-100 text-blue-800',
     };
   };
 
@@ -156,8 +189,9 @@ export default function Prestations() {
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
             >
               <option value="">Tous les statuts</option>
-              <option value="unpaid">En attente</option>
-              <option value="paid">Payée</option>
+              <option value="non_facturee">Non facturée</option>
+              <option value="facturee">Facturée</option>
+              <option value="encaissee">Encaissée</option>
             </select>
           </div>
         </div>
@@ -194,10 +228,13 @@ export default function Prestations() {
           <div className="md:hidden space-y-4">
             {filteredPrestations.map((prestation) => {
               const actualIndex = prestations.indexOf(prestation);
+              const statut = getStatutDisplay(prestation);
               return (
                 <PrestationCard
                   key={actualIndex}
                   prestation={prestation}
+                  statusLabel={statut.label}
+                  statusColor={statut.color}
                   onEdit={() => setEditingPrestation({ prestation, index: actualIndex })}
                   onDelete={() => setDeletingIndex(actualIndex)}
                 />
