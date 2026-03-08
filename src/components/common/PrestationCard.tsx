@@ -10,6 +10,7 @@ interface PrestationCardProps {
   prestation: Prestation;
   statusLabel: string;
   statusColor: string;
+  canModify: boolean;
   onEdit: () => void;
   onDelete: () => void;
 }
@@ -18,6 +19,7 @@ export default function PrestationCard({
   prestation,
   statusLabel,
   statusColor,
+  canModify,
   onEdit,
   onDelete,
 }: PrestationCardProps) {
@@ -67,20 +69,26 @@ export default function PrestationCard({
       </div>
 
       {/* Actions */}
-      <div className="flex gap-2 pt-3 border-t border-gray-100">
-        <button
-          onClick={onEdit}
-          className="flex-1 px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
-        >
-          Modifier
-        </button>
-        <button
-          onClick={onDelete}
-          className="flex-1 px-4 py-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
-        >
-          Supprimer
-        </button>
-      </div>
+      {canModify ? (
+        <div className="flex gap-2 pt-3 border-t border-gray-100">
+          <button
+            onClick={onEdit}
+            className="flex-1 px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
+          >
+            Modifier
+          </button>
+          <button
+            onClick={onDelete}
+            className="flex-1 px-4 py-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
+          >
+            Supprimer
+          </button>
+        </div>
+      ) : (
+        <div className="pt-3 border-t border-gray-100 text-center">
+          <p className="text-sm text-gray-400 italic">Liée à un paiement</p>
+        </div>
+      )}
     </div>
   );
 }

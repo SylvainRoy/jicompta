@@ -229,12 +229,14 @@ export default function Prestations() {
             {filteredPrestations.map((prestation) => {
               const actualIndex = prestations.indexOf(prestation);
               const statut = getStatutDisplay(prestation);
+              const canModify = !prestation.paiement_id; // Only allow modification if not linked to payment
               return (
                 <PrestationCard
                   key={actualIndex}
                   prestation={prestation}
                   statusLabel={statut.label}
                   statusColor={statut.color}
+                  canModify={canModify}
                   onEdit={() => setEditingPrestation({ prestation, index: actualIndex })}
                   onDelete={() => setDeletingIndex(actualIndex)}
                 />
@@ -280,6 +282,7 @@ export default function Prestations() {
                   {filteredPrestations.map((prestation) => {
                     const actualIndex = prestations.indexOf(prestation);
                     const statut = getStatutDisplay(prestation);
+                    const canModify = !prestation.paiement_id; // Only allow modification if not linked to payment
 
                     return (
                       <tr key={actualIndex} className="hover:bg-gray-50">
@@ -309,22 +312,26 @@ export default function Prestations() {
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                          <div className="flex justify-end gap-2">
-                            <button
-                              onClick={() =>
-                                setEditingPrestation({ prestation, index: actualIndex })
-                              }
-                              className="text-blue-600 hover:text-blue-900 transition-colors"
-                            >
-                              Modifier
-                            </button>
-                            <button
-                              onClick={() => setDeletingIndex(actualIndex)}
-                              className="text-red-600 hover:text-red-900 transition-colors"
-                            >
-                              Supprimer
-                            </button>
-                          </div>
+                          {canModify ? (
+                            <div className="flex justify-end gap-2">
+                              <button
+                                onClick={() =>
+                                  setEditingPrestation({ prestation, index: actualIndex })
+                                }
+                                className="text-blue-600 hover:text-blue-900 transition-colors"
+                              >
+                                Modifier
+                              </button>
+                              <button
+                                onClick={() => setDeletingIndex(actualIndex)}
+                                className="text-red-600 hover:text-red-900 transition-colors"
+                              >
+                                Supprimer
+                              </button>
+                            </div>
+                          ) : (
+                            <span className="text-sm text-gray-400 italic">Liée à un paiement</span>
+                          )}
                         </td>
                       </tr>
                     );
