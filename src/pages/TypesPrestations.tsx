@@ -25,12 +25,15 @@ export default function TypesPrestations() {
 
   // Filtered types based on search
   const filteredTypes = useMemo(() => {
-    if (!searchQuery.trim()) return typesPrestations;
+    let filtered = searchQuery.trim()
+      ? typesPrestations.filter((type) => {
+          const query = searchQuery.toLowerCase();
+          return type.nom.toLowerCase().includes(query);
+        })
+      : typesPrestations;
 
-    const query = searchQuery.toLowerCase();
-    return typesPrestations.filter((type) =>
-      type.nom.toLowerCase().includes(query)
-    );
+    // Reverse order to show newest first (last added = most recent)
+    return [...filtered].reverse();
   }, [typesPrestations, searchQuery]);
 
   // Handlers

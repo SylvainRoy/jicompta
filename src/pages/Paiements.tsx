@@ -69,7 +69,8 @@ export default function Paiements() {
       }
     }
 
-    return filtered;
+    // Sort by reference descending (newest first - reference format: yymmddnnnn)
+    return filtered.sort((a, b) => b.reference.localeCompare(a.reference));
   }, [paiements, searchQuery, filterStatut]);
 
   // Get prestations count for each paiement

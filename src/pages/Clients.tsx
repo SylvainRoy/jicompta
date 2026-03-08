@@ -24,16 +24,20 @@ export default function Clients() {
 
   // Filtered clients based on search
   const filteredClients = useMemo(() => {
-    if (!searchQuery.trim()) return clients;
+    let filtered = searchQuery.trim()
+      ? clients.filter((client) => {
+          const query = searchQuery.toLowerCase();
+          return (
+            client.nom.toLowerCase().includes(query) ||
+            client.email.toLowerCase().includes(query) ||
+            client.telephone?.toLowerCase().includes(query) ||
+            client.numero_siret?.toLowerCase().includes(query)
+          );
+        })
+      : clients;
 
-    const query = searchQuery.toLowerCase();
-    return clients.filter(
-      (client) =>
-        client.nom.toLowerCase().includes(query) ||
-        client.email.toLowerCase().includes(query) ||
-        client.telephone?.toLowerCase().includes(query) ||
-        client.numero_siret?.toLowerCase().includes(query)
-    );
+    // Reverse order to show newest first (last added = most recent)
+    return [...filtered].reverse();
   }, [clients, searchQuery]);
 
   // Handlers

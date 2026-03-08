@@ -73,7 +73,8 @@ export default function Prestations() {
       }
     }
 
-    return filtered;
+    // Sort by date descending (newest first)
+    return filtered.sort((a, b) => b.date.localeCompare(a.date));
   }, [prestations, paiements, searchQuery, filterStatut]);
 
   // Handlers
