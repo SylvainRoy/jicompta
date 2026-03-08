@@ -182,6 +182,7 @@ npm run lint         # Lint the code
 - [Complete Installation](./docs/INSTALLATION.md) - Detailed installation guide
 - [Firebase Deployment](./docs/FIREBASE_DEPLOYMENT.md) - Complete Firebase Hosting guide
 - [PWA Setup](./docs/PWA_SETUP.md) - Install on home screen guide
+- [iOS Installation](./docs/iOS_PWA_INSTALL.md) - Step-by-step guide for iPhone/iPad
 - [Security Guide](./docs/SECURITY.md) - Credential management and GitHub deployment
 - [Google Configuration](./docs/GOOGLE_SETUP.md) - Google Cloud Console setup
 - [Templates](./docs/TEMPLATES_SETUP.md) - Available variables for invoices/receipts

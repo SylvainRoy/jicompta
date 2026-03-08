@@ -14,6 +14,8 @@ JiCompta is now a full Progressive Web App that can be installed on mobile devic
 
 ### On iPhone/iPad (Safari)
 
+⚠️ **Important:** On iOS, you must use **Safari** (not Chrome) to install PWAs to home screen.
+
 1. Open **Safari** and go to `https://jicompta.web.app`
 2. Tap the **Share** button (square with arrow pointing up)
 3. Scroll down and tap **"Add to Home Screen"**
@@ -26,6 +28,8 @@ JiCompta is now a full Progressive Web App that can be installed on mobile devic
 - Looks and feels like a native app
 - Appears in app switcher
 - Blue theme color matches the app
+
+📖 **Detailed iOS Guide:** See [iOS_PWA_INSTALL.md](./iOS_PWA_INSTALL.md) for complete step-by-step instructions with troubleshooting.
 
 ### On Android (Chrome)
 
