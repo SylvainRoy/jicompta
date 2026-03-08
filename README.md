@@ -41,6 +41,7 @@ npm install
 - Créer un projet sur [Google Cloud Console](https://console.cloud.google.com)
 - Activer les APIs: Google Sheets, Google Docs, Google Drive
 - Créer un OAuth 2.0 Client ID (Application Web)
+- Ajouter `http://localhost:5173` dans les URIs autorisés
 - Copier le Client ID
 
 3. **Configurer l'environnement**
@@ -55,6 +56,8 @@ Modifier `.env` avec votre Client ID:
 VITE_GOOGLE_CLIENT_ID=votre-client-id.apps.googleusercontent.com
 ```
 
+> **⚠️ Important**: C'est le **seul** ID nécessaire! Tous les autres IDs (spreadsheet, templates, dossiers) sont créés et gérés automatiquement par l'application.
+
 **C'est tout!** Lancez l'application:
 
 ```bash
@@ -65,20 +68,44 @@ L'application sera accessible sur http://localhost:5173
 
 ## 👤 Première utilisation
 
-1. Cliquez sur "Se connecter avec Google"
-2. Autorisez les permissions
-3. **L'application cherche automatiquement** dans votre Drive:
-   - Si un dossier `Comptabilite/` existe → Chargement automatique ✅
-   - Sinon → Le **Setup Wizard** crée tout automatiquement:
-     - Un dossier `Comptabilite/` dans votre Drive
-     - Un tableur `Compta` avec la structure complète
-     - Des modèles dans `Comptabilite/Modeles/`
-     - Des dossiers pour factures et reçus
-4. Vous êtes prêt à utiliser l'application!
+### Configuration automatique
 
-**Bonus:** Sur un autre appareil, connectez-vous simplement avec Google → vos données sont automatiquement chargées! 🎉
+1. **Connexion**: Cliquez sur "Se connecter avec Google" et autorisez les permissions
 
-**Durée totale**: ~10-15 secondes
+2. **Détection automatique**: L'application cherche dans votre Google Drive:
+   - ✅ **Configuration existante trouvée**: Chargement automatique de votre espace
+   - 🆕 **Nouveau compte**: Le Setup Wizard se lance
+
+3. **Setup Wizard** (uniquement pour les nouveaux comptes):
+   - Création du dossier `Comptabilite/` dans votre Drive
+   - Création du tableur `Compta` avec 4 onglets (Clients, TypeDePrestation, Prestation, Paiement)
+   - Création des modèles de documents dans `Comptabilite/Modeles/`
+     - `Modèle de Facture` (personnalisable)
+     - `Modèle de Reçu` (personnalisable)
+   - Création des dossiers `Comptabilite/Factures/` et `Comptabilite/Recus/`
+   - **Durée**: ~10-15 secondes
+
+4. **C'est prêt!** → Redirection automatique vers le tableau de bord
+
+### 📱 Support multi-appareils
+
+L'application fonctionne **automatiquement sur tous vos appareils**:
+
+- **Ordinateur de bureau** → Connectez-vous avec Google → Vos données sont là!
+- **Téléphone** → Connectez-vous avec Google → Vos données sont là!
+- **Ordinateur du travail** → Connectez-vous avec Google → Vos données sont là!
+
+**Aucune synchronisation manuelle nécessaire**: Tout est dans votre Google Drive.
+
+### 🔄 Comment ça marche ?
+
+1. Lors de la connexion, l'application cherche un dossier `Comptabilite/` dans votre Drive
+2. Si trouvé → Charge automatiquement la configuration (IDs des fichiers)
+3. Si absent → Lance le wizard pour créer la structure
+4. La configuration est stockée dans le navigateur (localStorage) pour accès rapide
+5. Sur un nouvel appareil → Détection automatique à nouveau
+
+> **Note**: Si vous videz le cache du navigateur, pas de panique! L'application recherchera automatiquement votre configuration dans Drive.
 
 Consultez [INSTALLATION.md](./docs/INSTALLATION.md) pour plus de détails.
 
@@ -179,9 +206,39 @@ npm run lint         # Linter le code
 
 - **Aucun backend**: L'application ne stocke aucune donnée sur un serveur tiers
 - **Données personnelles**: Tout reste dans le Google Drive de l'utilisateur
-- **Configuration locale**: Les IDs sont stockés uniquement dans le navigateur
+- **Configuration automatique**:
+  - Les IDs des fichiers sont découverts automatiquement dans Drive
+  - Stockés localement dans le navigateur (localStorage) pour performance
+  - Re-détectés automatiquement si le cache est vidé
 - **OAuth sécurisé**: Authentification via Google OAuth 2.0
 - **Multi-utilisateurs**: Isolation complète entre utilisateurs
+  - Chaque utilisateur a son propre dossier `Comptabilite/` dans son Drive
+  - Aucune interaction possible entre comptes
+  - Un seul Client ID partagé (côté développeur), données séparées (côté utilisateur)
+
+## 🎉 Améliorations récentes (Mars 2026)
+
+### Industrialisation complète
+
+L'application a été entièrement industrialisée pour simplifier l'installation et l'utilisation:
+
+- ✅ **Setup entièrement automatique**: Plus besoin de créer manuellement des fichiers dans Drive
+- ✅ **Un seul ID requis**: Seul le `VITE_GOOGLE_CLIENT_ID` est nécessaire dans `.env`
+- ✅ **Détection automatique**: Trouve et charge automatiquement la configuration existante
+- ✅ **Support multi-appareils**: Fonctionne sur tous les appareils sans configuration
+- ✅ **Noms français**: Tous les dossiers et fichiers en français (Comptabilite, Modeles, etc.)
+- ✅ **Gestion des prestations**: Distinction correcte entre prestations liées et prestations payées
+
+### Migration depuis une version précédente
+
+Si vous utilisez une ancienne version avec configuration manuelle:
+
+1. Les anciennes configurations continuent de fonctionner
+2. Pour bénéficier de la détection automatique:
+   - Assurez-vous que votre dossier s'appelle `Comptabilite/`
+   - Votre tableur doit s'appeler `Compta`
+   - Vos templates doivent être dans `Comptabilite/Modeles/`
+3. Videz le localStorage du navigateur pour forcer la re-détection
 
 ## 📝 Notes de Développement
 
