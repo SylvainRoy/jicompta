@@ -1,254 +1,254 @@
-# 🎯 Progression du Projet ComptaClaude
+# 🎯 JiCompta Project Progress
 
-## ✅ Phase 1 - Infrastructure & Setup (TERMINÉ)
+## ✅ Phase 1 - Infrastructure & Setup (COMPLETED)
 
-### Configuration Projet
-- [x] Initialisation Vite + React + TypeScript
-- [x] Configuration Tailwind CSS
-- [x] Installation React Router
-- [x] Installation dépendances Google OAuth
-- [x] Structure des dossiers complète
-- [x] Configuration TypeScript (tsconfig)
-- [x] Variables d'environnement (.env.example)
+### Project Configuration
+- [x] Vite + React + TypeScript initialization
+- [x] Tailwind CSS configuration
+- [x] React Router installation
+- [x] Google OAuth dependencies installation
+- [x] Complete folder structure
+- [x] TypeScript configuration (tsconfig)
+- [x] Environment variables (.env.example)
 
-### Types & Modèles
-- [x] Types de données (Client, Prestation, Paiement, etc.)
-- [x] Types de formulaires
-- [x] Types d'authentification
-- [x] Types de notifications
-- [x] Types de filtres
+### Types & Models
+- [x] Data types (Client, Service, Payment, etc.)
+- [x] Form types
+- [x] Authentication types
+- [x] Notification types
+- [x] Filter types
 
-### Utilitaires
-- [x] Formatage des dates (ISO ↔ FR)
-- [x] Formatage des montants (nombres ↔ format français)
-- [x] Validateurs (email, SIRET, téléphone, montants)
-- [x] Génération d'ID de paiement
-- [x] Validation SIRET avec algorithme de Luhn
+### Utilities
+- [x] Date formatting (ISO ↔ FR)
+- [x] Amount formatting (numbers ↔ French format)
+- [x] Validators (email, SIRET, phone, amounts)
+- [x] Payment ID generation
+- [x] SIRET validation with Luhn algorithm
 
 ### Services
-- [x] Service d'authentification Google OAuth
-  - Initialisation OAuth
-  - Génération URL d'authentification
-  - Parsing des callbacks
-  - Gestion des tokens
-  - Validation des tokens
-  - Déconnexion
-- [x] Service Google Sheets
-  - CRUD Clients
-  - CRUD Types de Prestations
-  - CRUD Prestations
-  - CRUD Paiements
-  - Batch updates pour prestations
-  - Gestion des erreurs
+- [x] Google OAuth authentication service
+  - OAuth initialization
+  - Authentication URL generation
+  - Callback parsing
+  - Token management
+  - Token validation
+  - Sign out
+- [x] Google Sheets service
+  - Clients CRUD
+  - Service Types CRUD
+  - Services CRUD
+  - Payments CRUD
+  - Batch updates for services
+  - Error handling
 
 ### Contexts
-- [x] AuthContext avec hooks
-  - État d'authentification
+- [x] AuthContext with hooks
+  - Authentication state
   - Login/Logout
-  - Gestion des callbacks OAuth
-  - Validation automatique au chargement
-- [x] NotificationContext avec hooks
-  - Gestion des toasts
+  - OAuth callback management
+  - Automatic validation on load
+- [x] NotificationContext with hooks
+  - Toast management
   - Success/Error/Warning/Info helpers
-  - Auto-dismiss avec durées configurables
-- [x] DataContext avec hooks
-  - État centralisé pour toutes les données
-  - CRUD complet pour toutes les entités
-  - Validation des dépendances
-  - Notifications automatiques
-  - Refresh global et par entité
+  - Auto-dismiss with configurable durations
+- [x] DataContext with hooks
+  - Centralized state for all data
+  - Complete CRUD for all entities
+  - Dependency validation
+  - Automatic notifications
+  - Global and per-entity refresh
 
-### Composants Communs
+### Common Components
 - [x] Button (variants: primary, secondary, danger, ghost)
-- [x] Input avec label, erreur, helper text
-- [x] Modal avec backdrop et animations
-- [x] ConfirmModal pour les confirmations
-- [x] Loading spinner (avec version fullscreen)
-- [x] Toast notifications avec animations
-- [x] SearchBar avec icône
-- [x] EmptyState pour états vides
+- [x] Input with label, error, helper text
+- [x] Modal with backdrop and animations
+- [x] ConfirmModal for confirmations
+- [x] Loading spinner (with fullscreen version)
+- [x] Toast notifications with animations
+- [x] SearchBar with icon
+- [x] EmptyState for empty states
 
 ### Layout
-- [x] Header avec info utilisateur et déconnexion
-- [x] Sidebar avec navigation
-- [x] Layout principal responsive
-- [x] ToastContainer pour afficher les notifications
+- [x] Header with user info and sign out
+- [x] Sidebar with navigation
+- [x] Main responsive layout
+- [x] ToastContainer to display notifications
 
 ### Pages & Routing
-- [x] Page Login complète et stylisée
-- [x] ProtectedRoute pour sécuriser les pages
-- [x] Configuration React Router
-- [x] Pages placeholder:
+- [x] Complete and styled Login page
+- [x] ProtectedRoute to secure pages
+- [x] React Router configuration
+- [x] Placeholder pages:
   - Dashboard
   - Clients
-  - Types de Prestations
-  - Prestations
-  - Paiements
+  - Service Types
+  - Services
+  - Payments
 
-### App Principal
-- [x] Configuration des providers (Auth, Notifications)
-- [x] Configuration des routes
-- [x] Gestion 404
+### Main App
+- [x] Provider configuration (Auth, Notifications)
+- [x] Routes configuration
+- [x] 404 handling
 
 ### Documentation
-- [x] README.md complet
-- [x] Spécifications techniques détaillées
-- [x] .env.example avec toutes les variables
-- [x] Commentaires dans le code
+- [x] Complete README.md
+- [x] Detailed technical specifications
+- [x] .env.example with all variables
+- [x] Code comments
 
-## 🔄 Phase 2 - Fonctionnalités CRUD (EN COURS)
+## 🔄 Phase 2 - CRUD Features (IN PROGRESS)
 
-### Gestion des Clients ✅ TERMINÉ + MOBILE-FIRST
-- [x] DataContext pour gestion globale des données
-- [x] ClientForm avec validation complète
-- [x] Liste des clients avec tableau responsive
-- [x] **Vue Cards pour mobile** (< 768px)
-- [x] **Vue Table pour desktop** (≥ 768px)
-- [x] Recherche en temps réel (nom, email, téléphone, SIRET)
-- [x] Formulaire d'ajout dans modal
-- [x] Formulaire d'édition dans modal
-- [x] Suppression avec confirmation
-- [x] Validation des dépendances avant suppression
-- [x] État vide avec message d'accueil
-- [x] Gestion d'erreurs complète
-- [x] Notifications de succès/erreur
-- [x] Compteur de résultats
-- [x] Integration Google Sheets complète
-- [x] **Design mobile-first avec touch targets optimisés**
-- [x] **Sidebar responsive avec hamburger menu**
-- [x] **Header responsive**
-- [x] Documentation complète (CLIENTS_SETUP.md, MOBILE_RESPONSIVE.md)
+### Client Management ✅ COMPLETED + MOBILE-FIRST
+- [x] DataContext for global data management
+- [x] ClientForm with complete validation
+- [x] Responsive client list with table
+- [x] **Card View for mobile** (< 768px)
+- [x] **Table View for desktop** (≥ 768px)
+- [x] Real-time search (name, email, phone, SIRET)
+- [x] Add form in modal
+- [x] Edit form in modal
+- [x] Deletion with confirmation
+- [x] Dependency validation before deletion
+- [x] Empty state with welcome message
+- [x] Complete error handling
+- [x] Success/error notifications
+- [x] Results counter
+- [x] Complete Google Sheets integration
+- [x] **Mobile-first design with optimized touch targets**
+- [x] **Responsive sidebar with hamburger menu**
+- [x] **Responsive header**
+- [x] Complete documentation (CLIENTS_SETUP.md, MOBILE_RESPONSIVE.md)
 
-### Gestion des Types de Prestations
-- [ ] Liste des types
-- [ ] Formulaire d'ajout
-- [ ] Formulaire d'édition
-- [ ] Suppression avec confirmation
-- [ ] Validation des dépendances
+### Service Types Management
+- [ ] Types list
+- [ ] Add form
+- [ ] Edit form
+- [ ] Deletion with confirmation
+- [ ] Dependency validation
 
-### Gestion des Prestations
-- [ ] Liste des prestations
-- [ ] Filtres (année, client, type, statut)
-- [ ] Recherche
-- [ ] Formulaire d'ajout
-- [ ] Formulaire d'édition
-- [ ] Suppression
-- [ ] Sélection multiple pour paiements
-- [ ] Badge "Payé/Non payé"
+### Services Management
+- [ ] Services list
+- [ ] Filters (year, client, type, status)
+- [ ] Search
+- [ ] Add form
+- [ ] Edit form
+- [ ] Deletion
+- [ ] Multiple selection for payments
+- [ ] "Paid/Unpaid" badge
 
-### Gestion des Paiements
-- [ ] Liste des paiements
-- [ ] Filtres (année, client, statut)
-- [ ] Création depuis prestations sélectionnées
-- [ ] Formulaire d'encaissement
-- [ ] Génération de facture
-- [ ] Génération de reçu
-- [ ] Liens vers documents Drive
+### Payments Management
+- [ ] Payments list
+- [ ] Filters (year, client, status)
+- [ ] Creation from selected services
+- [ ] Payment form
+- [ ] Invoice generation
+- [ ] Receipt generation
+- [ ] Links to Drive documents
 
-### Service PDF
-- [ ] Service googleDocs.ts
-- [ ] Copie de templates
-- [ ] Remplacement de variables
-- [ ] Export en PDF
-- [ ] Upload vers Drive
-- [ ] Récupération des URLs
+### PDF Service
+- [ ] googleDocs.ts service
+- [ ] Template copying
+- [ ] Variable replacement
+- [ ] PDF export
+- [ ] Drive upload
+- [ ] URL retrieval
 
-### Tableau de Bord
-- [ ] Statistiques par année
-- [ ] Cartes de stats (prestations, paiements, en attente)
-- [ ] Liste des prestations récentes
-- [ ] Liste des paiements récents
-- [ ] Alertes paiements non encaissés
-- [ ] Graphiques (optionnel)
+### Dashboard
+- [ ] Statistics by year
+- [ ] Stats cards (services, payments, pending)
+- [ ] Recent services list
+- [ ] Recent payments list
+- [ ] Unpaid payment alerts
+- [ ] Charts (optional)
 
-## 🎨 Phase 3 - Améliorations (FUTUR)
+## 🎨 Phase 3 - Improvements (FUTURE)
 
 ### UX/UI
 - [ ] Skeleton loaders
-- [ ] Pagination des listes
-- [ ] Tri des colonnes
-- [ ] Export CSV/Excel
-- [ ] Impression
-- [ ] Mode sombre (optionnel)
+- [ ] List pagination
+- [ ] Column sorting
+- [ ] CSV/Excel export
+- [ ] Printing
+- [ ] Dark mode (optional)
 
-### Fonctionnalités Avancées
-- [ ] Statistiques avancées
-- [ ] Graphiques interactifs
-- [ ] Récurrence de prestations
-- [ ] Gestion des devis
-- [ ] Notifications email
-- [ ] Templates multiples
+### Advanced Features
+- [ ] Advanced statistics
+- [ ] Interactive charts
+- [ ] Recurring services
+- [ ] Quote management
+- [ ] Email notifications
+- [ ] Multiple templates
 
-### Technique
-- [ ] Tests unitaires (Vitest)
-- [ ] Tests composants (React Testing Library)
-- [ ] Tests E2E (Playwright/Cypress)
+### Technical
+- [ ] Unit tests (Vitest)
+- [ ] Component tests (React Testing Library)
+- [ ] E2E tests (Playwright/Cypress)
 - [ ] CI/CD
-- [ ] PWA (mode offline)
-- [ ] Optimisations performances
+- [ ] PWA (offline mode)
+- [ ] Performance optimizations
 
-## 📊 Statistiques
+## 📊 Statistics
 
-- **Fichiers créés**: ~50+
-- **Composants**: 15+
+- **Files created**: ~50+
+- **Components**: 15+
 - **Services**: 2
-- **Pages**: 6 (1 complète, 5 placeholders)
+- **Pages**: 6 (1 complete, 5 placeholders)
 - **Contexts**: 3 (Auth, Notifications, Data)
-- **Utilitaires**: 3
-- **Types**: Complets
-- **Lignes de code**: ~4000+
-- **Fonctionnalités CRUD**: 1/4 complètes (Clients ✅)
+- **Utilities**: 3
+- **Types**: Complete
+- **Lines of code**: ~4000+
+- **CRUD features**: 1/4 complete (Clients ✅)
 
-## 🚀 Prochaines Étapes Recommandées
+## 🚀 Recommended Next Steps
 
-### ✅ ÉTAPE 1 TERMINÉE - Clients
-Le CRUD complet des clients est fonctionnel et testé!
+### ✅ STEP 1 COMPLETED - Clients
+Complete Clients CRUD is functional and tested!
 
-### 📋 ÉTAPE 2 - Types de Prestations (Suivant)
-Le plus simple, similaire aux clients:
-- Copier la structure de Clients
-- Adapter le formulaire (nom + montant_suggere)
-- Moins de champs = plus rapide
-- Validation des dépendances (prestations)
+### 📋 STEP 2 - Service Types (Next)
+Simplest, similar to clients:
+- Copy Clients structure
+- Adapt form (name + suggested_amount)
+- Fewer fields = faster
+- Dependency validation (services)
 
-### 📋 ÉTAPE 3 - Prestations
-Plus complexe avec relations:
-- Dropdown pour sélectionner client
-- Dropdown pour sélectionner type
+### 📋 STEP 3 - Services
+More complex with relationships:
+- Dropdown to select client
+- Dropdown to select type
 - Date picker
-- Badge "Payé/Non payé"
-- Filtres (année, client, type, statut)
-- Sélection multiple pour créer paiements
+- "Paid/Unpaid" badge
+- Filters (year, client, type, status)
+- Multiple selection to create payments
 
-### 📋 ÉTAPE 4 - Paiements
-Le plus complexe:
-- Création depuis prestations sélectionnées
-- Génération automatique d'ID
-- Gestion encaissement (date + mode)
-- Génération facture (PDF)
-- Génération reçu (PDF)
-- Liens vers documents Drive
+### 📋 STEP 4 - Payments
+Most complex:
+- Creation from selected services
+- Automatic ID generation
+- Payment management (date + method)
+- Invoice generation (PDF)
+- Receipt generation (PDF)
+- Links to Drive documents
 
-### 📋 ÉTAPE 5 - Service PDF
-- Créer templates Google Docs
-- Service de copie/remplacement
-- Export vers PDF
-- Upload Drive
-- Récupération URLs
+### 📋 STEP 5 - PDF Service
+- Create Google Docs templates
+- Copy/replacement service
+- PDF export
+- Drive upload
+- URL retrieval
 
-### 📋 ÉTAPE 6 - Dashboard
-- Statistiques par année
-- Graphiques (optionnel)
-- Listes récentes
-- Alertes
+### 📋 STEP 6 - Dashboard
+- Statistics by year
+- Charts (optional)
+- Recent lists
+- Alerts
 
 ## 💡 Notes
 
-- L'infrastructure est solide et prête pour l'implémentation des fonctionnalités
-- Le code est bien structuré et documenté
-- Les types TypeScript facilitent le développement
-- Les utilitaires sont réutilisables
-- Le système de notifications est fonctionnel
-- L'authentification est sécurisée
+- Infrastructure is solid and ready for feature implementation
+- Code is well-structured and documented
+- TypeScript types facilitate development
+- Utilities are reusable
+- Notification system is functional
+- Authentication is secure
 
-**Temps estimé pour terminer Phase 2**: 8-12 heures de développement
+**Estimated time to complete Phase 2**: 8-12 hours of development

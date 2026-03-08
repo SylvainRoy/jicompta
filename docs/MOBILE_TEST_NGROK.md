@@ -1,165 +1,165 @@
-# 📱 Test sur Mobile avec ngrok
+# 📱 Mobile Testing with ngrok
 
-## Pourquoi ngrok ?
+## Why ngrok?
 
-Google OAuth n'accepte pas les IPs (192.168.x.x) comme URIs de redirection.
-ngrok crée un tunnel HTTPS avec un vrai domaine qui fonctionne avec Google OAuth.
+Google OAuth doesn't accept IPs (192.168.x.x) as redirect URIs.
+ngrok creates an HTTPS tunnel with a real domain that works with Google OAuth.
 
-## 🚀 Installation et Configuration (10 min)
+## 🚀 Installation and Configuration (10 min)
 
-### Étape 1: Installer ngrok
+### Step 1: Install ngrok
 
-**Mac (avec Homebrew)** :
+**Mac (with Homebrew)**:
 ```bash
 brew install ngrok/ngrok/ngrok
 ```
 
-**Ou téléchargement direct** :
-1. Aller sur : https://ngrok.com/download
-2. Télécharger pour votre OS
-3. Extraire et déplacer dans /usr/local/bin
+**Or direct download**:
+1. Go to: https://ngrok.com/download
+2. Download for your OS
+3. Extract and move to /usr/local/bin
 
-### Étape 2: Créer un Compte (Gratuit)
+### Step 2: Create an Account (Free)
 
-1. Aller sur : https://dashboard.ngrok.com/signup
-2. S'inscrire (gratuit)
-3. Copier votre authtoken
+1. Go to: https://dashboard.ngrok.com/signup
+2. Sign up (free)
+3. Copy your authtoken
 
-### Étape 3: Authentifier ngrok
+### Step 3: Authenticate ngrok
 
 ```bash
-ngrok config add-authtoken VOTRE_TOKEN
+ngrok config add-authtoken YOUR_TOKEN
 ```
 
-### Étape 4: Démarrer le Serveur Local
+### Step 4: Start Local Server
 
-Dans un terminal :
+In a terminal:
 ```bash
 npm run dev
-# Le serveur démarre sur http://localhost:5173
+# Server starts on http://localhost:5173
 ```
 
-### Étape 5: Créer le Tunnel ngrok
+### Step 5: Create ngrok Tunnel
 
-Dans un **nouveau terminal** :
+In a **new terminal**:
 ```bash
 ngrok http 5173
 ```
 
-Vous verrez :
+You'll see:
 ```
 Session Status                online
-Account                       votre-email
+Account                       your-email
 Forwarding                    https://abc123.ngrok.io -> http://localhost:5173
 ```
 
-**Copier l'URL HTTPS** : `https://abc123.ngrok.io`
+**Copy the HTTPS URL**: `https://abc123.ngrok.io`
 
-### Étape 6: Ajouter l'URI dans Google Cloud
+### Step 6: Add URI in Google Cloud
 
-1. **Google Cloud Console** > APIs et services > Identifiants
-2. Cliquer sur votre Client OAuth
-3. **URIs de redirection autorisés**, ajouter :
+1. **Google Cloud Console** > APIs and services > Credentials
+2. Click on your OAuth Client
+3. **Authorized redirect URIs**, add:
    ```
    https://abc123.ngrok.io
    ```
-   ⚠️ Remplacer `abc123` par votre vraie URL ngrok
+   ⚠️ Replace `abc123` with your real ngrok URL
 
-4. **Origines JavaScript autorisées**, ajouter :
+4. **Authorized JavaScript origins**, add:
    ```
    https://abc123.ngrok.io
    ```
 
-5. Cliquer **ENREGISTRER**
+5. Click **SAVE**
 
-### Étape 7: Mettre à Jour .env
+### Step 7: Update .env
 
 ```bash
-# Éditer .env
+# Edit .env
 ```
 
-**Changer temporairement** :
+**Temporarily change**:
 ```env
 VITE_GOOGLE_REDIRECT_URI=https://abc123.ngrok.io
 ```
 
-### Étape 8: Redémarrer le Serveur
+### Step 8: Restart Server
 
 ```bash
-# Ctrl+C pour arrêter
+# Ctrl+C to stop
 npm run dev
 ```
 
-### Étape 9: Tester !
+### Step 9: Test!
 
-**Sur votre téléphone** :
-1. Ouvrir : `https://abc123.ngrok.io`
-2. La page se charge
-3. Cliquer "Se connecter avec Google"
-4. OAuth fonctionne !
-5. Tester l'application normalement
+**On your phone**:
+1. Open: `https://abc123.ngrok.io`
+2. Page loads
+3. Click "Sign in with Google"
+4. OAuth works!
+5. Test application normally
 
-**Sur desktop aussi** :
-- Ouvrir : `https://abc123.ngrok.io`
-- Tout fonctionne pareil
-
----
-
-## ⚠️ Limitations Version Gratuite
-
-- URL change à chaque redémarrage de ngrok
-- Session limitée à 8 heures
-- 1 tunnel à la fois
-
-**Solution** : À chaque fois que l'URL change, mettre à jour :
-1. Les URIs dans Google Cloud Console
-2. Le .env (VITE_GOOGLE_REDIRECT_URI)
-3. Redémarrer le serveur
+**On desktop too**:
+- Open: `https://abc123.ngrok.io`
+- Everything works the same
 
 ---
 
-## 🎯 Workflow de Dev Recommandé
+## ⚠️ Free Version Limitations
 
-### Pour le développement normal :
+- URL changes with each ngrok restart
+- Session limited to 8 hours
+- 1 tunnel at a time
+
+**Solution**: Each time the URL changes, update:
+1. URIs in Google Cloud Console
+2. The .env (VITE_GOOGLE_REDIRECT_URI)
+3. Restart the server
+
+---
+
+## 🎯 Recommended Dev Workflow
+
+### For normal development:
 ```env
 VITE_GOOGLE_REDIRECT_URI=http://localhost:5173
 ```
 ```bash
 npm run dev
-# Tester sur http://localhost:5173
-# Utiliser DevTools pour responsive
+# Test on http://localhost:5173
+# Use DevTools for responsive
 ```
 
-### Pour tester sur vrai mobile :
+### To test on real mobile:
 ```bash
 # Terminal 1
 npm run dev
 
 # Terminal 2
 ngrok http 5173
-# Copier l'URL ngrok
+# Copy ngrok URL
 
-# Mettre à jour Google Cloud URIs
-# Mettre à jour .env
-# Redémarrer npm run dev
+# Update Google Cloud URIs
+# Update .env
+# Restart npm run dev
 
-# Tester sur téléphone avec l'URL ngrok
+# Test on phone with ngrok URL
 ```
 
 ---
 
-## 💡 Alternative: DevTools = 95% Suffisant
+## 💡 Alternative: DevTools = 95% Sufficient
 
-**Pour le développement quotidien**, les DevTools de Chrome/Firefox suffisent :
-- ✅ Simulent parfaitement les mobiles
+**For daily development**, Chrome/Firefox DevTools are enough:
+- ✅ Perfectly simulate mobile
 - ✅ Touch events
-- ✅ Tailles d'écran exactes
+- ✅ Exact screen sizes
 - ✅ Rotation
-- ✅ Throttling réseau
-- ✅ Plus rapide que vrai device
+- ✅ Network throttling
+- ✅ Faster than real device
 
-**Utiliser ngrok seulement pour** :
-- Tester les vraies performances
-- Tester la vraie ergonomie touch
-- Démos client
-- Tests finaux avant production
+**Use ngrok only for**:
+- Testing real performance
+- Testing real touch ergonomics
+- Client demos
+- Final tests before production

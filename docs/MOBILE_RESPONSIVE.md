@@ -33,7 +33,7 @@ Desktop:    ≥ 1024px (lg)
 ### 2. **Header Responsive** ✅
 
 #### Desktop
-- Titre "ComptaClaude" taille normale
+- Titre "JiCompta" taille normale
 - Nom d'utilisateur + email visibles
 - Bouton "Déconnexion" avec texte
 
@@ -323,7 +323,7 @@ export default function EntityCard({ entity, onEdit, onDelete }) {
 
 ## 🎉 Résultat Final
 
-**L'application ComptaClaude est maintenant:**
+**L'application JiCompta est maintenant:**
 - ✅ Vraiment responsive
 - ✅ Mobile-first
 - ✅ Utilisable facilement sur téléphone

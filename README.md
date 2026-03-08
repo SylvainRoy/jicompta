@@ -1,14 +1,14 @@
-# ComptaClaude
+# JiCompta
 
-Application de gestion comptable pour petites entreprises françaises avec configuration automatique.
+Accounting management application for small French businesses with automatic configuration.
 
-## ✨ Caractéristiques principales
+## ✨ Main Features
 
-- **Configuration automatique**: Setup complet en 10 secondes via un wizard interactif
-- **Multi-utilisateurs**: Chaque utilisateur a ses propres données dans son Google Drive
-- **Génération de PDF**: Factures et reçus générés automatiquement avec templates personnalisables
-- **Mobile-first**: Interface responsive optimisée pour smartphones et tablettes
-- **Sans backend**: Toutes les données restent dans Google Drive de l'utilisateur
+- **Automatic Configuration**: Complete setup in 10 seconds via an interactive wizard
+- **Multi-user**: Each user has their own data in their Google Drive
+- **PDF Generation**: Invoices and receipts automatically generated with customizable templates
+- **Mobile-first**: Responsive interface optimized for smartphones and tablets
+- **No Backend**: All data stays in the user's Google Drive
 
 ## 🚀 Technologies
 
@@ -19,245 +19,245 @@ Application de gestion comptable pour petites entreprises françaises avec confi
 - **State Management**: React Context API + Hooks
 - **APIs**: Google OAuth 2.0, Google Sheets, Google Docs, Google Drive
 
-## 📦 Installation rapide
+## 📦 Quick Installation
 
-### Prérequis
+### Prerequisites
 
-- Node.js 18+ et npm
-- Un compte Google Cloud avec OAuth 2.0 configuré
+- Node.js 18+ and npm
+- A Google Cloud account with OAuth 2.0 configured
 
-### Installation en 3 étapes
+### Installation in 3 Steps
 
-1. **Cloner et installer**
+1. **Clone and Install**
 
 ```bash
 git clone <repository-url>
-cd comptaclaude
+cd jicompta
 npm install
 ```
 
-2. **Configurer Google OAuth**
+2. **Configure Google OAuth**
 
-- Créer un projet sur [Google Cloud Console](https://console.cloud.google.com)
-- Activer les APIs: Google Sheets, Google Docs, Google Drive
-- Créer un OAuth 2.0 Client ID (Application Web)
-- Ajouter `http://localhost:5173` dans les URIs autorisés
-- Copier le Client ID
+- Create a project on [Google Cloud Console](https://console.cloud.google.com)
+- Enable APIs: Google Sheets, Google Docs, Google Drive
+- Create an OAuth 2.0 Client ID (Web Application)
+- Add `http://localhost:5173` to authorized URIs
+- Copy the Client ID
 
-3. **Configurer l'environnement**
+3. **Configure Environment**
 
 ```bash
 cp .env.example .env
 ```
 
-Modifier `.env` avec votre Client ID:
+Edit `.env` with your Client ID:
 
 ```env
-VITE_GOOGLE_CLIENT_ID=votre-client-id.apps.googleusercontent.com
+VITE_GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
 ```
 
-> **⚠️ Important**: C'est le **seul** ID nécessaire! Tous les autres IDs (spreadsheet, templates, dossiers) sont créés et gérés automatiquement par l'application.
+> **⚠️ Important**: This is the **only** ID needed! All other IDs (spreadsheet, templates, folders) are automatically created and managed by the application.
 
-**C'est tout!** Lancez l'application:
+**That's it!** Launch the application:
 
 ```bash
 npm run dev
 ```
 
-L'application sera accessible sur http://localhost:5173
+The application will be accessible at http://localhost:5173
 
-## 👤 Première utilisation
+## 👤 First Use
 
-### Configuration automatique
+### Automatic Configuration
 
-1. **Connexion**: Cliquez sur "Se connecter avec Google" et autorisez les permissions
+1. **Login**: Click "Sign in with Google" and authorize the permissions
 
-2. **Détection automatique**: L'application cherche dans votre Google Drive:
-   - ✅ **Configuration existante trouvée**: Chargement automatique de votre espace
-   - 🆕 **Nouveau compte**: Le Setup Wizard se lance
+2. **Automatic Detection**: The application searches your Google Drive:
+   - ✅ **Existing configuration found**: Automatic loading of your workspace
+   - 🆕 **New account**: The Setup Wizard launches
 
-3. **Setup Wizard** (uniquement pour les nouveaux comptes):
-   - Création du dossier `Comptabilite/` dans votre Drive
-   - Création du tableur `Compta` avec 4 onglets (Clients, TypeDePrestation, Prestation, Paiement)
-   - Création des modèles de documents dans `Comptabilite/Modeles/`
-     - `Modèle de Facture` (personnalisable)
-     - `Modèle de Reçu` (personnalisable)
-   - Création des dossiers `Comptabilite/Factures/` et `Comptabilite/Recus/`
-   - **Durée**: ~10-15 secondes
+3. **Setup Wizard** (for new accounts only):
+   - Creates the `Comptabilite/` folder in your Drive
+   - Creates the `Compta` spreadsheet with 4 tabs (Clients, TypeDePrestation, Prestation, Paiement)
+   - Creates document templates in `Comptabilite/Modeles/`
+     - `Modèle de Facture` (customizable)
+     - `Modèle de Reçu` (customizable)
+   - Creates `Comptabilite/Factures/` and `Comptabilite/Recus/` folders
+   - **Duration**: ~10-15 seconds
 
-4. **C'est prêt!** → Redirection automatique vers le tableau de bord
+4. **Ready!** → Automatic redirection to the dashboard
 
-### 📱 Support multi-appareils
+### 📱 Multi-device Support
 
-L'application fonctionne **automatiquement sur tous vos appareils**:
+The application works **automatically on all your devices**:
 
-- **Ordinateur de bureau** → Connectez-vous avec Google → Vos données sont là!
-- **Téléphone** → Connectez-vous avec Google → Vos données sont là!
-- **Ordinateur du travail** → Connectez-vous avec Google → Vos données sont là!
+- **Desktop Computer** → Sign in with Google → Your data is there!
+- **Phone** → Sign in with Google → Your data is there!
+- **Work Computer** → Sign in with Google → Your data is there!
 
-**Aucune synchronisation manuelle nécessaire**: Tout est dans votre Google Drive.
+**No manual synchronization needed**: Everything is in your Google Drive.
 
-### 🔄 Comment ça marche ?
+### 🔄 How Does It Work?
 
-1. Lors de la connexion, l'application cherche un dossier `Comptabilite/` dans votre Drive
-2. Si trouvé → Charge automatiquement la configuration (IDs des fichiers)
-3. Si absent → Lance le wizard pour créer la structure
-4. La configuration est stockée dans le navigateur (localStorage) pour accès rapide
-5. Sur un nouvel appareil → Détection automatique à nouveau
+1. On login, the application searches for a `Comptabilite/` folder in your Drive
+2. If found → Automatically loads the configuration (file IDs)
+3. If absent → Launches the wizard to create the structure
+4. Configuration is stored in the browser (localStorage) for quick access
+5. On a new device → Automatic detection again
 
-> **Note**: Si vous videz le cache du navigateur, pas de panique! L'application recherchera automatiquement votre configuration dans Drive.
+> **Note**: If you clear the browser cache, don't panic! The application will automatically search for your configuration in Drive.
 
-Consultez [INSTALLATION.md](./docs/INSTALLATION.md) pour plus de détails.
+See [INSTALLATION.md](./docs/INSTALLATION.md) for more details.
 
-## 📂 Structure du Projet
+## 📂 Project Structure
 
 ```
 src/
-├── components/          # Composants React réutilisables
-│   ├── common/         # Composants génériques (Button, Input, Modal...)
+├── components/          # Reusable React components
+│   ├── common/         # Generic components (Button, Input, Modal...)
 │   ├── layout/         # Layout, Sidebar, Header
-│   └── forms/          # Formulaires spécifiques
-├── pages/              # Pages principales
-├── services/           # Services API et logique métier
-├── contexts/           # Contexts React (Auth, Data, Notifications)
+│   └── forms/          # Specific forms
+├── pages/              # Main pages
+├── services/           # API services and business logic
+├── contexts/           # React Contexts (Auth, Data, Notifications)
 ├── hooks/              # Custom hooks
-├── utils/              # Fonctions utilitaires
-├── types/              # Types TypeScript
-└── constants/          # Constantes
+├── utils/              # Utility functions
+├── types/              # TypeScript types
+└── constants/          # Constants
 ```
 
-## ✅ Fonctionnalités
+## ✅ Features
 
-### Infrastructure et Configuration (✅ Complet)
+### Infrastructure and Configuration (✅ Complete)
 
-- ✅ Setup automatique via wizard interactif
-- ✅ Création automatique du spreadsheet et des templates
-- ✅ Configuration stockée en localStorage
-- ✅ Détection et chargement de configuration existante
-- ✅ Page Paramètres pour gérer la configuration
-- ✅ Google OAuth 2.0 avec gestion de session
-- ✅ Système de notifications toast
+- ✅ Automatic setup via interactive wizard
+- ✅ Automatic creation of spreadsheet and templates
+- ✅ Configuration stored in localStorage
+- ✅ Detection and loading of existing configuration
+- ✅ Settings page to manage configuration
+- ✅ Google OAuth 2.0 with session management
+- ✅ Toast notification system
 
-### Gestion des données (✅ Complet)
+### Data Management (✅ Complete)
 
-- ✅ **Clients**: CRUD complet avec validation
-- ✅ **Types de Prestations**: CRUD complet avec montants suggérés
-- ✅ **Prestations**: CRUD complet avec calcul automatique des statuts
-- ✅ **Paiements**: CRUD complet avec liens vers prestations
-- ✅ Filtres et recherche sur toutes les pages
-- ✅ Intégration Google Sheets en temps réel
+- ✅ **Clients**: Complete CRUD with validation
+- ✅ **Service Types**: Complete CRUD with suggested amounts
+- ✅ **Services**: Complete CRUD with automatic status calculation
+- ✅ **Payments**: Complete CRUD with links to services
+- ✅ Filters and search on all pages
+- ✅ Real-time Google Sheets integration
 
-### Génération de documents (✅ Complet)
+### Document Generation (✅ Complete)
 
-- ✅ Génération automatique de factures en PDF
-- ✅ Génération automatique de reçus en PDF
-- ✅ Templates personnalisables dans Google Docs
-- ✅ Stockage organisé par année dans Google Drive
-- ✅ Variables dynamiques (client, montant, date, etc.)
-- ✅ Boutons contextuels (Générer/Voir selon l'état)
-- ✅ Indicateurs de chargement pendant la génération
+- ✅ Automatic invoice generation in PDF
+- ✅ Automatic receipt generation in PDF
+- ✅ Customizable templates in Google Docs
+- ✅ Organized storage by year in Google Drive
+- ✅ Dynamic variables (client, amount, date, etc.)
+- ✅ Contextual buttons (Generate/View depending on state)
+- ✅ Loading indicators during generation
 
-### Interface utilisateur (✅ Complet)
+### User Interface (✅ Complete)
 
-- ✅ Design mobile-first responsive
-- ✅ Vue carte (mobile) et tableau (desktop)
-- ✅ Navigation intuitive avec sidebar
-- ✅ Tableau de bord avec statistiques et graphiques
-- ✅ Formulaires avec validation en temps réel
-- ✅ Modales pour création/édition
-- ✅ États de chargement et messages d'erreur
+- ✅ Mobile-first responsive design
+- ✅ Card view (mobile) and table (desktop)
+- ✅ Intuitive navigation with sidebar
+- ✅ Dashboard with statistics and charts
+- ✅ Forms with real-time validation
+- ✅ Modals for creation/editing
+- ✅ Loading states and error messages
 
-## 🔧 Scripts Disponibles
+## 🔧 Available Scripts
 
 ```bash
-npm run dev          # Démarrer le serveur de développement
-npm run build        # Build pour la production
-npm run preview      # Prévisualiser le build de production
-npm run lint         # Linter le code
+npm run dev          # Start development server
+npm run build        # Build for production
+npm run preview      # Preview production build
+npm run lint         # Lint the code
 ```
 
 ## 📖 Documentation
 
-- [Installation complète](./docs/INSTALLATION.md) - Guide d'installation détaillé
-- [Configuration Google](./docs/GOOGLE_SETUP.md) - Setup Google Cloud Console
-- [Templates](./docs/TEMPLATES_SETUP.md) - Variables disponibles pour factures/reçus
-- [Test mobile](./docs/MOBILE_TEST_NGROK.md) - Tester sur mobile avec ngrok
-- [Spécifications](./docs/specification.md) - Spécifications fonctionnelles complètes
-- [Progression](./docs/PROGRESS.md) - État d'avancement du projet
+- [Complete Installation](./docs/INSTALLATION.md) - Detailed installation guide
+- [Google Configuration](./docs/GOOGLE_SETUP.md) - Google Cloud Console setup
+- [Templates](./docs/TEMPLATES_SETUP.md) - Available variables for invoices/receipts
+- [Mobile Testing](./docs/MOBILE_TEST_NGROK.md) - Test on mobile with ngrok
+- [Specifications](./docs/specification.md) - Complete functional specifications
+- [Progress](./docs/PROGRESS.md) - Project progress status
 
-## 🌐 Déploiement
+## 🌐 Deployment
 
-### Vercel (Recommandé)
+### Vercel (Recommended)
 
-1. Push le code sur GitHub
-2. Connecter le repository à Vercel
-3. Configurer les variables d'environnement dans Vercel
-4. Mettre à jour `VITE_GOOGLE_REDIRECT_URI` avec l'URL de production
-5. Ajouter l'URL de production dans Google Cloud Console (URIs autorisés)
+1. Push code to GitHub
+2. Connect repository to Vercel
+3. Configure environment variables in Vercel
+4. Update `VITE_GOOGLE_REDIRECT_URI` with production URL
+5. Add production URL to Google Cloud Console (authorized URIs)
 
 ### Netlify
 
 1. Build command: `npm run build`
 2. Publish directory: `dist`
-3. Configurer les variables d'environnement
-4. Mettre à jour les URIs autorisés dans Google Cloud
+3. Configure environment variables
+4. Update authorized URIs in Google Cloud
 
-## 🔐 Sécurité et Confidentialité
+## 🔐 Security and Privacy
 
-- **Aucun backend**: L'application ne stocke aucune donnée sur un serveur tiers
-- **Données personnelles**: Tout reste dans le Google Drive de l'utilisateur
-- **Configuration automatique**:
-  - Les IDs des fichiers sont découverts automatiquement dans Drive
-  - Stockés localement dans le navigateur (localStorage) pour performance
-  - Re-détectés automatiquement si le cache est vidé
-- **OAuth sécurisé**: Authentification via Google OAuth 2.0
-- **Multi-utilisateurs**: Isolation complète entre utilisateurs
-  - Chaque utilisateur a son propre dossier `Comptabilite/` dans son Drive
-  - Aucune interaction possible entre comptes
-  - Un seul Client ID partagé (côté développeur), données séparées (côté utilisateur)
+- **No Backend**: The application stores no data on a third-party server
+- **Personal Data**: Everything stays in the user's Google Drive
+- **Automatic Configuration**:
+  - File IDs are automatically discovered in Drive
+  - Stored locally in the browser (localStorage) for performance
+  - Re-detected automatically if cache is cleared
+- **Secure OAuth**: Authentication via Google OAuth 2.0
+- **Multi-user**: Complete isolation between users
+  - Each user has their own `Comptabilite/` folder in their Drive
+  - No possible interaction between accounts
+  - Single shared Client ID (developer side), separate data (user side)
 
-## 🎉 Améliorations récentes (Mars 2026)
+## 🎉 Recent Improvements (March 2026)
 
-### Industrialisation complète
+### Complete Industrialization
 
-L'application a été entièrement industrialisée pour simplifier l'installation et l'utilisation:
+The application has been fully industrialized to simplify installation and use:
 
-- ✅ **Setup entièrement automatique**: Plus besoin de créer manuellement des fichiers dans Drive
-- ✅ **Un seul ID requis**: Seul le `VITE_GOOGLE_CLIENT_ID` est nécessaire dans `.env`
-- ✅ **Détection automatique**: Trouve et charge automatiquement la configuration existante
-- ✅ **Support multi-appareils**: Fonctionne sur tous les appareils sans configuration
-- ✅ **Noms français**: Tous les dossiers et fichiers en français (Comptabilite, Modeles, etc.)
-- ✅ **Gestion des prestations**: Distinction correcte entre prestations liées et prestations payées
+- ✅ **Fully automatic setup**: No need to manually create files in Drive
+- ✅ **Only one ID required**: Only `VITE_GOOGLE_CLIENT_ID` is needed in `.env`
+- ✅ **Automatic detection**: Finds and automatically loads existing configuration
+- ✅ **Multi-device support**: Works on all devices without configuration
+- ✅ **French names**: All folders and files in French (Comptabilite, Modeles, etc.)
+- ✅ **Service management**: Correct distinction between linked and paid services
 
-### Migration depuis une version précédente
+### Migration from Previous Version
 
-Si vous utilisez une ancienne version avec configuration manuelle:
+If you're using an old version with manual configuration:
 
-1. Les anciennes configurations continuent de fonctionner
-2. Pour bénéficier de la détection automatique:
-   - Assurez-vous que votre dossier s'appelle `Comptabilite/`
-   - Votre tableur doit s'appeler `Compta`
-   - Vos templates doivent être dans `Comptabilite/Modeles/`
-3. Videz le localStorage du navigateur pour forcer la re-détection
+1. Old configurations continue to work
+2. To benefit from automatic detection:
+   - Make sure your folder is named `Comptabilite/`
+   - Your spreadsheet must be named `Compta`
+   - Your templates must be in `Comptabilite/Modeles/`
+3. Clear the browser's localStorage to force re-detection
 
-## 📝 Notes de Développement
+## 📝 Development Notes
 
-### Formats de Données
+### Data Formats
 
-- **Dates**: Stockage en `YYYY-MM-DD`, affichage en `DD/MM/YYYY`
-- **Montants**: Stockage en décimal, affichage en format français `1 234,56 €`
-- **IDs Paiement**: Format `yymmddnnnn` (ex: 2603150001)
+- **Dates**: Storage in `YYYY-MM-DD`, display in `DD/MM/YYYY`
+- **Amounts**: Storage as decimal, display in French format `1 234,56 €`
+- **Payment IDs**: Format `yymmddnnnn` (ex: 2603150001)
 
-### API Google Sheets
+### Google Sheets API
 
-- Les données commencent à la ligne 2 (ligne 1 = en-têtes)
-- Chaque onglet correspond à une table
-- Les modifications sont synchrones avec Google Sheets
+- Data starts at row 2 (row 1 = headers)
+- Each tab corresponds to a table
+- Changes are synchronous with Google Sheets
 
-## 👤 Auteur
+## 👤 Author
 
-ComptaClaude - Application développée avec Claude Code
+JiCompta - Application developed with Claude Code
 
-## 📄 Licence
+## 📄 License
 
-Propriétaire - Tous droits réservés
+Proprietary - All rights reserved

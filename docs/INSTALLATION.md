@@ -1,214 +1,214 @@
-# Installation de ComptaClaude
+# JiCompta Installation
 
-Ce guide explique comment installer et configurer ComptaClaude pour un déploiement multi-utilisateurs.
+This guide explains how to install and configure JiCompta for multi-user deployment.
 
-## 📋 Prérequis
+## 📋 Prerequisites
 
-- Node.js 18+ et npm
-- Un projet Google Cloud avec OAuth 2.0 configuré
-- Les API suivantes activées dans Google Cloud Console:
+- Node.js 18+ and npm
+- A Google Cloud project with OAuth 2.0 configured
+- The following APIs enabled in Google Cloud Console:
   - Google Sheets API
   - Google Docs API
   - Google Drive API
 
-## 🚀 Installation pour développement
+## 🚀 Development Installation
 
-### 1. Cloner le repository
+### 1. Clone the repository
 
 ```bash
 git clone <repository-url>
-cd comptaclaude
+cd jicompta
 ```
 
-### 2. Installer les dépendances
+### 2. Install dependencies
 
 ```bash
 npm install
 ```
 
-### 3. Configurer Google OAuth
+### 3. Configure Google OAuth
 
-1. Allez sur [Google Cloud Console](https://console.cloud.google.com/)
-2. Créez un nouveau projet ou sélectionnez un projet existant
-3. Activez les APIs nécessaires:
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create a new project or select an existing project
+3. Enable the required APIs:
    - Google Sheets API
    - Google Docs API
    - Google Drive API
-4. Configurez l'écran de consentement OAuth
-5. Créez des identifiants OAuth 2.0:
-   - Type: Application Web
-   - Origines JavaScript autorisées: `http://localhost:5173`
-   - URI de redirection: `http://localhost:5173`
-6. Copiez le Client ID
+4. Configure the OAuth consent screen
+5. Create OAuth 2.0 credentials:
+   - Type: Web Application
+   - Authorized JavaScript origins: `http://localhost:5173`
+   - Redirect URI: `http://localhost:5173`
+6. Copy the Client ID
 
-### 4. Configurer les variables d'environnement
+### 4. Configure environment variables
 
-Créez un fichier `.env` à la racine du projet:
+Create a `.env` file at the project root:
 
 ```bash
 cp .env.example .env
 ```
 
-Modifiez `.env` et remplacez `VITE_GOOGLE_CLIENT_ID` par votre Client ID:
+Edit `.env` and replace `VITE_GOOGLE_CLIENT_ID` with your Client ID:
 
 ```env
-VITE_GOOGLE_CLIENT_ID=votre-client-id.apps.googleusercontent.com
+VITE_GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
 ```
 
-**C'est tout!** Aucune autre configuration manuelle n'est nécessaire.
+**That's it!** No other manual configuration is needed.
 
-### 5. Lancer l'application
+### 5. Launch the application
 
 ```bash
 npm run dev
 ```
 
-L'application sera accessible sur `http://localhost:5173`
+The application will be accessible at `http://localhost:5173`
 
-## 👤 Premier utilisateur
+## 👤 First User
 
-### Flux d'utilisation
+### Usage Flow
 
-1. **Connexion**: L'utilisateur clique sur "Se connecter avec Google"
-2. **Autorisation**: Google demande les permissions (Sheets, Docs, Drive)
-3. **Détection automatique**: L'application cherche automatiquement un dossier `Comptabilite/` dans Drive
-   - Si trouvé: La configuration est chargée automatiquement → Dashboard
-   - Si absent: Le wizard de setup apparaît
-4. **Setup automatique** (si nécessaire): Le wizard crée automatiquement:
-   - Un dossier `Comptabilite/` dans Google Drive
-   - Un tableur `Compta` avec 4 onglets (Clients, TypeDePrestation, Prestation, Paiement)
-   - Des modèles dans `Comptabilite/Modeles/`:
-     - Modèle de Facture (personnalisable)
-     - Modèle de Reçu (personnalisable)
-   - Des sous-dossiers:
-     - `Comptabilite/Factures/` (pour les factures générées)
-     - `Comptabilite/Recus/` (pour les reçus générés)
-5. **Configuration locale**: Les IDs des ressources créées/trouvées sont stockés dans le localStorage du navigateur
-6. **Prêt**: L'utilisateur est redirigé vers le tableau de bord
+1. **Login**: User clicks "Sign in with Google"
+2. **Authorization**: Google requests permissions (Sheets, Docs, Drive)
+3. **Automatic Detection**: The application automatically searches for a `Comptabilite/` folder in Drive
+   - If found: Configuration is automatically loaded → Dashboard
+   - If absent: Setup wizard appears
+4. **Automatic Setup** (if needed): The wizard automatically creates:
+   - A `Comptabilite/` folder in Google Drive
+   - A `Compta` spreadsheet with 4 tabs (Clients, TypeDePrestation, Prestation, Paiement)
+   - Templates in `Comptabilite/Modeles/`:
+     - Modèle de Facture (customizable)
+     - Modèle de Reçu (customizable)
+   - Subfolders:
+     - `Comptabilite/Factures/` (for generated invoices)
+     - `Comptabilite/Recus/` (for generated receipts)
+5. **Local Configuration**: IDs of created/found resources are stored in the browser's localStorage
+6. **Ready**: User is redirected to the dashboard
 
-**Durée totale**: ~10-15 secondes
+**Total duration**: ~10-15 seconds
 
-### Personnalisation des templates
+### Template Customization
 
-Après le setup, l'utilisateur peut personnaliser ses templates:
+After setup, users can customize their templates:
 
-1. Aller dans "Paramètres"
-2. Cliquer sur "Ouvrir" à côté de "Modèle de Facture" ou "Modèle de Reçu"
-3. Modifier le modèle dans Google Docs (formatage, logo, informations légales, etc.)
-4. Sauvegarder - les changements seront appliqués aux prochaines factures/reçus
+1. Go to "Settings"
+2. Click "Open" next to "Invoice Template" or "Receipt Template"
+3. Edit the template in Google Docs (formatting, logo, legal information, etc.)
+4. Save - changes will be applied to future invoices/receipts
 
-## 🌐 Déploiement en production
+## 🌐 Production Deployment
 
-### Option 1: Vercel (recommandé)
+### Option 1: Vercel (recommended)
 
-1. Créez un compte sur [Vercel](https://vercel.com)
-2. Connectez votre repository GitHub
-3. Configurez les variables d'environnement:
-   - `VITE_GOOGLE_CLIENT_ID`: Votre Client ID
-4. Mettez à jour les origines autorisées dans Google Cloud Console:
-   - Ajoutez votre domaine Vercel (ex: `https://comptaclaude.vercel.app`)
-5. Déployez!
+1. Create an account on [Vercel](https://vercel.com)
+2. Connect your GitHub repository
+3. Configure environment variables:
+   - `VITE_GOOGLE_CLIENT_ID`: Your Client ID
+4. Update authorized origins in Google Cloud Console:
+   - Add your Vercel domain (ex: `https://jicompta.vercel.app`)
+5. Deploy!
 
 ### Option 2: Netlify
 
-1. Créez un compte sur [Netlify](https://netlify.com)
-2. Connectez votre repository
+1. Create an account on [Netlify](https://netlify.com)
+2. Connect your repository
 3. Build command: `npm run build`
 4. Publish directory: `dist`
-5. Configurez la variable d'environnement:
-   - `VITE_GOOGLE_CLIENT_ID`: Votre Client ID
-6. Mettez à jour Google Cloud Console avec votre domaine Netlify
+5. Configure environment variable:
+   - `VITE_GOOGLE_CLIENT_ID`: Your Client ID
+6. Update Google Cloud Console with your Netlify domain
 
-### Option 3: Serveur personnalisé
+### Option 3: Custom Server
 
 ```bash
-# Build de production
+# Production build
 npm run build
 
-# Les fichiers statiques sont dans ./dist
-# Servez-les avec nginx, Apache, ou tout autre serveur web
+# Static files are in ./dist
+# Serve them with nginx, Apache, or any other web server
 ```
 
-**Important**: Mettez à jour les origines autorisées dans Google Cloud Console avec votre domaine de production.
+**Important**: Update authorized origins in Google Cloud Console with your production domain.
 
-## 🔧 Configuration avancée
+## 🔧 Advanced Configuration
 
-### Réinitialiser la configuration
+### Reset Configuration
 
-Si un utilisateur rencontre des problèmes:
+If a user encounters problems:
 
-1. Aller dans "Paramètres"
-2. Cliquer sur "Réinitialiser la configuration"
-3. Une nouvelle configuration sera créée (les anciennes ressources restent dans Drive)
+1. Go to "Settings"
+2. Click "Reset Configuration"
+3. A new configuration will be created (old resources remain in Drive)
 
-### Effacer la configuration locale
+### Clear Local Configuration
 
-Pour forcer le wizard au prochain login:
+To force the wizard at next login:
 
-1. Aller dans "Paramètres"
-2. Cliquer sur "Effacer la configuration locale"
-3. Le wizard réapparaîtra à la prochaine connexion
+1. Go to "Settings"
+2. Click "Clear Local Configuration"
+3. The wizard will reappear at next login
 
-### Changement de navigateur ou d'appareil
+### Browser or Device Change
 
-Si un utilisateur change de navigateur ou d'appareil:
+If a user changes browser or device:
 
-1. **Connexion**: L'utilisateur se connecte avec Google
-2. **Détection automatique**: L'application recherche automatiquement le dossier `Comptabilite/` dans son Drive
-3. **Chargement automatique**: Si trouvé, la configuration est chargée et l'utilisateur accède immédiatement au Dashboard
-4. **Setup si nécessaire**: Si le dossier n'existe pas, le wizard de création s'affiche
+1. **Login**: User signs in with Google
+2. **Automatic Detection**: Application automatically searches for `Comptabilite/` folder in their Drive
+3. **Automatic Loading**: If found, configuration is loaded and user immediately accesses the Dashboard
+4. **Setup if Needed**: If folder doesn't exist, creation wizard appears
 
-**Avantages:**
-- ✅ Aucune manipulation manuelle nécessaire
-- ✅ Accès instantané à ses données sur n'importe quel appareil
-- ✅ Pas besoin de reconfigurer manuellement
-- ✅ Fonctionne même après avoir vidé le cache du navigateur
+**Advantages:**
+- ✅ No manual manipulation needed
+- ✅ Instant access to data on any device
+- ✅ No need to manually reconfigure
+- ✅ Works even after clearing browser cache
 
-## 🔒 Sécurité et confidentialité
+## 🔒 Security and Privacy
 
-### Données utilisateur
+### User Data
 
-- **Stockage**: Toutes les données sont stockées dans le Google Drive personnel de l'utilisateur
-- **Configuration**: Les IDs des ressources sont stockés localement (localStorage)
-- **Pas de backend**: L'application ne stocke aucune donnée sur un serveur tiers
-- **Permissions**: L'application demande uniquement les permissions nécessaires (Sheets, Docs, Drive)
+- **Storage**: All data is stored in the user's personal Google Drive
+- **Configuration**: Resource IDs are stored locally (localStorage)
+- **No Backend**: Application stores no data on a third-party server
+- **Permissions**: Application only requests necessary permissions (Sheets, Docs, Drive)
 
-### Multi-utilisateurs
+### Multi-user
 
-- Chaque utilisateur a ses propres ressources Google Drive
-- Aucune donnée n'est partagée entre utilisateurs
-- Chaque utilisateur doit se connecter avec son propre compte Google
+- Each user has their own Google Drive resources
+- No data is shared between users
+- Each user must sign in with their own Google account
 
-## 📚 Documentation additionnelle
+## 📚 Additional Documentation
 
-- [Google Setup Guide](./GOOGLE_SETUP.md) - Configuration détaillée de Google Cloud
-- [Templates Setup](./TEMPLATES_SETUP.md) - Variables disponibles dans les templates
-- [Mobile Testing](./MOBILE_TEST_NGROK.md) - Tester sur mobile avec ngrok
-- [Progress](./PROGRESS.md) - État d'avancement du projet
+- [Google Setup Guide](./GOOGLE_SETUP.md) - Detailed Google Cloud configuration
+- [Templates Setup](./TEMPLATES_SETUP.md) - Available variables in templates
+- [Mobile Testing](./MOBILE_TEST_NGROK.md) - Test on mobile with ngrok
+- [Progress](./PROGRESS.md) - Project progress status
 
-## 🆘 Dépannage
+## 🆘 Troubleshooting
 
 ### "Configuration not found"
 
-- Vérifiez que vous êtes bien connecté
-- Allez dans Paramètres et cliquez sur "Réinitialiser la configuration"
+- Verify you are properly logged in
+- Go to Settings and click "Reset Configuration"
 
 ### "Drive API error: 404"
 
-- Vérifiez que les APIs sont bien activées dans Google Cloud Console
-- Vérifiez que les permissions OAuth incluent bien `drive` (pas seulement `drive.file`)
+- Verify APIs are enabled in Google Cloud Console
+- Verify OAuth permissions include `drive` (not just `drive.file`)
 
-### Le wizard ne se lance pas
+### Wizard doesn't launch
 
-- Effacez le localStorage du navigateur
-- Reconnectez-vous
+- Clear browser's localStorage
+- Sign in again
 
-### Les templates ne fonctionnent pas
+### Templates don't work
 
-- Vérifiez dans Paramètres que les IDs des templates sont bien configurés
-- Ouvrez les templates via Paramètres et vérifiez qu'ils contiennent les placeholders `{{VARIABLE}}`
-- Si nécessaire, réinitialisez la configuration
+- Check in Settings that template IDs are properly configured
+- Open templates via Settings and verify they contain `{{VARIABLE}}` placeholders
+- If needed, reset the configuration
 
 ## 📞 Support
 
-Pour toute question ou problème, ouvrez une issue sur GitHub.
+For any questions or issues, open an issue on GitHub.

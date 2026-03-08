@@ -1,14 +1,14 @@
-# Configuration des Templates PDF (Factures et Reçus)
+# PDF Templates Configuration (Invoices and Receipts)
 
-Ce guide explique comment configurer les templates Google Docs pour générer les factures et reçus.
+This guide explains how to configure Google Docs templates to generate invoices and receipts.
 
-## 📁 Étape 1 : Créer la structure de dossiers dans Google Drive
+## 📁 Step 1: Create Folder Structure in Google Drive
 
-1. Allez sur [Google Drive](https://drive.google.com)
-2. Créez la structure suivante :
+1. Go to [Google Drive](https://drive.google.com)
+2. Create the following structure:
 
 ```
-Mon Drive/
+My Drive/
 └── Comptabilité/
     ├── Templates/
     ├── Factures/
@@ -19,108 +19,108 @@ Mon Drive/
         └── 2026/
 ```
 
-3. **Récupérer les IDs des dossiers** :
-   - Ouvrez chaque dossier dans votre navigateur
-   - L'URL ressemble à : `https://drive.google.com/drive/folders/XXXXX`
-   - Copiez la partie `XXXXX` (l'ID du dossier)
-   - Notez :
-     - ID du dossier `Factures/` → Pour `VITE_DRIVE_FOLDER_FACTURES_ID`
-     - ID du dossier `Reçus/` → Pour `VITE_DRIVE_FOLDER_RECUS_ID`
+3. **Get Folder IDs**:
+   - Open each folder in your browser
+   - URL looks like: `https://drive.google.com/drive/folders/XXXXX`
+   - Copy the `XXXXX` part (the folder ID)
+   - Note:
+     - `Factures/` folder ID → For `VITE_DRIVE_FOLDER_FACTURES_ID`
+     - `Reçus/` folder ID → For `VITE_DRIVE_FOLDER_RECUS_ID`
 
-## 📄 Étape 2 : Créer le Template de Facture
+## 📄 Step 2: Create Invoice Template
 
-1. Créez un nouveau **Google Docs** dans le dossier `Templates/`
-2. Nommez-le : `Template_Facture`
-3. Copiez-collez le contenu suivant :
+1. Create a new **Google Docs** in the `Templates/` folder
+2. Name it: `Template_Facture`
+3. Copy-paste the following content:
 
 ```
 ===========================================
-            FACTURE
+            INVOICE
 ===========================================
 
-Référence : {{REFERENCE_PAIEMENT}}
-Date : {{DATE_FACTURE}}
+Reference: {{REFERENCE_PAIEMENT}}
+Date: {{DATE_FACTURE}}
 
 -------------------------------------------
 CLIENT
 -------------------------------------------
 
-Nom : {{NOM_CLIENT}}
-Email : {{EMAIL_CLIENT}}
-Téléphone : {{TELEPHONE_CLIENT}}
-Adresse : {{ADRESSE_CLIENT}}
-SIRET : {{SIRET_CLIENT}}
+Name: {{NOM_CLIENT}}
+Email: {{EMAIL_CLIENT}}
+Phone: {{TELEPHONE_CLIENT}}
+Address: {{ADRESSE_CLIENT}}
+SIRET: {{SIRET_CLIENT}}
 
 -------------------------------------------
-DÉTAIL DES PRESTATIONS
+SERVICE DETAILS
 -------------------------------------------
 
 {{LISTE_PRESTATIONS}}
 
 -------------------------------------------
-TOTAL : {{TOTAL}}
+TOTAL: {{TOTAL}}
 -------------------------------------------
 
-Mode d'encaissement : {{MODE_ENCAISSEMENT}}
-Date d'encaissement : {{DATE_ENCAISSEMENT}}
+Payment method: {{MODE_ENCAISSEMENT}}
+Payment date: {{DATE_ENCAISSEMENT}}
 
-Merci de votre confiance !
+Thank you for your business!
 ```
 
-4. **Personnalisez** le template selon vos besoins (logo, mentions légales, etc.)
-5. **Important** : Gardez tous les `{{PLACEHOLDERS}}` exactement comme indiqué
-6. **Récupérer l'ID du template** :
-   - URL : `https://docs.google.com/document/d/YYYYY/edit`
-   - Copiez la partie `YYYYY` → Pour `VITE_TEMPLATE_FACTURE_ID`
+4. **Customize** the template according to your needs (logo, legal mentions, etc.)
+5. **Important**: Keep all `{{PLACEHOLDERS}}` exactly as indicated
+6. **Get template ID**:
+   - URL: `https://docs.google.com/document/d/YYYYY/edit`
+   - Copy the `YYYYY` part → For `VITE_TEMPLATE_FACTURE_ID`
 
-## 📄 Étape 3 : Créer le Template de Reçu
+## 📄 Step 3: Create Receipt Template
 
-1. Créez un nouveau **Google Docs** dans le dossier `Templates/`
-2. Nommez-le : `Template_Recu`
-3. Copiez-collez le contenu suivant :
+1. Create a new **Google Docs** in the `Templates/` folder
+2. Name it: `Template_Recu`
+3. Copy-paste the following content:
 
 ```
 ===========================================
-            REÇU
+            RECEIPT
 ===========================================
 
-Référence : {{REFERENCE_PAIEMENT}}
-Date de génération : {{DATE_FACTURE}}
-Date d'encaissement : {{DATE_ENCAISSEMENT}}
+Reference: {{REFERENCE_PAIEMENT}}
+Generation date: {{DATE_FACTURE}}
+Payment date: {{DATE_ENCAISSEMENT}}
 
 -------------------------------------------
 CLIENT
 -------------------------------------------
 
-Nom : {{NOM_CLIENT}}
-Email : {{EMAIL_CLIENT}}
-Téléphone : {{TELEPHONE_CLIENT}}
-Adresse : {{ADRESSE_CLIENT}}
-SIRET : {{SIRET_CLIENT}}
+Name: {{NOM_CLIENT}}
+Email: {{EMAIL_CLIENT}}
+Phone: {{TELEPHONE_CLIENT}}
+Address: {{ADRESSE_CLIENT}}
+SIRET: {{SIRET_CLIENT}}
 
 -------------------------------------------
-DÉTAIL DES PRESTATIONS
+SERVICE DETAILS
 -------------------------------------------
 
 {{LISTE_PRESTATIONS}}
 
 -------------------------------------------
-Mode de paiement : {{MODE_ENCAISSEMENT}}
-TOTAL ENCAISSÉ : {{TOTAL}}
+Payment method: {{MODE_ENCAISSEMENT}}
+TOTAL RECEIVED: {{TOTAL}}
 -------------------------------------------
 
-Merci de votre paiement !
+Thank you for your payment!
 ```
 
-4. **Personnalisez** le template selon vos besoins
-5. **Important** : Gardez tous les `{{PLACEHOLDERS}}` exactement comme indiqué
-6. **Récupérer l'ID du template** :
-   - URL : `https://docs.google.com/document/d/ZZZZZ/edit`
-   - Copiez la partie `ZZZZZ` → Pour `VITE_TEMPLATE_RECU_ID`
+4. **Customize** the template according to your needs
+5. **Important**: Keep all `{{PLACEHOLDERS}}` exactly as indicated
+6. **Get template ID**:
+   - URL: `https://docs.google.com/document/d/ZZZZZ/edit`
+   - Copy the `ZZZZZ` part → For `VITE_TEMPLATE_RECU_ID`
 
-## ⚙️ Étape 4 : Configuration dans .env
+## ⚙️ Step 4: Configuration in .env
 
-Ajoutez les IDs récupérés dans votre fichier `.env` :
+Add the retrieved IDs to your `.env` file:
 
 ```bash
 # Google Docs Templates
@@ -132,76 +132,76 @@ VITE_DRIVE_FOLDER_FACTURES_ID=XXXXX_factures_folder
 VITE_DRIVE_FOLDER_RECUS_ID=XXXXX_recus_folder
 ```
 
-## 🔐 Étape 5 : Permissions (Important !)
+## 🔐 Step 5: Permissions (Important!)
 
-Les templates et dossiers doivent être **accessibles** avec votre compte Google :
+Templates and folders must be **accessible** with your Google account:
 
-1. **Vérifiez les permissions** :
-   - Ouvrez chaque template et dossier
-   - Cliquez sur "Partager"
-   - Votre compte Google doit avoir accès "Éditeur" ou "Propriétaire"
+1. **Check permissions**:
+   - Open each template and folder
+   - Click "Share"
+   - Your Google account must have "Editor" or "Owner" access
 
-2. **Note** : L'application utilise votre token OAuth, donc tout ce qui est accessible depuis votre compte Google sera accessible à l'application.
+2. **Note**: The application uses your OAuth token, so everything accessible from your Google account will be accessible to the application.
 
-## 🎨 Personnalisation Avancée
+## 🎨 Advanced Customization
 
-### Variables disponibles pour FACTURES et REÇUS (toutes disponibles pour les deux) :
+### Available variables for INVOICES and RECEIPTS (all available for both):
 
-**Informations Paiement :**
-- `{{REFERENCE_PAIEMENT}}` - ID du paiement (ex: 2603150001)
-- `{{DATE_FACTURE}}` - Date de génération du document (format: DD/MM/YYYY)
-- `{{DATE_ENCAISSEMENT}}` - Date d'encaissement (ou "Non encaissé" si pas encore encaissé)
-- `{{MODE_ENCAISSEMENT}}` - Mode de paiement (Virement, Espèce, Chèque, PayPal, Autre ou "Non spécifié")
-- `{{TOTAL}}` - Montant total (format: 1 234,56 €)
+**Payment Information:**
+- `{{REFERENCE_PAIEMENT}}` - Payment ID (ex: 2603150001)
+- `{{DATE_FACTURE}}` - Document generation date (format: DD/MM/YYYY)
+- `{{DATE_ENCAISSEMENT}}` - Payment date (or "Not cashed" if not yet paid)
+- `{{MODE_ENCAISSEMENT}}` - Payment method (Transfer, Cash, Check, PayPal, Other or "Not specified")
+- `{{TOTAL}}` - Total amount (format: 1 234,56 €)
 
-**Informations Client :**
-- `{{NOM_CLIENT}}` - Nom du client
-- `{{EMAIL_CLIENT}}` - Email du client
-- `{{TELEPHONE_CLIENT}}` - Téléphone du client (ou "Non renseigné")
-- `{{ADRESSE_CLIENT}}` - Adresse complète (ou "Non renseignée")
-- `{{SIRET_CLIENT}}` - Numéro SIRET (ou "Non renseigné")
+**Client Information:**
+- `{{NOM_CLIENT}}` - Client name
+- `{{EMAIL_CLIENT}}` - Client email
+- `{{TELEPHONE_CLIENT}}` - Client phone (or "Not provided")
+- `{{ADRESSE_CLIENT}}` - Full address (or "Not provided")
+- `{{SIRET_CLIENT}}` - SIRET number (or "Not provided")
 
-**Détails :**
-- `{{LISTE_PRESTATIONS}}` - Tableau des prestations (date, type, montant)
+**Details:**
+- `{{LISTE_PRESTATIONS}}` - Services table (date, type, amount)
 
-### Conseils de mise en forme :
+### Formatting tips:
 
-- Utilisez **Gras** pour les titres
-- Utilisez des **tableaux** pour `{{LISTE_PRESTATIONS}}` (optionnel)
-- Ajoutez votre **logo** en haut du document
-- Ajoutez vos **mentions légales** en bas
-- Utilisez des **couleurs** pour rendre le document plus professionnel
+- Use **Bold** for titles
+- Use **tables** for `{{LISTE_PRESTATIONS}}` (optional)
+- Add your **logo** at the top of the document
+- Add your **legal mentions** at the bottom
+- Use **colors** to make the document more professional
 
-## ✅ Étape 6 : Tester la génération
+## ✅ Step 6: Test Generation
 
-1. Redémarrez votre serveur de développement (pour charger les nouvelles variables d'environnement)
-2. Créez un paiement dans l'application
-3. Cliquez sur "Générer facture"
-4. Vérifiez que :
-   - Le document est créé dans le bon dossier Drive
-   - Toutes les variables sont remplacées
-   - Le PDF est accessible via le lien
+1. Restart your development server (to load new environment variables)
+2. Create a payment in the application
+3. Click "Generate invoice"
+4. Verify that:
+   - Document is created in the correct Drive folder
+   - All variables are replaced
+   - PDF is accessible via the link
 
-## ❓ Dépannage
+## ❓ Troubleshooting
 
-### Erreur : "Template ... ID not configured"
-- Vérifiez que les IDs sont bien dans le fichier `.env`
-- Redémarrez le serveur après modification du `.env`
+### Error: "Template ... ID not configured"
+- Verify IDs are in the `.env` file
+- Restart server after modifying `.env`
 
-### Erreur : "Drive API error: 404"
-- Les IDs de template ou dossier sont incorrects
-- Vérifiez les permissions (votre compte doit avoir accès)
+### Error: "Drive API error: 404"
+- Template or folder IDs are incorrect
+- Check permissions (your account must have access)
 
-### Erreur : "Cannot generate reçu: payment not yet encaissé"
-- Le reçu ne peut être généré que pour les paiements encaissés
-- Ajoutez une date d'encaissement au paiement d'abord
+### Error: "Cannot generate receipt: payment not yet cashed"
+- Receipt can only be generated for paid payments
+- Add a payment date to the payment first
 
-### Les variables ne sont pas remplacées
-- Vérifiez que les placeholders sont **exactement** comme indiqué (majuscules, accolades)
-- Exemple correct : `{{TOTAL}}`
-- Exemple incorrect : `{{ TOTAL }}` ou `{{total}}`
+### Variables are not replaced
+- Verify placeholders are **exactly** as indicated (uppercase, braces)
+- Correct example: `{{TOTAL}}`
+- Incorrect examples: `{{ TOTAL }}` or `{{total}}`
 
-## 📚 Ressources
+## 📚 Resources
 
-- [Documentation Google Docs API](https://developers.google.com/docs/api)
-- [Documentation Google Drive API](https://developers.google.com/drive/api/v3/about-sdk)
+- [Google Docs API Documentation](https://developers.google.com/docs/api)
+- [Google Drive API Documentation](https://developers.google.com/drive/api/v3/about-sdk)

@@ -1,4 +1,4 @@
-# 🎉 ComptaClaude - Résumé de l'Implémentation
+# 🎉 JiCompta - Résumé de l'Implémentation
 
 ## ✅ Ce Qui a Été Réalisé
 

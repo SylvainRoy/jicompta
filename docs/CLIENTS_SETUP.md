@@ -1,115 +1,115 @@
-# ✅ Gestion des Clients - COMPLET
+# ✅ Client Management - COMPLETE
 
-La fonctionnalité complète de gestion des clients est maintenant implémentée et fonctionnelle!
+The complete client management functionality is now implemented and functional!
 
-## 🎯 Fonctionnalités Implémentées
+## 🎯 Implemented Features
 
-### ✅ Liste des Clients
-- Table responsive avec tous les champs
-- Colonnes: Nom, Email, Téléphone, SIRET, Actions
-- Compteur de résultats
-- Design moderne avec hover effects
+### ✅ Client List
+- Responsive table with all fields
+- Columns: Name, Email, Phone, SIRET, Actions
+- Results counter
+- Modern design with hover effects
 
-### ✅ Recherche
-- Barre de recherche en temps réel
-- Recherche par: nom, email, téléphone, SIRET
-- Filtrage instantané sans rechargement
+### ✅ Search
+- Real-time search bar
+- Search by: name, email, phone, SIRET
+- Instant filtering without reload
 
-### ✅ Ajout de Client
-- Modal avec formulaire complet
-- Validation en temps réel:
-  - Nom (obligatoire)
-  - Email (obligatoire + format valide)
-  - Téléphone (optionnel + format français)
-  - Adresse (optionnel, multi-lignes)
-  - SIRET (optionnel + validation 14 chiffres)
-- Messages d'erreur clairs
-- Sauvegarde dans Google Sheets
-- Notification de succès
+### ✅ Add Client
+- Modal with complete form
+- Real-time validation:
+  - Name (required)
+  - Email (required + valid format)
+  - Phone (optional + French format)
+  - Address (optional, multi-line)
+  - SIRET (optional + 14 digits validation)
+- Clear error messages
+- Save to Google Sheets
+- Success notification
 
-### ✅ Modification de Client
-- Modal pré-remplie avec les données
-- Même validation que l'ajout
-- Mise à jour dans Google Sheets
-- Notification de succès
+### ✅ Edit Client
+- Modal pre-filled with data
+- Same validation as add
+- Update in Google Sheets
+- Success notification
 
-### ✅ Suppression de Client
-- Modal de confirmation
-- Vérification des dépendances (prestations/paiements)
-- Blocage si dépendances existantes
-- Message d'erreur explicite
-- Notification de succès
+### ✅ Delete Client
+- Confirmation modal
+- Dependency check (services/payments)
+- Block if dependencies exist
+- Explicit error message
+- Success notification
 
-### ✅ État Vide
-- Message d'accueil si aucun client
-- Bouton pour ajouter le premier client
-- Message différent pour recherche vide
+### ✅ Empty State
+- Welcome message if no clients
+- Button to add first client
+- Different message for empty search
 
-### ✅ Gestion des Erreurs
-- Gestion complète des erreurs API
-- Toasts d'erreur avec messages clairs
-- Erreurs de validation formulaire
-- Vérification des dépendances
+### ✅ Error Handling
+- Complete API error handling
+- Error toasts with clear messages
+- Form validation errors
+- Dependency verification
 
-## 📦 Composants Créés
+## 📦 Created Components
 
 ### 1. DataContext (`src/contexts/DataContext.tsx`)
-Context global pour gérer toutes les données:
-- État centralisé (clients, types, prestations, paiements)
-- CRUD complet pour chaque entité
-- Validation des dépendances
-- Notifications automatiques
-- Gestion d'erreurs
+Global context to manage all data:
+- Centralized state (clients, types, services, payments)
+- Complete CRUD for each entity
+- Dependency validation
+- Automatic notifications
+- Error handling
 
 ### 2. ClientForm (`src/components/forms/ClientForm.tsx`)
-Formulaire réutilisable:
-- Mode création et édition
-- Validation complète
-- États de soumission
-- Messages d'erreur inline
+Reusable form:
+- Create and edit mode
+- Complete validation
+- Submission states
+- Inline error messages
 
 ### 3. SearchBar (`src/components/common/SearchBar.tsx`)
-Barre de recherche réutilisable avec icône
+Reusable search bar with icon
 
 ### 4. EmptyState (`src/components/common/EmptyState.tsx`)
-Composant pour états vides avec action optionnelle
+Component for empty states with optional action
 
 ### 5. Clients Page (`src/pages/Clients.tsx`)
-Page complète avec:
-- Liste des clients en table
-- Recherche et filtrage
-- Modals pour CRUD
-- Gestion d'état UI
+Complete page with:
+- Client list in table
+- Search and filtering
+- CRUD modals
+- UI state management
 
-## 🔧 Intégration
+## 🔧 Integration
 
 ### App.tsx
-- ✅ DataProvider ajouté aux providers
-- ✅ Disponible dans toute l'application
+- ✅ DataProvider added to providers
+- ✅ Available throughout the application
 
 ### Architecture
 ```
 App
 ├── AuthProvider
 ├── NotificationProvider
-└── DataProvider  ← NOUVEAU
+└── DataProvider  ← NEW
     └── Routes
-        └── Clients Page  ← COMPLET
+        └── Clients Page  ← COMPLETE
 ```
 
-## 🧪 Comment Tester
+## 🧪 How to Test
 
-### 1. Configuration Minimale Requise
+### 1. Minimum Required Configuration
 
 **Google Cloud**:
-- Projet créé
-- APIs activées (Sheets, Docs, Drive)
-- OAuth 2.0 configuré
+- Project created
+- APIs enabled (Sheets, Docs, Drive)
+- OAuth 2.0 configured
 
 **Google Sheets**:
 ```
-Créer un Google Sheet avec l'onglet:
-- "Clients" avec colonnes (ligne 1):
+Create a Google Sheet with the tab:
+- "Clients" with columns (row 1):
   A: nom
   B: email
   C: telephone
@@ -119,172 +119,172 @@ Créer un Google Sheet avec l'onglet:
 
 **.env**:
 ```env
-VITE_GOOGLE_CLIENT_ID=votre_client_id
+VITE_GOOGLE_CLIENT_ID=your_client_id
 VITE_GOOGLE_REDIRECT_URI=http://localhost:5173
-VITE_SPREADSHEET_ID=votre_sheet_id
+VITE_SPREADSHEET_ID=your_sheet_id
 VITE_TEMPLATE_FACTURE_ID=dummy_for_now
 VITE_TEMPLATE_RECU_ID=dummy_for_now
 VITE_DRIVE_FOLDER_FACTURES_ID=dummy_for_now
 VITE_DRIVE_FOLDER_RECUS_ID=dummy_for_now
 ```
 
-### 2. Démarrer l'Application
+### 2. Start the Application
 
 ```bash
 npm run dev
 ```
 
-Ouvrir http://localhost:5173
+Open http://localhost:5173
 
-### 3. Scénarios de Test
+### 3. Test Scenarios
 
-**Test 1: Première Connexion**
-1. Cliquer "Se connecter avec Google"
-2. Autoriser les permissions
-3. Redirection vers Dashboard
-4. Naviguer vers "Clients"
-5. Voir l'état vide avec message d'accueil
+**Test 1: First Connection**
+1. Click "Sign in with Google"
+2. Authorize permissions
+3. Redirect to Dashboard
+4. Navigate to "Clients"
+5. See empty state with welcome message
 
-**Test 2: Ajouter un Client**
-1. Cliquer "+ Ajouter un client"
-2. Remplir le formulaire:
-   - Nom: "Jean Dupont"
-   - Email: "jean@exemple.fr"
-   - Téléphone: "06 12 34 56 78" (optionnel)
-   - SIRET: "12345678901234" (optionnel)
-3. Cliquer "Ajouter"
-4. Voir la notification de succès
-5. Voir le client dans la table
+**Test 2: Add a Client**
+1. Click "+ Add client"
+2. Fill the form:
+   - Name: "Jean Dupont"
+   - Email: "jean@example.fr"
+   - Phone: "06 12 34 56 78" (optional)
+   - SIRET: "12345678901234" (optional)
+3. Click "Add"
+4. See success notification
+5. See client in table
 
-**Test 3: Recherche**
-1. Ajouter plusieurs clients
-2. Taper dans la barre de recherche
-3. Voir le filtrage en temps réel
-4. Vérifier le compteur de résultats
+**Test 3: Search**
+1. Add multiple clients
+2. Type in search bar
+3. See real-time filtering
+4. Check results counter
 
-**Test 4: Modifier un Client**
-1. Cliquer "Modifier" sur un client
-2. Changer l'email
-3. Cliquer "Modifier"
-4. Voir la notification de succès
-5. Vérifier les changements dans la table
+**Test 4: Edit a Client**
+1. Click "Edit" on a client
+2. Change email
+3. Click "Edit"
+4. See success notification
+5. Verify changes in table
 
-**Test 5: Supprimer un Client**
-1. Cliquer "Supprimer" sur un client
-2. Confirmer dans le modal
-3. Voir la notification de succès
-4. Client retiré de la liste
+**Test 5: Delete a Client**
+1. Click "Delete" on a client
+2. Confirm in modal
+3. See success notification
+4. Client removed from list
 
 **Test 6: Validation**
-1. Essayer d'ajouter sans nom → Erreur
-2. Essayer d'ajouter avec email invalide → Erreur
-3. Essayer SIRET avec 13 chiffres → Erreur
-4. Toutes les erreurs s'affichent clairement
+1. Try adding without name → Error
+2. Try adding with invalid email → Error
+3. Try SIRET with 13 digits → Error
+4. All errors display clearly
 
-**Test 7: Persistance**
-1. Ajouter un client
-2. Vérifier dans le Google Sheet
-3. Rafraîchir la page
-4. Le client est toujours là
+**Test 7: Persistence**
+1. Add a client
+2. Check in Google Sheet
+3. Refresh page
+4. Client is still there
 
-## 📊 Données dans Google Sheets
+## 📊 Data in Google Sheets
 
-Après ajout d'un client, votre Google Sheet ressemble à:
+After adding a client, your Google Sheet looks like:
 
 | nom | email | telephone | adresse | numero_siret |
 |-----|-------|-----------|---------|--------------|
-| Jean Dupont | jean@exemple.fr | 0612345678 | 123 rue de Paris | 12345678901234 |
+| Jean Dupont | jean@example.fr | 0612345678 | 123 rue de Paris | 12345678901234 |
 | Marie Martin | marie@test.fr | | | |
 
-## 🎨 Interface Utilisateur
+## 🎨 User Interface
 
-### États Visuels
-- ✅ Liste avec données
-- ✅ État vide (aucun client)
-- ✅ État de recherche vide
-- ✅ État de chargement
-- ✅ États d'erreur
+### Visual States
+- ✅ List with data
+- ✅ Empty state (no clients)
+- ✅ Empty search state
+- ✅ Loading state
+- ✅ Error states
 
 ### Responsive
-- ✅ Desktop: Table complète
-- ✅ Mobile: Scroll horizontal avec tous les champs visibles
+- ✅ Desktop: Complete table
+- ✅ Mobile: Horizontal scroll with all fields visible
 
 ### Interactions
-- ✅ Hover effects sur les lignes
-- ✅ Boutons avec états actifs/désactivés
-- ✅ Modals avec animations
-- ✅ Toasts avec auto-dismiss
+- ✅ Hover effects on rows
+- ✅ Buttons with active/disabled states
+- ✅ Modals with animations
+- ✅ Toasts with auto-dismiss
 
-## 🔐 Sécurité & Validation
+## 🔐 Security & Validation
 
-### Côté Client
-- Email: Format RFC 5322
-- SIRET: 14 chiffres exactement
-- Téléphone: Format français (optionnel)
-- Tous les champs trimés
+### Client-side
+- Email: RFC 5322 format
+- SIRET: Exactly 14 digits
+- Phone: French format (optional)
+- All fields trimmed
 
-### Côté Données
-- Vérification dépendances avant suppression
-- Validation métier (client utilisé dans prestations)
-- Messages d'erreur explicites
+### Data-side
+- Dependency check before deletion
+- Business validation (client used in services)
+- Explicit error messages
 
-## 🚀 Prochaines Étapes
+## 🚀 Next Steps
 
-Maintenant que les Clients sont terminés, on peut:
+Now that Clients are complete, we can:
 
-1. **Types de Prestations** (plus simple, similaire aux clients)
-2. **Prestations** (plus complexe, avec références)
-3. **Paiements** (le plus complexe, avec PDF)
-4. **Dashboard** (statistiques basées sur les données)
+1. **Service Types** (simpler, similar to clients)
+2. **Services** (more complex, with references)
+3. **Payments** (most complex, with PDF)
+4. **Dashboard** (statistics based on data)
 
-## 💡 Notes Techniques
+## 💡 Technical Notes
 
 ### Performance
-- useMemo pour le filtrage de recherche
-- Pas de re-renders inutiles
-- Chargement asynchrone
+- useMemo for search filtering
+- No unnecessary re-renders
+- Asynchronous loading
 
-### État
-- État local pour UI (modals, formulaires)
-- État global pour données (DataContext)
-- Séparation claire des responsabilités
+### State
+- Local state for UI (modals, forms)
+- Global state for data (DataContext)
+- Clear separation of responsibilities
 
-### Réutilisabilité
-- Tous les composants sont réutilisables
-- Formulaire peut servir pour d'autres entités
-- SearchBar, EmptyState génériques
+### Reusability
+- All components are reusable
+- Form can serve other entities
+- SearchBar, EmptyState generic
 
-## ✨ Fonctionnalités Bonus
+## ✨ Bonus Features
 
-### Déjà Implémenté
-- ✅ Compteur de résultats
-- ✅ Messages contextuels (vide vs recherche)
-- ✅ Validation temps réel
-- ✅ Auto-focus sur champs d'erreur
-- ✅ Fermeture modale avec Escape
-- ✅ Animations fluides
+### Already Implemented
+- ✅ Results counter
+- ✅ Contextual messages (empty vs search)
+- ✅ Real-time validation
+- ✅ Auto-focus on error fields
+- ✅ Modal close with Escape
+- ✅ Smooth animations
 
-### Améliorations Futures Possibles
-- [ ] Pagination (si > 100 clients)
-- [ ] Tri par colonne
-- [ ] Export CSV
-- [ ] Impression de la liste
-- [ ] Import en masse
-- [ ] Vue détails client
-- [ ] Historique des modifications
+### Possible Future Improvements
+- [ ] Pagination (if > 100 clients)
+- [ ] Column sorting
+- [ ] CSV export
+- [ ] List printing
+- [ ] Bulk import
+- [ ] Client details view
+- [ ] Modification history
 
-## 🎉 Résultat
+## 🎉 Result
 
-**La gestion complète des clients est fonctionnelle et prête pour la production!**
+**Complete client management is functional and production-ready!**
 
-Vous pouvez maintenant:
-- ✅ Ajouter des clients
-- ✅ Les modifier
-- ✅ Les supprimer (avec validation)
-- ✅ Les rechercher
-- ✅ Les voir dans une belle interface
+You can now:
+- ✅ Add clients
+- ✅ Edit them
+- ✅ Delete them (with validation)
+- ✅ Search them
+- ✅ View them in a beautiful interface
 
-**Temps de développement**: ~2 heures
-**Lignes de code**: ~800
-**Composants créés**: 5
-**Tests possibles**: ✅ Tous fonctionnels
+**Development time**: ~2 hours
+**Lines of code**: ~800
+**Components created**: 5
+**Possible tests**: ✅ All functional
