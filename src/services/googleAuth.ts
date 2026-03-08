@@ -147,7 +147,7 @@ export function saveAuthData(user: AuthUser): void {
 
     // Set expiration time (typically 1 hour)
     const expiresAt = Date.now() + 3600 * 1000;
-    localStorage.setItem('comptaclaude_token_expires_at', expiresAt.toString());
+    localStorage.setItem('jicompta_token_expires_at', expiresAt.toString());
   } catch (error) {
     console.error('Failed to save auth data:', error);
   }
@@ -160,7 +160,7 @@ export function loadAuthData(): AuthUser | null {
   try {
     const userStr = localStorage.getItem(STORAGE_KEYS.AUTH_USER);
     const token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
-    const expiresAt = localStorage.getItem('comptaclaude_token_expires_at');
+    const expiresAt = localStorage.getItem('jicompta_token_expires_at');
 
     if (!userStr || !token || !expiresAt) {
       return null;
@@ -191,7 +191,7 @@ export function clearAuthData(): void {
     localStorage.removeItem(STORAGE_KEYS.AUTH_USER);
     localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN);
     localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
-    localStorage.removeItem('comptaclaude_token_expires_at');
+    localStorage.removeItem('jicompta_token_expires_at');
   } catch (error) {
     console.error('Failed to clear auth data:', error);
   }

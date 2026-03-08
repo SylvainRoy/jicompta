@@ -67,9 +67,9 @@ export const NOTIFICATION_DURATION = {
 
 // Local storage keys
 export const STORAGE_KEYS = {
-  AUTH_TOKEN: 'comptaclaude_auth_token',
-  AUTH_USER: 'comptaclaude_auth_user',
-  REFRESH_TOKEN: 'comptaclaude_refresh_token',
+  AUTH_TOKEN: 'jicompta_auth_token',
+  AUTH_USER: 'jicompta_auth_user',
+  REFRESH_TOKEN: 'jicompta_refresh_token',
 } as const;
 
 // Date formats
@@ -153,7 +153,7 @@ export const TEMPLATE_PLACEHOLDERS = {
 
 // App metadata
 export const APP_INFO = {
-  NAME: 'ComptaClaude',
+  NAME: 'JiCompta',
   DESCRIPTION: 'Application de gestion comptable',
   VERSION: '0.1.0',
 } as const;

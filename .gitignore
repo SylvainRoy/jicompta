@@ -42,3 +42,8 @@ Thumbs.db
 
 # Claude
 .claude
+
+# Firebase
+.firebase
+.firebaserc
+firebase-debug.log

@@ -6,7 +6,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback, useMemo } from 'react';
 import type { SetupConfig } from '@/services/googleSetup';
 
-const CONFIG_STORAGE_KEY = 'comptaclaude_config';
+const CONFIG_STORAGE_KEY = 'jicompta_config';
 
 interface ConfigContextValue {
   config: SetupConfig | null;

@@ -366,7 +366,7 @@ Mode d'encaissement: {{MODE_ENCAISSEMENT}}
 }
 
 /**
- * Check if a ComptaClaude setup already exists in the user's Drive
+ * Check if a JiCompta setup already exists in the user's Drive
  */
 export async function checkExistingSetup(): Promise<SetupConfig | null> {
   try {
@@ -476,7 +476,7 @@ export async function autoSetup(
  * Load config from localStorage
  */
 export function loadConfig(): SetupConfig | null {
-  const stored = localStorage.getItem('comptaclaude_config');
+  const stored = localStorage.getItem('jicompta_config');
   if (!stored) return null;
 
   try {

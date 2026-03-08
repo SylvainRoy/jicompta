@@ -29,7 +29,7 @@ export default function Header({ onMenuToggle }: HeaderProps) {
             </button>
           )}
 
-          <h1 className="text-lg sm:text-xl font-bold text-gray-900">ComptaClaude</h1>
+          <h1 className="text-lg sm:text-xl font-bold text-gray-900">JiCompta</h1>
         </div>
 
         <div className="flex items-center gap-2 sm:gap-4">

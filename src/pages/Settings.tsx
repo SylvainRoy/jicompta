@@ -1,6 +1,6 @@
 /**
  * Settings Page
- * Allows users to view and manage their ComptaClaude configuration
+ * Allows users to view and manage their JiCompta configuration
  */
 
 import { useState } from 'react';
@@ -81,7 +81,7 @@ export default function Settings() {
               <div className="border border-gray-200 rounded-lg p-4">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <h3 className="text-sm font-medium text-gray-900 mb-1">Tableur ComptaClaude</h3>
+                    <h3 className="text-sm font-medium text-gray-900 mb-1">Tableur JiCompta</h3>
                     <p className="text-xs text-gray-500 font-mono break-all">{config.spreadsheetId}</p>
                   </div>
                   <button

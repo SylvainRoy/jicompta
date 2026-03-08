@@ -98,7 +98,7 @@ export default function SetupWizard({ onComplete }: SetupWizardProps) {
               </svg>
             </div>
             <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">
-              Bienvenue sur ComptaClaude!
+              Bienvenue sur JiCompta!
             </h2>
             <p className="text-gray-600 mb-6">
               Pour commencer, nous devons configurer votre espace de travail dans Google Drive.
@@ -200,7 +200,7 @@ export default function SetupWizard({ onComplete }: SetupWizardProps) {
             </div>
             <h2 className="text-2xl font-bold text-gray-900 mb-4">Configuration trouvée!</h2>
             <p className="text-gray-600">
-              Une configuration ComptaClaude existe déjà dans votre Drive. Chargement...
+              Une configuration JiCompta existe déjà dans votre Drive. Chargement...
             </p>
           </div>
         )}
@@ -265,7 +265,7 @@ export default function SetupWizard({ onComplete }: SetupWizardProps) {
               Configuration terminée!
             </h2>
             <p className="text-gray-600 mb-6">
-              Votre espace ComptaClaude est prêt. Redirection vers le tableau de bord...
+              Votre espace JiCompta est prêt. Redirection vers le tableau de bord...
             </p>
             <div className="flex items-center justify-center gap-2 text-blue-600">
               <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
