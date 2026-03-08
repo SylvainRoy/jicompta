@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Background -->
+  <rect width="512" height="512" rx="64" fill="#3b82f6"/>
+
+  <!-- Calculator/accounting icon design -->
+  <!-- Display area -->
+  <rect x="106" y="86" width="300" height="80" rx="8" fill="white" opacity="0.9"/>
+
+  <!-- Buttons grid -->
+  <g fill="white" opacity="0.85">
+    <!-- Row 1 -->
+    <rect x="106" y="196" width="60" height="60" rx="8"/>
+    <rect x="186" y="196" width="60" height="60" rx="8"/>
+    <rect x="266" y="196" width="60" height="60" rx="8"/>
+    <rect x="346" y="196" width="60" height="60" rx="8"/>
+
+    <!-- Row 2 -->
+    <rect x="106" y="276" width="60" height="60" rx="8"/>
+    <rect x="186" y="276" width="60" height="60" rx="8"/>
+    <rect x="266" y="276" width="60" height="60" rx="8"/>
+    <rect x="346" y="276" width="60" height="60" rx="8"/>
+
+    <!-- Row 3 -->
+    <rect x="106" y="356" width="60" height="60" rx="8"/>
+    <rect x="186" y="356" width="60" height="60" rx="8"/>
+    <rect x="266" y="356" width="60" height="60" rx="8"/>
+    <rect x="346" y="356" width="60" height="60" rx="8"/>
+  </g>
+
+  <!-- Euro symbol as path (no text/font needed) -->
+  <path d="M 270 110 Q 240 110 220 125 Q 200 140 195 160 L 240 160 L 240 145 Q 245 135 260 135 Q 270 135 275 145 L 285 130 Q 275 110 270 110 Z M 190 175 L 230 175 L 230 190 L 190 190 Z" fill="#3b82f6"/>
+</svg>

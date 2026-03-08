@@ -8,6 +8,7 @@ Accounting management application for small French businesses with automatic con
 - **Multi-user**: Each user has their own data in their Google Drive
 - **PDF Generation**: Invoices and receipts automatically generated with customizable templates
 - **Mobile-first**: Responsive interface optimized for smartphones and tablets
+- **Progressive Web App**: Install on your home screen - works like a native app
 - **No Backend**: All data stays in the user's Google Drive
 
 ## 🚀 Technologies
@@ -180,6 +181,7 @@ npm run lint         # Lint the code
 
 - [Complete Installation](./docs/INSTALLATION.md) - Detailed installation guide
 - [Firebase Deployment](./docs/FIREBASE_DEPLOYMENT.md) - Complete Firebase Hosting guide
+- [PWA Setup](./docs/PWA_SETUP.md) - Install on home screen guide
 - [Security Guide](./docs/SECURITY.md) - Credential management and GitHub deployment
 - [Google Configuration](./docs/GOOGLE_SETUP.md) - Google Cloud Console setup
 - [Templates](./docs/TEMPLATES_SETUP.md) - Available variables for invoices/receipts
