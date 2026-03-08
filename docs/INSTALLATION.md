@@ -76,7 +76,7 @@ L'application sera accessible sur `http://localhost:5173`
    - Si absent: Le wizard de setup apparaît
 4. **Setup automatique** (si nécessaire): Le wizard crée automatiquement:
    - Un dossier `Comptabilite/` dans Google Drive
-   - Un tableur `Comptabilite/Compta` avec 4 onglets (Clients, TypesPrestations, Prestations, Paiements)
+   - Un tableur `Compta` avec 4 onglets (Clients, TypeDePrestation, Prestation, Paiement)
    - Des modèles dans `Comptabilite/Modeles/`:
      - Modèle de Facture (personnalisable)
      - Modèle de Reçu (personnalisable)
