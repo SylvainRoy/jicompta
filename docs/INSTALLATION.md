@@ -99,7 +99,75 @@ After setup, users can customize their templates:
 
 ## 🌐 Production Deployment
 
-### Option 1: Vercel (recommended)
+### Option 1: Firebase Hosting (recommended)
+
+Firebase Hosting is pre-configured and ready to use:
+
+#### Prerequisites
+- Firebase CLI installed: `npm install -g firebase-tools`
+- Firebase project created at [Firebase Console](https://console.firebase.google.com)
+
+#### Deployment Steps
+
+1. **Login to Firebase** (first time only):
+   ```bash
+   firebase login
+   ```
+
+2. **Link to your Firebase project** (already configured in `.firebaserc`):
+   ```bash
+   firebase use jicompta
+   ```
+   Or create a new project:
+   ```bash
+   firebase init hosting
+   ```
+
+3. **Build the application**:
+   ```bash
+   npm run build
+   ```
+
+4. **Deploy to Firebase**:
+   ```bash
+   firebase deploy --only hosting
+   ```
+
+5. **Update Google OAuth Configuration**:
+   - Go to [Google Cloud Console](https://console.cloud.google.com/)
+   - Navigate to **APIs & Services** > **Credentials**
+   - Click on your OAuth 2.0 Client ID
+   - Add to **Authorized redirect URIs**:
+     ```
+     https://jicompta.web.app
+     https://jicompta.firebaseapp.com
+     ```
+   - Add to **Authorized JavaScript origins**:
+     ```
+     https://jicompta.web.app
+     https://jicompta.firebaseapp.com
+     ```
+   - Click **SAVE**
+
+6. **Access your application**:
+   - Primary URL: `https://jicompta.web.app`
+   - Alternative: `https://jicompta.firebaseapp.com`
+   - Firebase Console: `https://console.firebase.google.com/project/jicompta`
+
+#### Configuration Files
+
+The repository includes:
+- `firebase.json` - Firebase Hosting configuration
+- `.firebaserc` - Project aliases (ignored by git if needed)
+
+#### Future Deployments
+
+For subsequent deployments:
+```bash
+npm run build && firebase deploy --only hosting
+```
+
+### Option 2: Vercel
 
 1. Create an account on [Vercel](https://vercel.com)
 2. Connect your GitHub repository
@@ -109,7 +177,7 @@ After setup, users can customize their templates:
    - Add your Vercel domain (ex: `https://jicompta.vercel.app`)
 5. Deploy!
 
-### Option 2: Netlify
+### Option 3: Netlify
 
 1. Create an account on [Netlify](https://netlify.com)
 2. Connect your repository
@@ -119,7 +187,7 @@ After setup, users can customize their templates:
    - `VITE_GOOGLE_CLIENT_ID`: Your Client ID
 6. Update Google Cloud Console with your Netlify domain
 
-### Option 3: Custom Server
+### Option 4: Custom Server
 
 ```bash
 # Production build
@@ -181,6 +249,7 @@ If a user changes browser or device:
 
 ## 📚 Additional Documentation
 
+- [Firebase Deployment Guide](./FIREBASE_DEPLOYMENT.md) - Complete Firebase Hosting guide
 - [Google Setup Guide](./GOOGLE_SETUP.md) - Detailed Google Cloud configuration
 - [Templates Setup](./TEMPLATES_SETUP.md) - Available variables in templates
 - [Mobile Testing](./MOBILE_TEST_NGROK.md) - Test on mobile with ngrok

@@ -179,6 +179,7 @@ npm run lint         # Lint the code
 ## 📖 Documentation
 
 - [Complete Installation](./docs/INSTALLATION.md) - Detailed installation guide
+- [Firebase Deployment](./docs/FIREBASE_DEPLOYMENT.md) - Complete Firebase Hosting guide
 - [Google Configuration](./docs/GOOGLE_SETUP.md) - Google Cloud Console setup
 - [Templates](./docs/TEMPLATES_SETUP.md) - Available variables for invoices/receipts
 - [Mobile Testing](./docs/MOBILE_TEST_NGROK.md) - Test on mobile with ngrok
@@ -187,7 +188,40 @@ npm run lint         # Lint the code
 
 ## 🌐 Deployment
 
-### Vercel (Recommended)
+### Firebase Hosting (Recommended)
+
+Firebase Hosting is already configured and ready to deploy:
+
+1. **Install Firebase CLI** (if not already installed):
+   ```bash
+   npm install -g firebase-tools
+   ```
+
+2. **Login to Firebase**:
+   ```bash
+   firebase login
+   ```
+
+3. **Initialize Firebase** (already configured, but if needed):
+   ```bash
+   firebase init hosting
+   ```
+
+4. **Build and Deploy**:
+   ```bash
+   npm run build
+   firebase deploy --only hosting
+   ```
+
+5. **Update Google OAuth**:
+   - Go to [Google Cloud Console](https://console.cloud.google.com)
+   - Add your Firebase URLs to authorized origins and redirect URIs:
+     - `https://jicompta.web.app`
+     - `https://jicompta.firebaseapp.com`
+
+Your app will be live at: `https://jicompta.web.app`
+
+### Vercel
 
 1. Push code to GitHub
 2. Connect repository to Vercel
