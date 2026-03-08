@@ -108,6 +108,19 @@ export function DataProvider({ children }: DataProviderProps) {
     }
   }, [isAuthenticated, isConfigured, refreshAll]);
 
+  // Auto-refresh when app becomes visible (switching devices or tabs)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && isAuthenticated && isConfigured) {
+        console.log('👁️ DataContext: App became visible, refreshing data');
+        refreshAll();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [isAuthenticated, isConfigured, refreshAll]);
+
   // ==================== CLIENTS ====================
 
   const refreshClients = useCallback(async () => {
