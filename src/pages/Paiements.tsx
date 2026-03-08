@@ -72,7 +72,15 @@ export default function Paiements() {
   };
 
   // Check if there are unpaid prestations
-  const hasUnpaidPrestations = prestations.some((p) => !p.paiement_id);
+  // A prestation is unpaid if it has no paiement_id OR if its payment is not yet encaissé
+  const hasUnpaidPrestations = prestations.some((p) => {
+    if (!p.paiement_id) {
+      return true; // No payment linked
+    }
+    // Check if the linked payment is encaissé
+    const payment = paiements.find(pmt => pmt.reference === p.paiement_id);
+    return payment && !payment.date_encaissement; // Payment exists but not yet encaissé
+  });
 
   // Handlers
   const handleAdd = async (paiement: Paiement, prestationIndices: number[]) => {
@@ -188,9 +196,9 @@ export default function Paiements() {
               <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
             </svg>
             <div>
-              <h3 className="text-sm font-medium text-yellow-800">Aucune prestation à payer</h3>
+              <h3 className="text-sm font-medium text-yellow-800">Aucune prestation disponible</h3>
               <p className="text-sm text-yellow-700 mt-1">
-                Toutes les prestations sont déjà payées. Créez de nouvelles prestations pour pouvoir créer un paiement.
+                Toutes les prestations sont déjà liées à un paiement encaissé. Créez de nouvelles prestations pour pouvoir créer un paiement.
               </p>
             </div>
           </div>
