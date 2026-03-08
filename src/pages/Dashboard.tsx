@@ -15,31 +15,48 @@ export default function Dashboard() {
   const stats = useMemo(() => {
     const currentYear = new Date().getFullYear();
 
+    // Total ALL prestations (regardless of year)
+    const totalPrestations = prestations.reduce(
+      (sum, p) => sum + (Number(p.montant) || 0),
+      0
+    );
+
     // Total prestations for current year
     const prestationsThisYear = prestations.filter((p) => {
+      if (!p.date) return false;
       const year = parseInt(p.date.split('-')[0], 10);
       return year === currentYear;
     });
-    const totalPrestationsAnnee = prestationsThisYear.reduce((sum, p) => sum + p.montant, 0);
+    const totalPrestationsAnnee = prestationsThisYear.reduce(
+      (sum, p) => sum + (Number(p.montant) || 0),
+      0
+    );
 
     // Paid prestations (with paiement_id)
     const paidPrestations = prestations.filter((p) => !!p.paiement_id);
-    const totalPaid = paidPrestations.reduce((sum, p) => sum + p.montant, 0);
+    const totalPaid = paidPrestations.reduce((sum, p) => sum + (Number(p.montant) || 0), 0);
 
     // Unpaid prestations
     const unpaidPrestations = prestations.filter((p) => !p.paiement_id);
-    const totalUnpaid = unpaidPrestations.reduce((sum, p) => sum + p.montant, 0);
+    const totalUnpaid = unpaidPrestations.reduce((sum, p) => sum + (Number(p.montant) || 0), 0);
 
     // Paiements encaissés (with date_encaissement)
     const encaissedPaiements = paiements.filter((p) => !!p.date_encaissement);
-    const totalPaiementsEncaisses = encaissedPaiements.reduce((sum, p) => sum + p.total, 0);
+    const totalPaiementsEncaisses = encaissedPaiements.reduce(
+      (sum, p) => sum + (Number(p.total) || 0),
+      0
+    );
 
     // Paiements en attente (without date_encaissement)
     const pendingPaiements = paiements.filter((p) => !p.date_encaissement);
     const nombrePaiementsEnAttente = pendingPaiements.length;
-    const montantPaiementsEnAttente = pendingPaiements.reduce((sum, p) => sum + p.total, 0);
+    const montantPaiementsEnAttente = pendingPaiements.reduce(
+      (sum, p) => sum + (Number(p.total) || 0),
+      0
+    );
 
     return {
+      totalPrestations,
       totalPrestationsAnnee,
       totalPaiementsEncaisses,
       nombrePaiementsEnAttente,
@@ -47,6 +64,7 @@ export default function Dashboard() {
       totalPaid,
       totalUnpaid,
       unpaidPrestationsCount: unpaidPrestations.length,
+      currentYear,
     };
   }, [prestations, paiements]);
 
@@ -68,7 +86,7 @@ export default function Dashboard() {
         activities.push({
           type: 'prestation',
           date: p.date,
-          description: `Prestation ${p.type_prestation} - ${p.nom_client}`,
+          description: `Service ${p.type_prestation} - ${p.nom_client}`,
           amount: p.montant,
         });
       });
@@ -86,7 +104,7 @@ export default function Dashboard() {
         activities.push({
           type: 'paiement',
           date: p.date_encaissement || '', // Use reference date if no encaissement
-          description: `Paiement #${p.reference} - ${p.client}`,
+          description: `Payment #${p.reference} - ${p.client}`,
           amount: p.total,
         });
       });
@@ -100,7 +118,7 @@ export default function Dashboard() {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center py-12">
-        <Loading size="lg" message="Chargement du tableau de bord..." />
+        <Loading size="lg" message="Loading dashboard..." />
       </div>
     );
   }
@@ -108,17 +126,17 @@ export default function Dashboard() {
   return (
     <div className="w-full">
       <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-3 sm:mb-6">
-        Tableau de bord
+        Dashboard
       </h1>
 
       {/* Quick Stats Summary */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 lg:gap-6 mb-4 sm:mb-8">
-        {/* Total Prestations Year */}
+        {/* Total Prestations */}
         <div className="bg-white p-3 sm:p-4 lg:p-6 rounded-lg shadow">
           <div className="flex items-start gap-2 mb-2">
             <div className="flex-1 min-w-0">
               <h3 className="text-xs sm:text-sm font-medium text-gray-500">
-                Total Prestations
+                Total Services
               </h3>
             </div>
             <svg className="w-6 h-6 sm:w-8 sm:h-8 text-blue-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -126,17 +144,24 @@ export default function Dashboard() {
             </svg>
           </div>
           <p className="text-lg sm:text-2xl lg:text-3xl font-bold text-gray-900 break-all">
-            {formatCurrency(stats.totalPrestationsAnnee)}
+            {formatCurrency(stats.totalPrestations)}
           </p>
-          <p className="text-xs sm:text-sm text-gray-600 mt-1">Cette année</p>
+          <p className="text-xs sm:text-sm text-gray-600 mt-1">
+            All time
+            {stats.totalPrestationsAnnee > 0 && (
+              <span className="ml-2 text-blue-600">
+                ({formatCurrency(stats.totalPrestationsAnnee)} in {stats.currentYear})
+              </span>
+            )}
+          </p>
         </div>
 
-        {/* Paiements Encaissés */}
+        {/* Received Payments */}
         <div className="bg-white p-3 sm:p-4 lg:p-6 rounded-lg shadow">
           <div className="flex items-start gap-2 mb-2">
             <div className="flex-1 min-w-0">
               <h3 className="text-xs sm:text-sm font-medium text-gray-500">
-                Paiements Encaissés
+                Received Payments
               </h3>
             </div>
             <svg className="w-6 h-6 sm:w-8 sm:h-8 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -146,15 +171,15 @@ export default function Dashboard() {
           <p className="text-lg sm:text-2xl lg:text-3xl font-bold text-green-600 break-all">
             {formatCurrency(stats.totalPaiementsEncaisses)}
           </p>
-          <p className="text-xs sm:text-sm text-gray-600 mt-1">Montant total encaissé</p>
+          <p className="text-xs sm:text-sm text-gray-600 mt-1">Total amount received</p>
         </div>
 
-        {/* Paiements En Attente */}
+        {/* Pending Payments */}
         <div className="bg-white p-3 sm:p-4 lg:p-6 rounded-lg shadow">
           <div className="flex items-start gap-2 mb-2">
             <div className="flex-1 min-w-0">
               <h3 className="text-xs sm:text-sm font-medium text-gray-500">
-                Paiements en Attente
+                Pending Payments
               </h3>
             </div>
             <svg className="w-6 h-6 sm:w-8 sm:h-8 text-orange-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -165,16 +190,16 @@ export default function Dashboard() {
             {stats.nombrePaiementsEnAttente}
           </p>
           <p className="text-xs sm:text-sm text-gray-600 mt-1">
-            {stats.nombrePaiementsEnAttente > 1 ? 'Paiements' : 'Paiement'} non encaissé{stats.nombrePaiementsEnAttente > 1 ? 's' : ''}
+            Unreceived payment{stats.nombrePaiementsEnAttente !== 1 ? 's' : ''}
           </p>
         </div>
 
-        {/* Montant en Attente */}
+        {/* Pending Amount */}
         <div className="bg-white p-3 sm:p-4 lg:p-6 rounded-lg shadow">
           <div className="flex items-start gap-2 mb-2">
             <div className="flex-1 min-w-0">
               <h3 className="text-xs sm:text-sm font-medium text-gray-500">
-                Montant en Attente
+                Pending Amount
               </h3>
             </div>
             <svg className="w-6 h-6 sm:w-8 sm:h-8 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -184,7 +209,7 @@ export default function Dashboard() {
           <p className="text-lg sm:text-2xl lg:text-3xl font-bold text-gray-900 break-all">
             {formatCurrency(stats.montantPaiementsEnAttente)}
           </p>
-          <p className="text-xs sm:text-sm text-gray-600 mt-1">À encaisser</p>
+          <p className="text-xs sm:text-sm text-gray-600 mt-1">To be received</p>
         </div>
       </div>
 
@@ -193,7 +218,7 @@ export default function Dashboard() {
         <div className="bg-blue-50 border border-blue-200 p-3 sm:p-4 rounded-lg">
           <div className="flex items-center gap-2">
             <div className="flex-1 min-w-0">
-              <p className="text-xs sm:text-sm text-blue-600 font-medium">Clients Actifs</p>
+              <p className="text-xs sm:text-sm text-blue-600 font-medium">Active Clients</p>
               <p className="text-xl sm:text-2xl font-bold text-blue-900 mt-1">{clients.length}</p>
             </div>
             <svg className="w-8 h-8 sm:w-10 sm:h-10 text-blue-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -205,7 +230,7 @@ export default function Dashboard() {
         <div className="bg-purple-50 border border-purple-200 p-3 sm:p-4 rounded-lg">
           <div className="flex items-center gap-2">
             <div className="flex-1 min-w-0">
-              <p className="text-xs sm:text-sm text-purple-600 font-medium">Types de Prestations</p>
+              <p className="text-xs sm:text-sm text-purple-600 font-medium">Service Types</p>
               <p className="text-xl sm:text-2xl font-bold text-purple-900 mt-1">{typesPrestations.length}</p>
             </div>
             <svg className="w-8 h-8 sm:w-10 sm:h-10 text-purple-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -217,7 +242,7 @@ export default function Dashboard() {
         <div className="bg-yellow-50 border border-yellow-200 p-3 sm:p-4 rounded-lg">
           <div className="flex items-center gap-2">
             <div className="flex-1 min-w-0">
-              <p className="text-xs sm:text-sm text-yellow-600 font-medium">Prestations Non Payées</p>
+              <p className="text-xs sm:text-sm text-yellow-600 font-medium">Unpaid Services</p>
               <p className="text-xl sm:text-2xl font-bold text-yellow-900 mt-1">{stats.unpaidPrestationsCount}</p>
             </div>
             <svg className="w-8 h-8 sm:w-10 sm:h-10 text-yellow-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -230,15 +255,15 @@ export default function Dashboard() {
       {/* Recent Activity */}
       <div className="bg-white rounded-lg shadow overflow-hidden">
         <div className="px-3 sm:px-6 py-3 sm:py-4 border-b border-gray-200">
-          <h2 className="text-base sm:text-lg lg:text-xl font-semibold text-gray-900">Activité Récente</h2>
+          <h2 className="text-base sm:text-lg lg:text-xl font-semibold text-gray-900">Recent Activity</h2>
         </div>
         {recentActivity.length === 0 ? (
           <div className="px-3 sm:px-6 py-8 text-center">
             <svg className="w-12 h-12 text-gray-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
-            <p className="text-gray-600">Aucune activité récente</p>
-            <p className="text-sm text-gray-500 mt-1">Créez des prestations et paiements pour voir l'activité</p>
+            <p className="text-gray-600">No recent activity</p>
+            <p className="text-sm text-gray-500 mt-1">Create services and payments to see activity</p>
           </div>
         ) : (
           <div className="divide-y divide-gray-200">
@@ -266,7 +291,7 @@ export default function Dashboard() {
                       {activity.description}
                     </p>
                     <p className="text-xs text-gray-500">
-                      {activity.date ? formatDateForDisplay(activity.date) : 'Date inconnue'}
+                      {activity.date ? formatDateForDisplay(activity.date) : 'Unknown date'}
                     </p>
                   </div>
                   <div className="flex-shrink-0 text-right">
