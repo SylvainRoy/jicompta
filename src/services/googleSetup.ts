@@ -633,3 +633,14 @@ export async function restoreFromBackup(backupId: string, currentSpreadsheetId: 
 
   console.log('Backup restoration complete');
 }
+
+/**
+ * Delete a backup
+ */
+export async function deleteBackup(backupId: string): Promise<void> {
+  console.log(`Deleting backup: ${backupId}`);
+
+  await driveRequest(`/files/${backupId}`, 'DELETE');
+
+  console.log('Backup deleted successfully');
+}

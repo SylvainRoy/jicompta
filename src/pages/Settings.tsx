@@ -7,7 +7,7 @@ import { useState, useEffect } from 'react';
 import { useConfig } from '@/contexts/ConfigContext';
 import { useNotification } from '@/contexts/NotificationContext';
 import { useData } from '@/contexts/DataContext';
-import { autoSetup, createBackup, listBackups, restoreFromBackup, type Backup } from '@/services/googleSetup';
+import { autoSetup, createBackup, listBackups, restoreFromBackup, deleteBackup, type Backup } from '@/services/googleSetup';
 import Button from '@/components/common/Button';
 import { formatDateForDisplay } from '@/utils/dateFormatter';
 
@@ -22,6 +22,8 @@ export default function Settings() {
   const [isCreatingBackup, setIsCreatingBackup] = useState(false);
   const [isRestoring, setIsRestoring] = useState(false);
   const [showRestoreConfirm, setShowRestoreConfirm] = useState<Backup | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<Backup | null>(null);
 
   const handleReset = async () => {
     setIsResetting(true);
@@ -120,6 +122,22 @@ export default function Settings() {
     const minutes = timeStr.slice(2, 4);
     const seconds = timeStr.slice(4, 6);
     return `${hours}:${minutes}:${seconds}`;
+  };
+
+  const handleDeleteBackup = async (backup: Backup) => {
+    setIsDeleting(true);
+    try {
+      await deleteBackup(backup.id);
+      success(`Sauvegarde supprimée: ${backup.name}`);
+      setShowDeleteConfirm(null);
+      // Reload backups list
+      await loadBackupsList();
+    } catch (error) {
+      console.error('Failed to delete backup:', error);
+      notifyError('Échec de la suppression de la sauvegarde');
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   const openInDrive = (id: string, type: 'spreadsheet' | 'document' | 'folder') => {
@@ -305,10 +323,18 @@ export default function Settings() {
                         <Button
                           onClick={() => setShowRestoreConfirm(backup)}
                           variant="secondary"
-                          disabled={isRestoring}
+                          disabled={isRestoring || isDeleting}
                         >
                           Restaurer
                         </Button>
+                        <button
+                          onClick={() => setShowDeleteConfirm(backup)}
+                          className="px-3 py-1 text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded transition-colors"
+                          title="Supprimer"
+                          disabled={isDeleting}
+                        >
+                          Supprimer
+                        </button>
                       </div>
                     </div>
                   ))}
@@ -468,6 +494,51 @@ export default function Settings() {
                 onClick={() => setShowRestoreConfirm(null)}
                 variant="secondary"
                 disabled={isRestoring}
+                fullWidth
+              >
+                Annuler
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="flex-shrink-0 w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900">
+                Confirmer la suppression
+              </h3>
+            </div>
+            <p className="text-gray-600 mb-2">
+              Êtes-vous sûr de vouloir supprimer la sauvegarde:
+            </p>
+            <p className="text-sm font-medium text-gray-900 bg-gray-100 rounded px-3 py-2 mb-4">
+              {showDeleteConfirm.name}
+            </p>
+            <p className="text-sm text-red-600 mb-6">
+              ⚠️ Cette action est irréversible. La sauvegarde sera définitivement supprimée.
+            </p>
+            <div className="flex gap-3">
+              <Button
+                onClick={() => handleDeleteBackup(showDeleteConfirm)}
+                variant="primary"
+                disabled={isDeleting}
+                fullWidth
+              >
+                {isDeleting ? 'Suppression...' : 'Supprimer'}
+              </Button>
+              <Button
+                onClick={() => setShowDeleteConfirm(null)}
+                variant="secondary"
+                disabled={isDeleting}
                 fullWidth
               >
                 Annuler
