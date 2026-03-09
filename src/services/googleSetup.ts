@@ -510,20 +510,25 @@ export interface Backup {
   name: string;
   createdTime: string;
   date: string; // YYMMDD format extracted from name
+  time: string; // HHMMSS format extracted from name
 }
 
 /**
  * Create a backup of the spreadsheet
- * Backup name format: compta_backup_YYMMDD
+ * Backup name format: compta_backup_YYMMDD_HHMMSS
  */
 export async function createBackup(spreadsheetId: string, parentFolderId: string): Promise<Backup> {
-  // Generate backup name with current date
+  // Generate backup name with current date and time
   const now = new Date();
   const year = String(now.getFullYear()).slice(-2);
   const month = String(now.getMonth() + 1).padStart(2, '0');
   const day = String(now.getDate()).padStart(2, '0');
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  const seconds = String(now.getSeconds()).padStart(2, '0');
   const dateStr = `${year}${month}${day}`;
-  const backupName = `compta_backup_${dateStr}`;
+  const timeStr = `${hours}${minutes}${seconds}`;
+  const backupName = `compta_backup_${dateStr}_${timeStr}`;
 
   console.log(`Creating backup: ${backupName}`);
 
@@ -544,6 +549,7 @@ export async function createBackup(spreadsheetId: string, parentFolderId: string
     name: backupName,
     createdTime: copyResult.createdTime || new Date().toISOString(),
     date: dateStr,
+    time: timeStr,
   };
 }
 
@@ -561,15 +567,17 @@ export async function listBackups(parentFolderId: string): Promise<Backup[]> {
   );
 
   const backups: Backup[] = (result.files || []).map((file: any) => {
-    // Extract date from name (compta_backup_YYMMDD)
-    const match = file.name.match(/compta_backup_(\d{6})/);
+    // Extract date and time from name (compta_backup_YYMMDD_HHMMSS)
+    const match = file.name.match(/compta_backup_(\d{6})_(\d{6})/);
     const date = match ? match[1] : '';
+    const time = match ? match[2] : '';
 
     return {
       id: file.id,
       name: file.name,
       createdTime: file.createdTime,
       date,
+      time,
     };
   });
 

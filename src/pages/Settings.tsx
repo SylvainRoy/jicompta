@@ -113,6 +113,15 @@ export default function Settings() {
     return formatDateForDisplay(`${year}-${month}-${day}`);
   };
 
+  const formatBackupTime = (timeStr: string) => {
+    // timeStr format: HHMMSS
+    if (timeStr.length !== 6) return timeStr;
+    const hours = timeStr.slice(0, 2);
+    const minutes = timeStr.slice(2, 4);
+    const seconds = timeStr.slice(4, 6);
+    return `${hours}:${minutes}:${seconds}`;
+  };
+
   const openInDrive = (id: string, type: 'spreadsheet' | 'document' | 'folder') => {
     let url = '';
     if (type === 'spreadsheet') {
@@ -281,7 +290,7 @@ export default function Settings() {
                         <div>
                           <p className="text-sm font-medium text-gray-900">{backup.name}</p>
                           <p className="text-xs text-gray-500">
-                            Créé le {formatBackupDate(backup.date)}
+                            Créé le {formatBackupDate(backup.date)} à {formatBackupTime(backup.time)}
                           </p>
                         </div>
                       </div>
