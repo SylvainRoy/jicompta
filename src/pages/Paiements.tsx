@@ -2,7 +2,8 @@
  * Paiements Page - Complete CRUD
  */
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useData } from '@/contexts/DataContext';
 import { useNotification } from '@/contexts/NotificationContext';
 import type { Paiement } from '@/types';
@@ -30,6 +31,7 @@ export default function Paiements() {
   } = useData();
 
   const { info: notifyInfo, removeNotification } = useNotification();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   // UI State
   const [searchQuery, setSearchQuery] = useState('');
@@ -45,6 +47,25 @@ export default function Paiements() {
     paiement: Paiement;
     index: number;
   } | null>(null);
+
+  // Initialize filter and search from URL parameters
+  useEffect(() => {
+    const filterParam = searchParams.get('filter');
+    const clientParam = searchParams.get('client');
+
+    if (filterParam) {
+      setFilterStatut(filterParam);
+    }
+
+    if (clientParam) {
+      setSearchQuery(decodeURIComponent(clientParam));
+    }
+
+    // Clear the URL parameters after reading them
+    if (filterParam || clientParam) {
+      setSearchParams({});
+    }
+  }, [searchParams, setSearchParams]);
 
   // Filtered paiements based on search and status filter
   const filteredPaiements = useMemo(() => {

@@ -49,19 +49,42 @@ Les donnees sont stockées dans dans des documents Google Sheets.
 ### Écrans Détaillés
 
 #### 1. Tableau de Bord (Page d'accueil)
-- **Sélecteur d'année**: Dropdown pour filtrer les statistiques
-- **Cartes de statistiques**:
-  - Total prestations (année sélectionnée)
-  - Total paiements encaissés
-  - Nombre de paiements en attente
-  - Montant en attente d'encaissement
-- **Graphiques**:
-  - Évolution mensuelle des prestations/paiements
-  - Répartition par type de prestation
-- **Listes récentes**:
-  - 5 dernières prestations créées
-  - 5 derniers paiements
-  - Paiements non encaissés (alerte visuelle)
+Le tableau de bord doit contenir les sections suivantes.
+
+**Sélecteur d'année**:
+Dropdown pour filtrer les statistiques, par defaut sur l'année en cours.
+Il est aussi possible de choisir l'ensemble des donnees ("tout").
+
+**Prestations**:
+Une section avec ce format:
+```
+NOMBRE prestations (MONTANT €) sur l'annee ANNEE.
+NOMBRE prestations (MONTANT €) n'ont pas de paiement.
+```
+
+**Paiements**:
+Une section avec ce format:
+```
+NOMBRE paiements (MONTANT €) sur l'annee ANNEE
+NOMBRE paiements (MONTANT €) sont en attente de reglement
+```
+
+**Clients**
+Une section avec ce format:
+```
+NOMBRE clients enregistres
+
+Client avec les plus gros paiements en attente:
+  - CLIENT1 a 2 paiements (120 €)
+  - CLIENT2 a 1 paiements (50 €)
+  - CLIENT3 a 1 paiements (20 €)
+```
+
+**Listes récentes**:
+Cette section affichent les informations suivantes:
+- 5 dernières prestations créées
+- 5 derniers paiements
+- Paiements non encaissés (alerte visuelle)
 
 #### 2. Gestion des Clients
 - **Liste**: Tableau avec nom, email, téléphone, actions (éditer, supprimer)

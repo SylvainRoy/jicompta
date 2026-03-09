@@ -2,7 +2,8 @@
  * Prestations Page - Complete CRUD
  */
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useData } from '@/contexts/DataContext';
 import type { Prestation } from '@/types';
 import Button from '@/components/common/Button';
@@ -27,6 +28,8 @@ export default function Prestations() {
     deletePrestation,
   } = useData();
 
+  const [searchParams, setSearchParams] = useSearchParams();
+
   // UI State
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatut, setFilterStatut] = useState<string>('');
@@ -36,6 +39,16 @@ export default function Prestations() {
     index: number;
   } | null>(null);
   const [deletingIndex, setDeletingIndex] = useState<number | null>(null);
+
+  // Initialize filter from URL parameter
+  useEffect(() => {
+    const filterParam = searchParams.get('filter');
+    if (filterParam) {
+      setFilterStatut(filterParam);
+      // Clear the URL parameter after reading it
+      setSearchParams({});
+    }
+  }, [searchParams, setSearchParams]);
 
   // Filtered prestations based on search and status filter
   const filteredPrestations = useMemo(() => {
