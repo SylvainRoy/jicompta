@@ -501,3 +501,127 @@ export function getConfigValue(key: keyof SetupConfig): string {
   }
   return String(value);
 }
+
+/**
+ * Backup interface
+ */
+export interface Backup {
+  id: string;
+  name: string;
+  createdTime: string;
+  date: string; // YYMMDD format extracted from name
+}
+
+/**
+ * Create a backup of the spreadsheet
+ * Backup name format: compta_backup_YYMMDD
+ */
+export async function createBackup(spreadsheetId: string, parentFolderId: string): Promise<Backup> {
+  // Generate backup name with current date
+  const now = new Date();
+  const year = String(now.getFullYear()).slice(-2);
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const dateStr = `${year}${month}${day}`;
+  const backupName = `compta_backup_${dateStr}`;
+
+  console.log(`Creating backup: ${backupName}`);
+
+  // Copy the spreadsheet
+  const copyResult = await driveRequest(
+    `/files/${spreadsheetId}/copy`,
+    'POST',
+    {
+      name: backupName,
+      parents: [parentFolderId],
+    }
+  );
+
+  console.log(`Backup created with ID: ${copyResult.id}`);
+
+  return {
+    id: copyResult.id,
+    name: backupName,
+    createdTime: copyResult.createdTime || new Date().toISOString(),
+    date: dateStr,
+  };
+}
+
+/**
+ * List all backups in the Comptabilite folder
+ * Returns backups sorted by date (newest first)
+ */
+export async function listBackups(parentFolderId: string): Promise<Backup[]> {
+  console.log(`Listing backups in folder: ${parentFolderId}`);
+
+  // Search for files with name starting with "compta_backup_"
+  const query = `name contains 'compta_backup_' and '${parentFolderId}' in parents and trashed=false`;
+  const result = await driveRequest(
+    `/files?q=${encodeURIComponent(query)}&fields=files(id,name,createdTime)&orderBy=createdTime desc`
+  );
+
+  const backups: Backup[] = (result.files || []).map((file: any) => {
+    // Extract date from name (compta_backup_YYMMDD)
+    const match = file.name.match(/compta_backup_(\d{6})/);
+    const date = match ? match[1] : '';
+
+    return {
+      id: file.id,
+      name: file.name,
+      createdTime: file.createdTime,
+      date,
+    };
+  });
+
+  console.log(`Found ${backups.length} backup(s)`);
+  return backups;
+}
+
+/**
+ * Restore data from a backup
+ * This copies all data from the backup spreadsheet to the current spreadsheet
+ */
+export async function restoreFromBackup(backupId: string, currentSpreadsheetId: string): Promise<void> {
+  console.log(`Restoring from backup ${backupId} to ${currentSpreadsheetId}`);
+
+  // Get all sheets from the backup
+  const backupData = await sheetsRequest(`/${backupId}?includeGridData=false`);
+  const sheets = backupData.sheets || [];
+
+  // For each sheet, get the data and copy it to the current spreadsheet
+  for (const sheet of sheets) {
+    const sheetName = sheet.properties.title;
+    console.log(`Restoring sheet: ${sheetName}`);
+
+    // Get data from backup
+    const backupSheetData = await sheetsRequest(
+      `/${backupId}/values/${encodeURIComponent(sheetName)}`
+    );
+
+    if (!backupSheetData.values || backupSheetData.values.length === 0) {
+      console.log(`Sheet ${sheetName} is empty, skipping`);
+      continue;
+    }
+
+    // Clear current sheet first
+    await sheetsRequest(
+      `/${currentSpreadsheetId}/values/${encodeURIComponent(sheetName)}:clear`,
+      'POST',
+      {}
+    );
+
+    // Write backup data to current sheet
+    await sheetsRequest(
+      `/${currentSpreadsheetId}/values/${encodeURIComponent(sheetName)}?valueInputOption=RAW`,
+      'PUT',
+      {
+        range: sheetName,
+        values: backupSheetData.values,
+      }
+    );
+
+    console.log(`Sheet ${sheetName} restored successfully`);
+  }
+
+  console.log('Backup restoration complete');
+}
