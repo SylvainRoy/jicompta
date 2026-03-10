@@ -1,308 +1,308 @@
-# Spécifications Techniques - Application de Comptabilité
+# Technical Specifications - Accounting Application
 
-## Vue d'ensemble du projet
+## Project Overview
 
-**Application de gestion comptable pour petites entreprises françaises.**
+**Accounting management application for small French businesses.**
 
-Une application web responsiveavec permettant la gestion complète des prestations, paiements, clients et génération de documents PDF pour les recus et facture avec système de templates basés sur des documents Google Docs.
+A responsive web application allowing complete management of services, payments, clients, and PDF document generation for receipts and invoices with a template system based on Google Docs documents.
 
-Les donnees sont stockées dans dans des documents Google Sheets.
+Data is stored in Google Sheets documents.
 
-## Stack Technique
+## Technical Stack
 
 ### Frontend
 - **Framework**: React 18+
-- **Langage**: TypeScript
+- **Language**: TypeScript
 - **Build Tool**: Vite
 - **Styling**: Tailwind CSS
 - **Routing**: React Router v6
 - **State Management**: React Context API + Hooks
 
-### Intégration Google
-- **Authentification**: Google OAuth 2.0 (user login)
-- **API Google Sheets**: Pour lecture/écriture des données
-- **API Google Docs**: Pour templates de factures/reçus
-- **API Google Drive**: Pour export et stockage des PDFs
+### Google Integration
+- **Authentication**: Google OAuth 2.0 (user login)
+- **Google Sheets API**: For reading/writing data
+- **Google Docs API**: For invoice/receipt templates
+- **Google Drive API**: For PDF export and storage
 
-### Génération de Documents
-- **Méthode**: Templates Google Docs → remplacement de variables → export PDF via API
-- **Stockage**: PDFs sauvegardés dans Google Drive, URLs stockées dans Sheets
+### Document Generation
+- **Method**: Google Docs templates → variable replacement → PDF export via API
+- **Storage**: PDFs saved in Google Drive, URLs stored in Sheets
 
-### Déploiement
-- **Hébergement**: GitHub Pages ou Firebase Hosting (static hosting)
+### Deployment
+- **Hosting**: GitHub Pages or Firebase Hosting (static hosting)
 - **Type**: Single Page Application (SPA) + Progressive Web App (PWA)
-- **Build**: Production optimisée via Vite
+- **Build**: Production optimized via Vite
 - **PWA**:
-  - Manifest configuré (manifest.json)
-  - Service Worker pour mise en cache
-  - Installable sur mobile (Android et iOS)
-  - Icônes et splash screens configurés
-  - Mode standalone pour expérience app native
+  - Configured manifest (manifest.json)
+  - Service Worker for caching
+  - Installable on mobile (Android and iOS)
+  - Configured icons and splash screens
+  - Standalone mode for native app experience
 
-### Dépendances Principales
+### Main Dependencies
 - `react`, `react-dom`
 - `react-router-dom`
 - `@google/oauth2`, `googleapis`
 - `tailwindcss`
-- `axios` ou `fetch` pour les appels API
+- `axios` or `fetch` for API calls
 
-## Interface Utilisateur
+## User Interface
 
-### Navigation Principale
-- **Sidebar/Menu**: Tableau de bord, Prestations, Paiements, Clients, Types de Prestations
-- **Header**: Utilisateur connecté, déconnexion, sélecteur d'année
+### Main Navigation
+- **Sidebar/Menu**: Dashboard, Services, Payments, Clients, Service Types
+- **Header**: Logged-in user, sign out, year selector
 
-### Écrans Détaillés
+### Detailed Screens
 
-#### 1. Tableau de Bord (Page d'accueil)
-Le tableau de bord contient les sections suivantes (implémenté).
+#### 1. Dashboard (Home Page)
+The dashboard contains the following sections (implemented).
 
-**Sélecteur d'année**:
-- Dropdown en haut à droite avec icône calendrier
-- Filtrage des statistiques par année
-- Par défaut sur l'année en cours
-- Option "Toutes" pour voir l'ensemble des données
-- Design: fond blanc avec bordure, style moderne
+**Year Selector**:
+- Dropdown in top right with calendar icon
+- Statistics filtering by year
+- Defaults to current year
+- "All" option to view all data
+- Design: white background with border, modern style
 
-**Section Prestations**:
-- Card avec gradient bleu et icône document
-- Affiche: nombre de prestations et montant total pour l'année sélectionnée
-- Lien cliquable vers les prestations sans paiement avec:
-  - Design: fond orange avec flèche de navigation
-  - Hover: transition et déplacement de la flèche
-  - Redirige vers /prestations avec filtre "non_facturee"
+**Services Section**:
+- Card with blue gradient and document icon
+- Displays: number of services and total amount for selected year
+- Clickable link to services without payment with:
+  - Design: orange background with navigation arrow
+  - Hover: transition and arrow movement
+  - Redirects to /prestations with "non_facturee" filter
 
-**Section Paiements**:
-- Card avec gradient vert et icône paiement
-- Affiche: nombre de paiements et montant total pour l'année sélectionnée
-- Lien cliquable vers les paiements en attente avec:
-  - Design: fond rouge avec flèche de navigation
-  - Hover: transition et déplacement de la flèche
-  - Redirige vers /paiements avec filtre "en_attente"
+**Payments Section**:
+- Card with green gradient and payment icon
+- Displays: number of payments and total amount for selected year
+- Clickable link to pending payments with:
+  - Design: red background with navigation arrow
+  - Hover: transition and arrow movement
+  - Redirects to /paiements with "en_attente" filter
 
-**Section Clients**:
-- Card avec gradient violet et icône utilisateurs
-- Affiche: nombre total de clients enregistrés
-- Sous-section "Clients avec les plus gros paiements en attente":
-  - Top 3 des clients avec montant total en attente
-  - Chaque client est cliquable et redirige vers /paiements avec filtre client spécifique
-  - Design: cartes blanches avec flèche de navigation au hover
+**Clients Section**:
+- Card with purple gradient and users icon
+- Displays: total number of registered clients
+- Subsection "Clients with largest pending payments":
+  - Top 3 clients with total pending amount
+  - Each client is clickable and redirects to /paiements with specific client filter
+  - Design: white cards with navigation arrow on hover
 
-**Listes récentes** (grille 3 colonnes):
-1. **5 dernières prestations créées**:
-   - En-tête: gradient bleu avec icône
-   - Liste avec client, type, date, montant
-   - Hover: fond bleu clair
+**Recent Lists** (3-column grid):
+1. **5 most recently created services**:
+   - Header: blue gradient with icon
+   - List with client, type, date, amount
+   - Hover: light blue background
 
-2. **5 derniers paiements**:
-   - En-tête: gradient vert avec icône
-   - Liste avec référence, client, date/statut, montant
-   - Icônes de statut: ✓ (encaissé) ou ⏰ (en attente)
-   - Hover: fond vert clair
+2. **5 most recent payments**:
+   - Header: green gradient with icon
+   - List with reference, client, date/status, amount
+   - Status icons: ✓ (paid) or ⏰ (pending)
+   - Hover: light green background
 
-3. **Paiements non encaissés** (alerte):
-   - En-tête: gradient rouge avec icône avertissement
-   - Liste des paiements en attente avec icône ⚠️
-   - Si vide: affiche icône ✓ verte "Tous les paiements sont encaissés"
-   - Hover: fond rouge clair
+3. **Unpaid payments** (alert):
+   - Header: red gradient with warning icon
+   - List of pending payments with ⚠️ icon
+   - If empty: displays green ✓ icon "All payments are received"
+   - Hover: light red background
 
-**Améliorations visuelles**:
-- Gradients de couleur pour chaque section
-- Icônes colorées dans des carrés arrondis avec ombres
-- Animations de transition au survol
-- Flèches de navigation qui se déplacent au hover
-- Typography améliorée avec titres plus grands
-- Espacement et padding optimisés
+**Visual Improvements**:
+- Color gradients for each section
+- Colored icons in rounded squares with shadows
+- Transition animations on hover
+- Navigation arrows that move on hover
+- Improved typography with larger titles
+- Optimized spacing and padding
 
-#### 2. Gestion des Clients
-- **Liste**: Tableau avec nom, email, téléphone, actions (éditer, supprimer)
-- **Recherche**: Par nom, email ou téléphone
-- **Formulaire création/édition**:
-  - Nom (requis)
-  - Email (requis, validation format)
-  - Téléphone (optionnel)
-  - Adresse (textarea, multi-lignes)
-  - Numéro SIRET (optionnel, 14 chiffres)
-- **Validation suppression**: Avertir si prestations/paiements associés
+#### 2. Client Management
+- **List**: Table with name, email, phone, actions (edit, delete)
+- **Search**: By name, email or phone
+- **Create/Edit Form**:
+  - Name (required)
+  - Email (required, format validation)
+  - Phone (optional)
+  - Address (textarea, multi-line)
+  - SIRET Number (optional, 14 digits)
+- **Delete Validation**: Warn if associated services/payments exist
 
-#### 3. Gestion des Types de Prestations
-- **Liste**: Tableau avec nom, montant suggéré, actions
-- **Formulaire création/édition**:
-  - Nom (requis)
-  - Montant suggéré (nombre, requis, > 0)
-- **Validation suppression**: Avertir si prestations associées
+#### 3. Service Types Management
+- **List**: Table with name, suggested amount, actions
+- **Create/Edit Form**:
+  - Name (required)
+  - Suggested amount (number, required, > 0)
+- **Delete Validation**: Warn if associated services exist
 
-#### 4. Gestion des Prestations
-- **Liste**: Tableau avec date, client, type, montant, statut paiement, actions
-- **Filtres**: Par statut (non facturée / facturée / encaissée)
-- **Recherche**: Par nom de client ou type
-- **Tri**: Par date décroissant (plus récent en premier)
-- **Formulaire création/édition**:
-  - Date (requis, date picker)
-  - Client (requis, dropdown)
-  - Type de prestation (requis, dropdown)
-  - Montant (pré-rempli depuis montant suggéré, éditable, requis, > 0)
-- **Actions de masse**: Sélectionner plusieurs prestations pour créer un paiement
-- **Indicateur visuel**:
-  - Badge "Non facturée" (jaune) - pas de paiement lié
-  - Badge "Facturée" (bleu) - paiement créé mais non encaissé
-  - Badge "Encaissée" (vert) - paiement encaissé
-- **Protection**: Impossible d'éditer ou supprimer une prestation liée à un paiement
-- **URL parameters**: Support des paramètres `?filter=` pour liens directs depuis dashboard
+#### 4. Services Management
+- **List**: Table with date, client, type, amount, payment status, actions
+- **Filters**: By status (not invoiced / invoiced / paid)
+- **Search**: By client name or type
+- **Sort**: By descending date (most recent first)
+- **Create/Edit Form**:
+  - Date (required, date picker)
+  - Client (required, dropdown)
+  - Service type (required, dropdown)
+  - Amount (pre-filled from suggested amount, editable, required, > 0)
+- **Bulk Actions**: Select multiple services to create a payment
+- **Visual Indicator**:
+  - Badge "Not invoiced" (yellow) - no linked payment
+  - Badge "Invoiced" (blue) - payment created but not received
+  - Badge "Paid" (green) - payment received
+- **Protection**: Cannot edit or delete a service linked to a payment
+- **URL parameters**: Support for `?filter=` parameters for direct links from dashboard
 
-#### 5. Gestion des Paiements
-- **Liste**: Tableau avec référence, client, total, date encaissement, statut, actions
-- **Filtres**: Par statut (encaissé / en attente)
-- **Recherche**: Par nom de client ou référence
-- **Tri**: Par référence décroissant (plus récent en premier, format: yymmddnnnn)
-- **Création depuis prestations sélectionnées**:
-  - Afficher liste des prestations sélectionnées
-  - Vérifier même client (validation)
-  - Calculer total automatiquement
-  - Générer référence automatique (format: yymmddnnnn)
-  - Mode d'encaissement (optionnel à la création)
-  - Date d'encaissement (optionnel à la création)
-- **Génération facture**:
-  - Bouton pour créer PDF à partir du template Google Docs
-  - Si facture existe déjà, ouvre directement le PDF
-  - Notification persistante pendant la génération (~10-15s)
-  - PDF stocké dans Drive: `Comptabilite/Factures/YYYY/`
-- **Encaissement**:
-  - Date d'encaissement (date picker)
-  - Mode (dropdown: Virement, Espèce, Chèque, PayPal, Autre)
-- **Génération reçu**:
-  - Disponible uniquement après encaissement
-  - Même processus que facture
-  - PDF stocké dans Drive: `Comptabilite/Recus/YYYY/`
-- **Suppression**:
-  - Possible uniquement si paiement non encaissé
-  - Délie automatiquement toutes les prestations associées
-  - Confirmation requise avec détails des prestations impactées
-- **Indicateur visuel**:
-  - Badge "En attente" (orange) - pas de date d'encaissement
-  - Badge "Encaissé" (vert) - avec date d'encaissement
-  - Label "Facture générée" ou "Reçu généré" (gris) selon documents disponibles
-- **Liens documents**: Facture et reçu cliquables vers PDF dans Google Drive
-- **URL parameters**: Support des paramètres `?filter=` et `?client=` pour liens directs
+#### 5. Payments Management
+- **List**: Table with reference, client, total, payment date, status, actions
+- **Filters**: By status (paid / pending)
+- **Search**: By client name or reference
+- **Sort**: By descending reference (most recent first, format: yymmddnnnn)
+- **Creation from selected services**:
+  - Display list of selected services
+  - Verify same client (validation)
+  - Calculate total automatically
+  - Generate reference automatically (format: yymmddnnnn)
+  - Payment method (optional at creation)
+  - Payment date (optional at creation)
+- **Invoice generation**:
+  - Button to create PDF from Google Docs template
+  - If invoice already exists, opens PDF directly
+  - Persistent notification during generation (~10-15s)
+  - PDF stored in Drive: `Comptabilite/Factures/YYYY/`
+- **Payment receipt**:
+  - Payment date (date picker)
+  - Method (dropdown: Transfer, Cash, Check, PayPal, Other)
+- **Receipt generation**:
+  - Available only after payment receipt
+  - Same process as invoice
+  - PDF stored in Drive: `Comptabilite/Recus/YYYY/`
+- **Deletion**:
+  - Possible only if payment not received
+  - Automatically unlinks all associated services
+  - Confirmation required with details of impacted services
+- **Visual Indicator**:
+  - Badge "Pending" (orange) - no payment date
+  - Badge "Paid" (green) - with payment date
+  - Label "Invoice generated" or "Receipt generated" (gray) depending on available documents
+- **Document links**: Invoice and receipt clickable to PDF in Google Drive
+- **URL parameters**: Support for `?filter=` and `?client=` parameters for direct links
 
-#### 6. Page de Connexion
-- **Bouton "Se connecter avec Google"**
-- Message d'accueil / instructions
-- Gestion des erreurs d'authentification
-- Après connexion: auto-détection ou création de la configuration
+#### 6. Login Page
+- **"Sign in with Google" button**
+- Welcome message / instructions
+- Authentication error handling
+- After login: auto-detection or configuration creation
 
-#### 7. Configuration Automatique
-L'application dispose d'un système de configuration automatique qui détecte ou crée la structure Google Drive nécessaire.
+#### 7. Automatic Configuration
+The application has an automatic configuration system that detects or creates the necessary Google Drive structure.
 
-**Auto-détection** (`checkExistingSetup()`):
-1. Recherche d'un dossier `Comptabilite` dans Google Drive
-2. Recherche du spreadsheet `Compta` dans ce dossier
-3. Recherche des sous-dossiers: `Factures`, `Recus`, `Modeles`
-4. Recherche des templates: `Modèle de Facture`, `Modèle de Reçu`
-5. Si trouvé: charge automatiquement la configuration
+**Auto-detection** (`checkExistingSetup()`):
+1. Search for a `Comptabilite` folder in Google Drive
+2. Search for the `Compta` spreadsheet in that folder
+3. Search for subfolders: `Factures`, `Recus`, `Modeles`
+4. Search for templates: `Modèle de Facture`, `Modèle de Reçu`
+5. If found: automatically loads the configuration
 
 **Auto-setup** (`autoSetup()`):
-Si aucune configuration existante n'est trouvée:
-1. Crée la structure de dossiers dans Drive: `Comptabilite/Factures/`, `Comptabilite/Recus/`, `Comptabilite/Modeles/`
-2. Crée le spreadsheet `Compta` avec 4 onglets et en-têtes:
+If no existing configuration is found:
+1. Creates folder structure in Drive: `Comptabilite/Factures/`, `Comptabilite/Recus/`, `Comptabilite/Modeles/`
+2. Creates the `Compta` spreadsheet with 4 tabs and headers:
    - `Clients`: nom, email, telephone, adresse, numero_siret
    - `TypeDePrestation`: nom, montant_suggere
    - `Prestation`: date, nom_client, type_prestation, montant, paiement_id
    - `Paiement`: reference, client, total, date_encaissement, mode_encaissement, facture, recu
-3. Crée les templates de documents dans `Modeles/`:
-   - `Modèle de Facture` avec placeholders
-   - `Modèle de Reçu` avec placeholders
-4. Sauvegarde la configuration dans localStorage (`jicompta_config`)
-5. Prêt à utiliser (durée totale: ~15 secondes)
+3. Creates document templates in `Modeles/`:
+   - `Modèle de Facture` with placeholders
+   - `Modèle de Reçu` with placeholders
+4. Saves configuration in localStorage (`jicompta_config`)
+5. Ready to use (total duration: ~15 seconds)
 
 **Multi-device**:
-- Configuration stockée dans localStorage (spécifique à chaque device)
-- Premier login sur nouvel appareil: auto-détecte la config existante
-- Pas de synchronisation nécessaire (tout est dans Google Drive)
+- Configuration stored in localStorage (specific to each device)
+- First login on new device: auto-detects existing config
+- No synchronization needed (everything is in Google Drive)
 
-**Page Configuration**:
-- Affichage des IDs des ressources Google Drive
-- Possibilité de réinitialiser la configuration
-- Liens vers les ressources dans Google Drive
+**Configuration Page**:
+- Display of Google Drive resource IDs
+- Ability to reset configuration
+- Links to resources in Google Drive
 
-### Principes d'UX
-- Design responsive (mobile-first) avec cartes mobiles et tableaux desktop
-- Confirmations modales pour suppressions
-- Messages de succès/erreur (toasts notifications avec système de notifications persistantes)
-- Loading states pendant les appels API (spinners avec messages)
-- Formulaires avec validation en temps réel
-- Accessibilité (ARIA labels, navigation clavier)
-- Auto-refresh: rechargement automatique des données quand l'app redevient visible
-- Protection des données: impossible de modifier/supprimer des prestations liées à des paiements
-- Tri par date décroissant: listes affichées du plus récent au plus ancien
-- Navigation contextuelle: liens cliquables depuis le dashboard vers vues filtrées
+### UX Principles
+- Responsive design (mobile-first) with mobile cards and desktop tables
+- Modal confirmations for deletions
+- Success/error messages (toast notifications with persistent notification system)
+- Loading states during API calls (spinners with messages)
+- Forms with real-time validation
+- Accessibility (ARIA labels, keyboard navigation)
+- Auto-refresh: automatic data reload when app becomes visible
+- Data protection: cannot modify/delete services linked to payments
+- Sort by descending date: lists displayed from most recent to oldest
+- Contextual navigation: clickable links from dashboard to filtered views
 
-## Contraintes Techniques
+## Technical Constraints
 
-L'application doit etre accessible via un navigateur web et facilement utilisable sur telephone et tablette.
+The application must be accessible via a web browser and easily usable on phones and tablets.
 
-Il n'est pas necessaire de gerer des utilisations simultanées puisqu'il n'y a qu'un seul utilisateur du systeme.
+It is not necessary to manage concurrent usage since there is only one system user.
 
-Les donnees doivent etre sauvegarder dans un document googlesheet, tel que defini plus bas, que l'utilisateur peut eventuellement editer manuellement.
+Data must be saved in a Google Sheets document, as defined below, which the user can optionally edit manually.
 
-## Authentification & Sécurité
+## Authentication & Security
 
-### Flow OAuth Google
-1. Utilisateur clique sur "Se connecter avec Google"
-2. Redirection vers Google OAuth consent screen
-3. Utilisateur autorise les scopes:
-   - `https://www.googleapis.com/auth/spreadsheets` (lecture/écriture Sheets)
-   - `https://www.googleapis.com/auth/documents` (lecture/écriture Docs)
-   - `https://www.googleapis.com/auth/drive.file` (création fichiers Drive)
-4. Redirection vers l'app avec token
-5. Token stocké dans localStorage
-6. Refresh token automatique avant expiration
+### Google OAuth Flow
+1. User clicks "Sign in with Google"
+2. Redirect to Google OAuth consent screen
+3. User authorizes scopes:
+   - `https://www.googleapis.com/auth/spreadsheets` (Sheets read/write)
+   - `https://www.googleapis.com/auth/documents` (Docs read/write)
+   - `https://www.googleapis.com/auth/drive.file` (Drive file creation)
+4. Redirect to app with token
+5. Token stored in localStorage
+6. Automatic token refresh before expiration
 
-### Gestion de Session
-- Token JWT stocké localement
-- Vérification token au chargement de l'app
-- Déconnexion: suppression token + redirection vers login
-- Session expirée: notification + redirection automatique
+### Session Management
+- JWT token stored locally
+- Token verification on app load
+- Sign out: token deletion + redirect to login
+- Expired session: notification + automatic redirect
 
-### Configuration Google Cloud Project
-- Créer projet dans Google Cloud Console
-- Activer APIs: Google Sheets, Google Docs, Google Drive
-- Créer OAuth 2.0 Client ID
-- Configurer domaines autorisés (localhost + domaine production)
+### Google Cloud Project Configuration
+- Create project in Google Cloud Console
+- Enable APIs: Google Sheets, Google Docs, Google Drive
+- Create OAuth 2.0 Client ID
+- Configure authorized domains (localhost + production domain)
 
-## Génération de Documents PDF
+## PDF Document Generation
 
-### Templates Google Docs
+### Google Docs Templates
 
-#### Template Facture et Reçu
-Documents Google Docs avec variables à remplacer (toutes disponibles pour les deux types) :
+#### Invoice and Receipt Template
+Google Docs documents with variables to replace (all available for both types):
 
-**Informations Paiement:**
-- `{{REFERENCE_PAIEMENT}}`: ID du paiement
-- `{{DATE_FACTURE}}`: Date de création du document
-- `{{DATE_ENCAISSEMENT}}`: Date d'encaissement (ou "Non encaissé")
-- `{{MODE_ENCAISSEMENT}}`: Mode de paiement (ou "Non spécifié")
-- `{{TOTAL}}`: Montant total
+**Payment Information:**
+- `{{REFERENCE_PAIEMENT}}`: Payment ID
+- `{{DATE_FACTURE}}`: Document creation date
+- `{{DATE_ENCAISSEMENT}}`: Payment date (or "Not received")
+- `{{MODE_ENCAISSEMENT}}`: Payment method (or "Not specified")
+- `{{TOTAL}}`: Total amount
 
-**Informations Client:**
-- `{{NOM_CLIENT}}`: Nom du client
-- `{{EMAIL_CLIENT}}`: Email du client
-- `{{TELEPHONE_CLIENT}}`: Téléphone du client (ou "Non renseigné")
-- `{{ADRESSE_CLIENT}}`: Adresse complète (ou "Non renseignée")
-- `{{SIRET_CLIENT}}`: Numéro SIRET (ou "Non renseigné")
+**Client Information:**
+- `{{NOM_CLIENT}}`: Client name
+- `{{EMAIL_CLIENT}}`: Client email
+- `{{TELEPHONE_CLIENT}}`: Client phone (or "Not provided")
+- `{{ADRESSE_CLIENT}}`: Full address (or "Not provided")
+- `{{SIRET_CLIENT}}`: SIRET number (or "Not provided")
 
-**Détails:**
-- `{{LISTE_PRESTATIONS}}`: Tableau des prestations (date, type, montant)
+**Details:**
+- `{{LISTE_PRESTATIONS}}`: Services table (date, type, amount)
 
-### Processus de Génération
-1. **Copier le template**: Créer copie du template Google Docs
-2. **Remplacer variables**: Utiliser Google Docs API pour remplacer les placeholders
-3. **Export PDF**: Exporter via Drive API en format PDF
-4. **Stockage**: Sauvegarder PDF dans dossier Google Drive spécifique
-5. **URL**: Récupérer lien partageable et stocker dans Google Sheets
-6. **Nettoyage**: Supprimer la copie temporaire du Doc
+### Generation Process
+1. **Copy template**: Create copy of Google Docs template
+2. **Replace variables**: Use Google Docs API to replace placeholders
+3. **PDF Export**: Export via Drive API in PDF format
+4. **Storage**: Save PDF in specific Google Drive folder
+5. **URL**: Get shareable link and store in Google Sheets
+6. **Cleanup**: Delete temporary Doc copy
 
-### Organisation Google Drive
+### Google Drive Organization
 ```
 /Comptabilité/
   ├── Templates/
@@ -316,182 +316,182 @@ Documents Google Docs avec variables à remplacer (toutes disponibles pour les d
       └── 2026/
 ```
 
-## Formats et Conventions de Données
+## Data Formats and Conventions
 
-### Formats de Date
-- **Format affichage**: DD/MM/YYYY (ex: 15/03/2026)
-- **Format stockage Google Sheets**: YYYY-MM-DD (ISO 8601)
-- **Conversion automatique**: À l'affichage et à la sauvegarde
+### Date Formats
+- **Display format**: DD/MM/YYYY (e.g.: 15/03/2026)
+- **Google Sheets storage format**: YYYY-MM-DD (ISO 8601)
+- **Automatic conversion**: On display and save
 
-### Formats Monétaires
-- **Devise**: Euro (€)
-- **Format affichage**: Espace comme séparateur de milliers, virgule pour décimales (ex: 1 234,56 €)
-- **Format stockage**: Nombre décimal (ex: 1234.56)
-- **Précision**: 2 décimales maximum
+### Currency Formats
+- **Currency**: Euro (€)
+- **Display format**: Space as thousands separator, comma for decimals (e.g.: 1 234,56 €)
+- **Storage format**: Decimal number (e.g.: 1234.56)
+- **Precision**: 2 decimals maximum
 
-### Génération ID Paiement
+### Payment ID Generation
 - **Format**: `yymmddnnnn`
-  - `yy`: 2 chiffres année (ex: 26 pour 2026)
-  - `mm`: 2 chiffres mois (01-12)
-  - `dd`: 2 chiffres jour (01-31)
-  - `nnnn`: 4 chiffres séquentiels pour le jour (0001-9999)
-- **Exemple**: 260315001 (1er paiement du 15 mars 2026)
-- **Génération**: Chercher le dernier numéro du jour et incrémenter
+  - `yy`: 2-digit year (e.g.: 26 for 2026)
+  - `mm`: 2-digit month (01-12)
+  - `dd`: 2-digit day (01-31)
+  - `nnnn`: 4-digit sequential number for the day (0001-9999)
+- **Example**: 2603150001 (1st payment of March 15, 2026)
+- **Generation**: Find the last number of the day and increment
 
-### Validation Email
-- Format standard RFC 5322
+### Email Validation
+- Standard RFC 5322 format
 - Regex: `^[^\s@]+@[^\s@]+\.[^\s@]+$`
 
-### Validation SIRET
-- 14 chiffres exactement
-- Optionnel
-- Validation avec algorithme de Luhn (optionnelle)
+### SIRET Validation
+- Exactly 14 digits
+- Optional
+- Validation with Luhn algorithm (optional)
 
-## Gestion des Erreurs
+## Error Management
 
-### Erreurs API Google
-- **Rate limiting**: Retry avec exponential backoff
-- **Token expiré**: Refresh automatique puis retry
-- **Permissions insuffisantes**: Message explicite à l'utilisateur
-- **Réseau**: Détection offline, queue des modifications
+### Google API Errors
+- **Rate limiting**: Retry with exponential backoff
+- **Expired token**: Automatic refresh then retry
+- **Insufficient permissions**: Explicit message to user
+- **Network**: Offline detection, modification queue
 
-### Erreurs Métier
-- **Client inexistant**: Message d'erreur avec suggestion
-- **Montant invalide**: Validation formulaire en temps réel
-- **Clients différents**: Bloquer création paiement groupé
-- **Suppression avec dépendances**: Modal avec liste des dépendances
+### Business Errors
+- **Non-existent client**: Error message with suggestion
+- **Invalid amount**: Real-time form validation
+- **Different clients**: Block grouped payment creation
+- **Deletion with dependencies**: Modal with dependencies list
 
-### Erreurs Techniques
-- **Crash application**: Error boundary React
-- **Données corrompues**: Validation au chargement + fallback
-- **Google Sheets inaccessible**: Mode lecture seule + cache local
+### Technical Errors
+- **Application crash**: React error boundary
+- **Corrupted data**: Validation on load + fallback
+- **Google Sheets inaccessible**: Read-only mode + local cache
 
-### Notifications Utilisateur
-- **Succès**: Toast vert 3 secondes (ex: "Client créé avec succès")
-- **Erreur**: Toast rouge avec action (ex: "Erreur réseau - Réessayer")
-- **Avertissement**: Toast orange (ex: "Ce client a des prestations associées")
-- **Information**: Toast bleu (ex: "Synchronisation en cours...")
+### User Notifications
+- **Success**: Green toast 3 seconds (e.g.: "Client created successfully")
+- **Error**: Red toast with action (e.g.: "Network error - Retry")
+- **Warning**: Orange toast (e.g.: "This client has associated services")
+- **Information**: Blue toast (e.g.: "Synchronizing...")
 
-## Modèles de Données
+## Data Models
 
-Voici les differents tab de la googlesheet qui contient les donnees.
+Here are the different tabs in the Google Sheet that contains the data.
 
-Tab "Clients":
-- nom: nom du client
-- email: email du client
-- telephone: telephone du client
-- adresse: adresse du client sur une ou plusieurs ligne
-- numero_siret: numero siret du client
+"Clients" Tab:
+- nom: client name
+- email: client email
+- telephone: client phone
+- adresse: client address on one or more lines
+- numero_siret: client SIRET number
 
-Tab TypeDePrestation
-- nom: nom du type de prestation (exemple: "Cours individuel a l'unite")
-- montant_suggere: un montant a suggerer dans l'application. L'utilisateur peut le changer au moment de la creation de la prestation.
+TypeDePrestation Tab
+- nom: service type name (example: "Individual lesson per unit")
+- montant_suggere: an amount to suggest in the application. The user can change it when creating the service.
 
-Tab Prestation
-- date: la date de la prestation
-- nom_client: le nom du client
-- type_prestation: le type de la prestation
-- montant: le montant de la prestation, en euro
-- paiement_id: une reference sur le paiement s'il y en a un
+Prestation Tab
+- date: the service date
+- nom_client: the client name
+- type_prestation: the service type
+- montant: the service amount, in euros
+- paiement_id: a reference to the payment if there is one
 
-Tab Paiement
-- reference: l'ID du paiement, avec le format yymmddnnnn
-- client: le nom du client
-- total: le montant du paiement
-- date_encaissement: la date d'encaissement
-- mode_encaissement: le mode d'encaissement (virement, espece, cheque, paypal, autre)
-- facture: l'url de la facture s'il y en a une
-- recu: l'url du recu s'il y en a un
+Paiement Tab
+- reference: the payment ID, with format yymmddnnnn
+- client: the client name
+- total: the payment amount
+- date_encaissement: the payment date
+- mode_encaissement: the payment method (transfer, cash, check, paypal, other)
+- facture: the invoice URL if there is one
+- recu: the receipt URL if there is one
 
-## Logique Métier
+## Business Logic
 
-### Workflow prestations → paiements
+### Services → Payments Workflow
 
-1. Créer prestations individuelles
-2. Sélectionner des prestations d'un même client pour créer un paiement
-3. Generer une facture pour ce paiement
-4. Encaisser le paiement (date + mode)
-5. Générer un reçu pour ce paiement
+1. Create individual services
+2. Select services from the same client to create a payment
+3. Generate an invoice for this payment
+4. Receive the payment (date + method)
+5. Generate a receipt for this payment
 
-### Validations métier
+### Business Validations
 
-- Client obligatoire pour prestation
-- Type prestation obligatoire
-- Montant > 0
-- Même client pour paiement groupé
-- Pas de suppression si dépendances
+- Client required for service
+- Service type required
+- Amount > 0
+- Same client for grouped payment
+- No deletion if dependencies exist
 
-### Contraintes référentielles
+### Referential Constraints
 
-- Prestation → Client (obligatoire)
-- Prestation → TypePrestation (obligatoire)
-- Prestation → Paiement (optionnel)
-- Paiement → Client (obligatoire)
+- Prestation → Client (required)
+- Prestation → TypePrestation (required)
+- Prestation → Paiement (optional)
+- Paiement → Client (required)
 
-### Sauvegarde données
+### Data Saving
 
-- Sauvegarde automatique à chaque modification
+- Automatic save on every modification
 
-## Architecture de l'Application
+## Application Architecture
 
-### Structure des Dossiers
+### Folder Structure
 ```
 src/
-├── components/          # Composants React réutilisables
-│   ├── common/         # Composants génériques (Button, Input, Modal...)
+├── components/          # Reusable React components
+│   ├── common/         # Generic components (Button, Input, Modal...)
 │   ├── layout/         # Layout, Sidebar, Header
-│   └── forms/          # Formulaires spécifiques
-├── pages/              # Pages principales (Dashboard, Clients, etc.)
-├── services/           # Services API et logique métier
+│   └── forms/          # Specific forms
+├── pages/              # Main pages (Dashboard, Clients, etc.)
+├── services/           # API services and business logic
 │   ├── googleAuth.ts   # OAuth flow, token management, user info
 │   ├── googleSetup.ts  # Auto-setup wizard, Drive resource creation
-│   ├── googleSheets.ts # CRUD operations pour les 4 sheets
-│   └── googleDocs.ts   # Génération PDF (factures/reçus)
-├── contexts/           # Contexts React (Auth, Data)
+│   ├── googleSheets.ts # CRUD operations for the 4 sheets
+│   └── googleDocs.ts   # PDF generation (invoices/receipts)
+├── contexts/           # React Contexts (Auth, Data)
 ├── hooks/              # Custom hooks
-├── utils/              # Fonctions utilitaires
+├── utils/              # Utility functions
 │   ├── dateFormatter.ts
 │   ├── currencyFormatter.ts
 │   └── validators.ts
-├── types/              # Types TypeScript
-└── constants/          # Constantes (scopes API, configs)
+├── types/              # TypeScript types
+└── constants/          # Constants (API scopes, configs)
 ```
 
-### Couches de l'Application
+### Application Layers
 
-#### 1. Couche Présentation (Components/Pages)
-- Composants React purs
-- Gestion UI et interactions utilisateur
-- Consomment les hooks et contexts
+#### 1. Presentation Layer (Components/Pages)
+- Pure React components
+- UI management and user interactions
+- Consume hooks and contexts
 
-#### 2. Couche État (Contexts + Hooks)
-L'application utilise **React Context API** avec une architecture à 4 couches:
+#### 2. State Layer (Contexts + Hooks)
+The application uses **React Context API** with a 4-layer architecture:
 
 1. **AuthContext** (`src/contexts/AuthContext.tsx`):
-   - Gère la session Google OAuth
-   - Charge/valide les tokens depuis localStorage
-   - Fournit: `user`, `isAuthenticated`, `logout`, `handleGoogleSuccess`
+   - Manages Google OAuth session
+   - Loads/validates tokens from localStorage
+   - Provides: `user`, `isAuthenticated`, `logout`, `handleGoogleSuccess`
 
 2. **ConfigContext** (`src/contexts/ConfigContext.tsx`):
-   - Gère les IDs des ressources Google Drive
-   - Cached dans localStorage (`jicompta_config`)
-   - Auto-détection via `checkExistingSetup()`
-   - Fournit: `config`, `isConfigured`, `saveConfig`, `clearConfig`
+   - Manages Google Drive resource IDs
+   - Cached in localStorage (`jicompta_config`)
+   - Auto-detection via `checkExistingSetup()`
+   - Provides: `config`, `isConfigured`, `saveConfig`, `clearConfig`
 
 3. **DataContext** (`src/contexts/DataContext.tsx`):
-   - **Context principal** - gère toutes les données métier
-   - Charge depuis Google Sheets quand `isAuthenticated && isConfigured`
-   - Fournit les opérations CRUD: clients, typesPrestations, prestations, paiements
-   - Toutes les mutations rafraîchissent depuis Sheets pour maintenir la sync
-   - Fournit: `refreshAll()`, `addClient()`, `updateClient()`, `deleteClient()`, etc.
-   - Auto-refresh: recharge les données quand l'app redevient visible
+   - **Main context** - manages all business data
+   - Loads from Google Sheets when `isAuthenticated && isConfigured`
+   - Provides CRUD operations: clients, typesPrestations, prestations, paiements
+   - All mutations refresh from Sheets to maintain sync
+   - Provides: `refreshAll()`, `addClient()`, `updateClient()`, `deleteClient()`, etc.
+   - Auto-refresh: reloads data when app becomes visible
 
 4. **NotificationContext** (`src/contexts/NotificationContext.tsx`):
-   - Gestion des toasts/notifications
-   - Support notifications persistantes (pour génération PDF)
-   - Fournit: `success()`, `error()`, `info()`, `warning()`, `removeNotification()`
+   - Toast/notification management
+   - Persistent notifications support (for PDF generation)
+   - Provides: `success()`, `error()`, `info()`, `warning()`, `removeNotification()`
 
-**Ordre des providers** (dans `App.tsx`):
+**Provider order** (in `App.tsx`):
 ```
 AuthProvider
   → ConfigProvider
@@ -499,174 +499,174 @@ AuthProvider
       → NotificationProvider
         → Routes
 ```
-Cet ordre est critique: ConfigContext dépend d'AuthContext, DataContext dépend des deux.
+This order is critical: ConfigContext depends on AuthContext, DataContext depends on both.
 
-**Pattern de mutation**:
-Toutes les mutations suivent: API call → refresh → update state
-Exemple: `addClient()` → `sheetsService.addClient()` → `refreshClients()` → state update
+**Mutation pattern**:
+All mutations follow: API call → refresh → update state
+Example: `addClient()` → `sheetsService.addClient()` → `refreshClients()` → state update
 
-#### 3. Couche Services (Business Logic)
-- Communication avec APIs Google
-- Transformations données (Sheets ↔ App)
-- Validations métier
-- Génération documents
+#### 3. Services Layer (Business Logic)
+- Communication with Google APIs
+- Data transformations (Sheets ↔ App)
+- Business validations
+- Document generation
 
-#### 4. Couche Utilitaires
-- Formatage dates/montants
-- Validateurs
-- Helpers génériques
+#### 4. Utilities Layer
+- Date/amount formatting
+- Validators
+- Generic helpers
 
-### Gestion du Cache Local
+### Local Cache Management
 
 #### Cache Strategy
-- **Données lues**: Cache en mémoire (Context)
-- **Modifications**: Optimistic updates + sync avec Sheets
-- **Invalidation**: Au reload ou après timeout (5 min)
+- **Read data**: In-memory cache (Context)
+- **Modifications**: Optimistic updates + sync with Sheets
+- **Invalidation**: On reload or after timeout (5 min)
 
-#### Synchronisation
-- Chargement initial: Fetch toutes les données au login
-- Modifications: Update immédiat local + API call
-- En cas d'échec: Rollback + retry ou notification
+#### Synchronization
+- Initial load: Fetch all data on login
+- Modifications: Immediate local update + API call
+- On failure: Rollback + retry or notification
 
-## Configuration Environnement
+## Environment Configuration
 
-### Variables d'Environnement
+### Environment Variables
 ```
 VITE_GOOGLE_CLIENT_ID=           # OAuth Client ID
-VITE_GOOGLE_REDIRECT_URI=        # URL de redirection OAuth
-VITE_SPREADSHEET_ID=             # ID du Google Sheet principal
-VITE_TEMPLATE_FACTURE_ID=        # ID du template facture
-VITE_TEMPLATE_RECU_ID=           # ID du template reçu
-VITE_DRIVE_FOLDER_FACTURES_ID=   # ID dossier Drive factures
-VITE_DRIVE_FOLDER_RECUS_ID=      # ID dossier Drive reçus
+VITE_GOOGLE_REDIRECT_URI=        # OAuth redirect URL
+VITE_SPREADSHEET_ID=             # Main Google Sheet ID
+VITE_TEMPLATE_FACTURE_ID=        # Invoice template ID
+VITE_TEMPLATE_RECU_ID=           # Receipt template ID
+VITE_DRIVE_FOLDER_FACTURES_ID=   # Drive invoices folder ID
+VITE_DRIVE_FOLDER_RECUS_ID=      # Drive receipts folder ID
 ```
 
-### Fichiers de Configuration
-- `.env.development`: Variables pour dev local
-- `.env.production`: Variables pour production
-- `tailwind.config.js`: Configuration Tailwind
-- `vite.config.ts`: Configuration Vite
-- `tsconfig.json`: Configuration TypeScript
+### Configuration Files
+- `.env.development`: Variables for local dev
+- `.env.production`: Variables for production
+- `tailwind.config.js`: Tailwind configuration
+- `vite.config.ts`: Vite configuration
+- `tsconfig.json`: TypeScript configuration
 
-## Tests (Optionnel mais Recommandé)
+## Tests (Optional but Recommended)
 
-### Tests Unitaires
-- **Framework**: Vitest (natif Vite)
-- **Cible**: Services, utils, validators
-- **Exemple**: Validation formats, génération IDs
+### Unit Tests
+- **Framework**: Vitest (native Vite)
+- **Target**: Services, utils, validators
+- **Example**: Format validation, ID generation
 
-### Tests Composants
+### Component Tests
 - **Framework**: React Testing Library
-- **Cible**: Composants forms, boutons, modals
-- **Exemple**: Soumission formulaire, validation inputs
+- **Target**: Form components, buttons, modals
+- **Example**: Form submission, input validation
 
-### Tests E2E (Pour plus tard)
-- **Framework**: Playwright ou Cypress
-- **Scénarios critiques**:
-  - Login → Créer prestation → Créer paiement → Générer facture
-  - CRUD complet sur un client
+### E2E Tests (For later)
+- **Framework**: Playwright or Cypress
+- **Critical Scenarios**:
+  - Login → Create service → Create payment → Generate invoice
+  - Complete CRUD on a client
 
 ## Performance
 
-### Optimisations React
-- Lazy loading des pages (React.lazy + Suspense)
-- Memoization (useMemo, useCallback) pour calculs lourds
-- Éviter re-renders inutiles
+### React Optimizations
+- Page lazy loading (React.lazy + Suspense)
+- Memoization (useMemo, useCallback) for heavy calculations
+- Avoid unnecessary re-renders
 
-### Optimisations Réseau
-- Batch des requêtes Google Sheets si possible
-- Pagination des listes (100+ items)
-- Compression des réponses
+### Network Optimizations
+- Batch Google Sheets requests if possible
+- List pagination (100+ items)
+- Response compression
 
-### Chargement Initial
-- Skeleton loaders pendant fetch
-- Progressive loading (afficher partiellement)
-- Cache des données fréquentes
+### Initial Load
+- Skeleton loaders during fetch
+- Progressive loading (partial display)
+- Frequent data caching
 
-## Limitations et Contraintes
+## Limitations and Constraints
 
-### Quotas Google APIs
-- **Sheets API**: 300 requêtes/minute/projet
-- **Docs API**: 300 requêtes/minute/projet
-- **Drive API**: 1000 requêtes/100 secondes/utilisateur
-- **Stratégie**: Rate limiting côté client + retry logic
+### Google API Quotas
+- **Sheets API**: 300 requests/minute/project
+- **Docs API**: 300 requests/minute/project
+- **Drive API**: 1000 requests/100 seconds/user
+- **Strategy**: Client-side rate limiting + retry logic
 
-### Limitations Techniques
-- Un seul utilisateur simultané (pas de gestion conflits)
-- Pas de mode offline complet (lecture seule possible)
-- Dépendance à Google (pas de backend alternatif)
+### Technical Limitations
+- Single simultaneous user (no conflict management)
+- No complete offline mode (read-only possible)
+- Google dependency (no alternative backend)
 
-### Volumes de Données
-- Maximum recommandé: 10,000 prestations/an
-- Maximum Google Sheets: 5 millions de cellules
-- Performance dégradée au-delà de 1000 lignes (envisager pagination)
+### Data Volumes
+- Recommended maximum: 10,000 services/year
+- Google Sheets maximum: 5 million cells
+- Degraded performance beyond 1000 rows (consider pagination)
 
-## Fonctionnalités Implémentées
+## Implemented Features
 
-### Terminé
-- ✅ PWA (Progressive Web App) avec support installation mobile
-- ✅ Auto-refresh des données au retour sur l'app
-- ✅ Protection des données (prestations liées non modifiables)
-- ✅ Suppression de paiements avec déliage automatique des prestations
-- ✅ Navigation contextuelle depuis le dashboard avec filtres
-- ✅ Système de configuration automatique
-- ✅ Design amélioré avec gradients, icônes et animations
-- ✅ Tri par date décroissant (plus récent d'abord)
-- ✅ Statuts de paiement détaillés (non facturée/facturée/encaissée)
-- ✅ Labels de statut traduits et cohérents
+### Complete
+- ✅ PWA (Progressive Web App) with mobile installation support
+- ✅ Data auto-refresh when returning to the app
+- ✅ Data protection (linked services not modifiable)
+- ✅ Payment deletion with automatic service unlinking
+- ✅ Contextual navigation from dashboard with filters
+- ✅ Automatic configuration system
+- ✅ Improved design with gradients, icons and animations
+- ✅ Sort by descending date (most recent first)
+- ✅ Detailed payment statuses (not invoiced/invoiced/paid)
+- ✅ Translated and consistent status labels
 
-## Évolutions Futures (V2+)
+## Future Developments (V2+)
 
-### Fonctionnalités Additionnelles
-- Backup et restore de la Google Sheet
-- Export comptable PDF pour déclaration fiscale française
-- Export CSV pour logiciels comptables
-- Statistiques avancées (graphiques interactifs avec charts)
-- Multi-utilisateurs avec permissions
-- Notifications email automatiques
-- Templates multiples de factures/reçus
-- Mode sombre
-- Support multi-devises
-- Récurrence de prestations
-- Gestion des devis
-- Rapports mensuels/annuels automatiques
+### Additional Features
+- Backup and restore of the Google Sheet
+- PDF accounting export for French tax declaration
+- CSV export for accounting software
+- Advanced statistics (interactive charts)
+- Multi-user with permissions
+- Automatic email notifications
+- Multiple invoice/receipt templates
+- Dark mode
+- Multi-currency support
+- Recurring services
+- Quote management
+- Automated monthly/annual reports
 
-### Améliorations Techniques
-- Mode offline complet avec synchronisation
-- Backend API (Node.js/Python) pour logique complexe
-- Base de données réelle (PostgreSQL/MongoDB)
-- Websockets pour sync temps réel
-- Tests automatisés complets (unit + E2E)
-- Optimisation des performances pour grands volumes
-- Migration TypeScript stricte (mode strict)
+### Technical Improvements
+- Complete offline mode with synchronization
+- Backend API (Node.js/Python) for complex logic
+- Real database (PostgreSQL/MongoDB)
+- Websockets for real-time sync
+- Complete automated tests (unit + E2E)
+- Performance optimization for large volumes
+- Strict TypeScript migration (strict mode)
 
-## Livrables
+## Deliverables
 
 ### Phase 1 - MVP
-- [ ] Setup projet (Vite + React + TypeScript + Tailwind)
-- [ ] Configuration Google OAuth
-- [ ] Interface connexion
-- [ ] CRUD Clients
-- [ ] CRUD Types de Prestations
-- [ ] CRUD Prestations
-- [ ] CRUD Paiements
-- [ ] Intégration Google Sheets (lecture/écriture)
-- [ ] Tableau de bord basique
-- [ ] Génération factures PDF
-- [ ] Génération reçus PDF
-- [ ] Déploiement production
+- [ ] Project setup (Vite + React + TypeScript + Tailwind)
+- [ ] Google OAuth configuration
+- [ ] Login interface
+- [ ] Clients CRUD
+- [ ] Service Types CRUD
+- [ ] Services CRUD
+- [ ] Payments CRUD
+- [ ] Google Sheets integration (read/write)
+- [ ] Basic dashboard
+- [ ] PDF invoice generation
+- [ ] PDF receipt generation
+- [ ] Production deployment
 
-### Phase 2 - Améliorations
-- [ ] Statistiques avancées dashboard
-- [ ] Graphiques
-- [ ] Filtres et recherche avancés
-- [ ] Export données
-- [ ] Tests unitaires
-- [ ] Documentation utilisateur
+### Phase 2 - Improvements
+- [ ] Advanced dashboard statistics
+- [ ] Charts
+- [ ] Advanced filters and search
+- [ ] Data export
+- [ ] Unit tests
+- [ ] User documentation
 
-## Annexes
+## Appendices
 
-### Ressources
+### Resources
 - [Google Sheets API Documentation](https://developers.google.com/sheets/api)
 - [Google Docs API Documentation](https://developers.google.com/docs/api)
 - [Google Drive API Documentation](https://developers.google.com/drive/api)
@@ -674,7 +674,7 @@ VITE_DRIVE_FOLDER_RECUS_ID=      # ID dossier Drive reçus
 - [Tailwind CSS Documentation](https://tailwindcss.com)
 - [Vite Documentation](https://vitejs.dev)
 
-### Contacts et Support
-- Développeur: [À compléter]
-- Repository: [À compléter]
-- Documentation: [À compléter]
+### Contacts and Support
+- Developer: [To be completed]
+- Repository: [To be completed]
+- Documentation: [To be completed]
