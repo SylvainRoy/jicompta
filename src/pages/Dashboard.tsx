@@ -5,15 +5,20 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useData } from '@/contexts/DataContext';
+import { useNotification } from '@/contexts/NotificationContext';
+import { generateTaxReport } from '@/services/googleDocs';
 import Loading from '@/components/common/Loading';
+import Button from '@/components/common/Button';
 import { formatCurrency } from '@/utils/currencyFormatter';
 import { formatDateForDisplay } from '@/utils/dateFormatter';
 
 export default function Dashboard() {
-  const { prestations, paiements, clients, isLoading } = useData();
+  const { prestations, paiements, clients, typesPrestations, isLoading } = useData();
   const navigate = useNavigate();
+  const { info, success, error: notifyError } = useNotification();
   const currentYear = new Date().getFullYear();
   const [selectedYear, setSelectedYear] = useState<number | 'all'>(currentYear);
+  const [isGeneratingReport, setIsGeneratingReport] = useState(false);
 
   // Get available years from data
   const availableYears = useMemo(() => {
@@ -135,6 +140,25 @@ export default function Dashboard() {
     return paiements.filter((p) => !p.date_encaissement);
   }, [paiements]);
 
+  const handleGenerateTaxReport = async () => {
+    if (selectedYear === 'all') {
+      notifyError('Veuillez sélectionner une année spécifique pour le rapport fiscal');
+      return;
+    }
+
+    setIsGeneratingReport(true);
+    try {
+      info('Génération du rapport fiscal en cours... Cela peut prendre jusqu\'à 30 secondes.');
+      const filename = await generateTaxReport(selectedYear, prestations, paiements, clients, typesPrestations);
+      success(`Rapport fiscal ${selectedYear} téléchargé: ${filename}`);
+    } catch (error) {
+      console.error('Failed to generate tax report:', error);
+      notifyError('Échec de la génération du rapport fiscal');
+    } finally {
+      setIsGeneratingReport(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center py-12">
@@ -153,27 +177,38 @@ export default function Dashboard() {
           <p className="text-sm text-gray-600">Vue d'ensemble de votre activité</p>
         </div>
 
-        {/* Year selector */}
-        <div className="flex items-center gap-3 bg-white rounded-lg shadow-sm border border-gray-200 px-4 py-2">
-          <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-          </svg>
-          <label htmlFor="year-select" className="text-sm font-medium text-gray-700">
-            Année:
-          </label>
-          <select
-            id="year-select"
-            value={selectedYear}
-            onChange={(e) => setSelectedYear(e.target.value === 'all' ? 'all' : parseInt(e.target.value))}
-            className="block rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500 text-sm font-medium bg-gray-50"
+        {/* Year selector and tax report button */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+          <div className="flex items-center gap-3 bg-white rounded-lg shadow-sm border border-gray-200 px-4 py-2">
+            <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            <label htmlFor="year-select" className="text-sm font-medium text-gray-700">
+              Année:
+            </label>
+            <select
+              id="year-select"
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(e.target.value === 'all' ? 'all' : parseInt(e.target.value))}
+              className="block rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500 text-sm font-medium bg-gray-50"
+            >
+              <option value="all">Toutes</option>
+              {availableYears.map((year) => (
+                <option key={year} value={year}>
+                  {year}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <Button
+            onClick={handleGenerateTaxReport}
+            variant="primary"
+            disabled={isGeneratingReport || selectedYear === 'all'}
+            className="whitespace-nowrap"
           >
-            <option value="all">Toutes</option>
-            {availableYears.map((year) => (
-              <option key={year} value={year}>
-                {year}
-              </option>
-            ))}
-          </select>
+            {isGeneratingReport ? 'Téléchargement...' : '📥 Rapport fiscal'}
+          </Button>
         </div>
       </div>
 

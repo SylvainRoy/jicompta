@@ -338,3 +338,296 @@ export async function generateRecu(
     throw error;
   }
 }
+
+/**
+ * Generate annual tax report PDF
+ */
+export async function generateTaxReport(
+  year: number,
+  prestations: Prestation[],
+  paiements: Paiement[],
+  clients: Client[],
+  typesPrestations: { nom: string; montant_suggere: number }[]
+): Promise<string> {
+  console.log(`Generating tax report for year ${year}`);
+
+  try {
+    const comptabiliteFolderId = getConfigValue('folderComptabiliteId');
+
+    // Filter data for the year
+    const yearPrestations = prestations.filter((p) => {
+      if (!p.date) return false;
+      const prestationYear = parseInt(p.date.split('-')[0], 10);
+      return prestationYear === year;
+    });
+
+    const yearPaiements = paiements.filter((p) => {
+      if (!p.date_encaissement) return false;
+      const paiementYear = parseInt(p.date_encaissement.split('-')[0], 10);
+      return paiementYear === year;
+    });
+
+    // Calculate statistics
+    const totalRevenue = yearPaiements.reduce((sum, p) => sum + (Number(p.total) || 0), 0);
+
+    // Revenue by month
+    const revenueByMonth: Record<string, number> = {};
+    for (let month = 1; month <= 12; month++) {
+      const monthKey = String(month).padStart(2, '0');
+      revenueByMonth[monthKey] = 0;
+    }
+    yearPaiements.forEach((p) => {
+      if (p.date_encaissement) {
+        const month = p.date_encaissement.split('-')[1];
+        revenueByMonth[month] = (revenueByMonth[month] || 0) + (Number(p.total) || 0);
+      }
+    });
+
+    // Revenue by client
+    const revenueByClient: Record<string, number> = {};
+    yearPaiements.forEach((p) => {
+      revenueByClient[p.client] = (revenueByClient[p.client] || 0) + (Number(p.total) || 0);
+    });
+    const allClients = Object.entries(revenueByClient)
+      .sort(([, a], [, b]) => b - a);
+
+    // Revenue by service type
+    // For each payment received this year, get ALL its prestations (regardless of year)
+    const revenueByType: Record<string, number> = {};
+    yearPaiements.forEach((pmt) => {
+      // Find all prestations linked to this payment
+      const linkedPrestations = prestations.filter((p) => p.paiement_id === pmt.reference);
+      linkedPrestations.forEach((p) => {
+        revenueByType[p.type_prestation] = (revenueByType[p.type_prestation] || 0) + (Number(p.montant) || 0);
+      });
+    });
+
+    // Revenue by payment method
+    const revenueByMethod: Record<string, number> = {};
+    yearPaiements.forEach((p) => {
+      const method = p.mode_encaissement || 'Non spécifié';
+      revenueByMethod[method] = (revenueByMethod[method] || 0) + (Number(p.total) || 0);
+    });
+
+    // Create document title and name
+    const documentName = `Rapport_Fiscal_${year}`;
+    const documentTitle = `Rapport Fiscal ${year} - JiCompta`;
+
+    // Create a new Google Doc
+    const createResponse = await driveRequest('/files', 'POST', {
+      name: documentName,
+      mimeType: 'application/vnd.google-apps.document',
+      parents: [comptabiliteFolderId],
+    });
+    const documentId = createResponse.id;
+
+    // Build document content using Google Docs API
+    const requests = [];
+
+    // Add title
+    requests.push({
+      insertText: {
+        location: { index: 1 },
+        text: `${documentTitle}\n\n`,
+      },
+    });
+
+    // Add summary section
+    let currentIndex = documentTitle.length + 3;
+    const summaryText = `RÉSUMÉ DE L'ANNÉE ${year}\n\n` +
+      `Chiffre d'affaires encaissé: ${formatCurrency(totalRevenue)}\n` +
+      `Nombre de clients: ${clients.length}\n` +
+      `Nombre de prestations: ${yearPrestations.length}\n` +
+      `Nombre de paiements encaissés: ${yearPaiements.length}\n\n`;
+
+    requests.push({
+      insertText: {
+        location: { index: currentIndex },
+        text: summaryText,
+      },
+    });
+    currentIndex += summaryText.length;
+
+    // Add monthly breakdown
+    const monthNames = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
+                        'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+    let monthlyText = 'REVENUS PAR MOIS\n\n';
+    Object.entries(revenueByMonth).forEach(([month, revenue]) => {
+      const monthName = monthNames[parseInt(month) - 1];
+      monthlyText += `${monthName}: ${formatCurrency(revenue)}\n`;
+    });
+    // Add total to verify it matches CA
+    const totalByMonth = Object.values(revenueByMonth).reduce((sum, revenue) => sum + revenue, 0);
+    monthlyText += `\nTOTAL: ${formatCurrency(totalByMonth)}\n\n`;
+
+    requests.push({
+      insertText: {
+        location: { index: currentIndex },
+        text: monthlyText,
+      },
+    });
+    currentIndex += monthlyText.length;
+
+    // Add all clients with revenue
+    let clientsText = 'REVENUS PAR CLIENT\n\n';
+    allClients.forEach(([client, revenue]) => {
+      clientsText += `${client}: ${formatCurrency(revenue)}\n`;
+    });
+    // Add total to verify it matches CA
+    const totalByClient = allClients.reduce((sum, [, revenue]) => sum + revenue, 0);
+    clientsText += `\nTOTAL: ${formatCurrency(totalByClient)}\n\n`;
+
+    requests.push({
+      insertText: {
+        location: { index: currentIndex },
+        text: clientsText,
+      },
+    });
+    currentIndex += clientsText.length;
+
+    // Add revenue by service type
+    let typesText = 'REVENUS PAR TYPE DE PRESTATION\n\n';
+    Object.entries(revenueByType)
+      .sort(([, a], [, b]) => b - a)
+      .forEach(([type, revenue]) => {
+        typesText += `${type}: ${formatCurrency(revenue)}\n`;
+      });
+    // Add total to verify it matches CA
+    const totalByType = Object.values(revenueByType).reduce((sum, revenue) => sum + revenue, 0);
+    typesText += `\nTOTAL: ${formatCurrency(totalByType)}\n\n`;
+
+    requests.push({
+      insertText: {
+        location: { index: currentIndex },
+        text: typesText,
+      },
+    });
+    currentIndex += typesText.length;
+
+    // Add revenue by payment method
+    let methodsText = 'REVENUS PAR MODE DE PAIEMENT\n\n';
+    Object.entries(revenueByMethod)
+      .sort(([, a], [, b]) => b - a)
+      .forEach(([method, revenue]) => {
+        const methodName = method.charAt(0).toUpperCase() + method.slice(1);
+        methodsText += `${methodName}: ${formatCurrency(revenue)}\n`;
+      });
+    // Add total to verify it matches CA
+    const totalByMethod = Object.values(revenueByMethod).reduce((sum, revenue) => sum + revenue, 0);
+    methodsText += `\nTOTAL: ${formatCurrency(totalByMethod)}\n\n`;
+
+    requests.push({
+      insertText: {
+        location: { index: currentIndex },
+        text: methodsText,
+      },
+    });
+    currentIndex += methodsText.length;
+
+    // Add detailed prestations list (all prestations linked to payments received this year)
+    const encaissedPrestations: Array<Prestation & { date_encaissement: string }> = [];
+    yearPaiements.forEach((pmt) => {
+      const linkedPrestations = prestations.filter((p) => p.paiement_id === pmt.reference);
+      linkedPrestations.forEach((p) => {
+        encaissedPrestations.push({
+          ...p,
+          date_encaissement: pmt.date_encaissement || '',
+        });
+      });
+    });
+
+    let prestationsText = 'DÉTAIL DES PRESTATIONS ENCAISSÉES\n\n';
+    encaissedPrestations
+      .sort((a, b) => a.date_encaissement.localeCompare(b.date_encaissement))
+      .forEach((p) => {
+        const datePrestation = formatDateForDisplay(p.date);
+        const dateEncaissement = formatDateForDisplay(p.date_encaissement);
+        prestationsText += `${datePrestation} - ${p.nom_client} - ${p.type_prestation} - ${formatCurrency(p.montant)} - Encaissé le ${dateEncaissement}\n`;
+      });
+    const totalPrestations = encaissedPrestations.reduce((sum, p) => sum + (Number(p.montant) || 0), 0);
+    prestationsText += `\nTOTAL: ${formatCurrency(totalPrestations)}\n\n`;
+
+    requests.push({
+      insertText: {
+        location: { index: currentIndex },
+        text: prestationsText,
+      },
+    });
+    currentIndex += prestationsText.length;
+
+    // Add detailed payments list
+    let paymentsText = 'DÉTAIL DES PAIEMENTS ENCAISSÉS\n\n';
+    yearPaiements
+      .sort((a, b) => (a.date_encaissement || '').localeCompare(b.date_encaissement || ''))
+      .forEach((p) => {
+        const date = p.date_encaissement ? formatDateForDisplay(p.date_encaissement) : 'Non renseigné';
+        paymentsText += `${date} - ${p.client} - ${p.reference} - ${formatCurrency(p.total)} - ${p.mode_encaissement || 'Non spécifié'}\n`;
+      });
+    const totalPaiements = yearPaiements.reduce((sum, p) => sum + (Number(p.total) || 0), 0);
+    paymentsText += `\nTOTAL: ${formatCurrency(totalPaiements)}\n\n`;
+
+    requests.push({
+      insertText: {
+        location: { index: currentIndex },
+        text: paymentsText,
+      },
+    });
+    currentIndex += paymentsText.length;
+
+    // Add notes
+    const notesText = 'NOTES IMPORTANTES\n\n' +
+      `- Ce rapport couvre la période du 01/01/${year} au 31/12/${year}\n` +
+      `- Seuls les paiements effectivement encaissés sont comptabilisés\n` +
+      `- Tous les totaux (par mois, par client, par type, par mode, prestations, paiements) doivent correspondre au chiffre d'affaires encaissé\n` +
+      `- Montants en EUR\n` +
+      `- Rapport généré le ${formatDateForDisplay(new Date().toISOString().split('T')[0])}\n`;
+
+    requests.push({
+      insertText: {
+        location: { index: currentIndex },
+        text: notesText,
+      },
+    });
+
+    // Apply formatting (make section headers bold)
+    await docsRequest(`/documents/${documentId}:batchUpdate`, 'POST', { requests });
+
+    // Export as PDF (download directly, don't save to Drive)
+    const user = loadAuthData();
+    if (!user) throw new Error('Not authenticated');
+
+    const exportUrl = `https://www.googleapis.com/drive/v3/files/${documentId}/export?mimeType=application/pdf`;
+    const response = await fetch(exportUrl, {
+      headers: {
+        'Authorization': `Bearer ${user.accessToken}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to export PDF: ${response.status}`);
+    }
+
+    // Get PDF as blob
+    const pdfBlob = await response.blob();
+
+    // Create download link
+    const url = window.URL.createObjectURL(pdfBlob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Rapport_Fiscal_${year}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+
+    // Delete the temporary Google Doc
+    await driveRequest(`/files/${documentId}`, 'DELETE');
+
+    console.log('Tax report generated and downloaded, temporary doc deleted');
+
+    return `Rapport_Fiscal_${year}.pdf`;
+  } catch (error) {
+    console.error('Error generating tax report:', error);
+    throw error;
+  }
+}
