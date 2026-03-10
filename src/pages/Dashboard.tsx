@@ -63,29 +63,30 @@ export default function Dashboard() {
       0
     );
 
-    // Filter paiements by year (based on date_encaissement or all paiements if not encaissé)
-    const filteredPaiements = selectedYear === 'all'
-      ? paiements
+    // Paiements encaissés in selected year
+    const paiementsEncaisses = selectedYear === 'all'
+      ? paiements.filter((p) => p.date_encaissement)
       : paiements.filter((p) => {
-          // Include paiement if it's not encaissé yet, or if encaissé in selected year
-          if (!p.date_encaissement) return true;
+          if (!p.date_encaissement) return false;
           const year = parseInt(p.date_encaissement.split('-')[0], 10);
           return year === selectedYear;
         });
-
-    const nombrePaiements = filteredPaiements.length;
-    const montantPaiements = filteredPaiements.reduce(
+    const nombrePaiementsEncaisses = paiementsEncaisses.length;
+    const montantPaiementsEncaisses = paiementsEncaisses.reduce(
       (sum, p) => sum + (Number(p.total) || 0),
       0
     );
 
-    // Paiements en attente (not encaissé)
-    const paiementsEnAttente = filteredPaiements.filter((p) => !p.date_encaissement);
+    // All pending paiements (not filtered by year)
+    const paiementsEnAttente = paiements.filter((p) => !p.date_encaissement);
     const nombrePaiementsEnAttente = paiementsEnAttente.length;
     const montantPaiementsEnAttente = paiementsEnAttente.reduce(
       (sum, p) => sum + (Number(p.total) || 0),
       0
     );
+
+    // Total potential revenue (encaissés for year + all pending)
+    const montantPaiementsTotal = montantPaiementsEncaisses + montantPaiementsEnAttente;
 
     // Top 3 clients with most pending payments
     const clientPendingPayments: Record<string, { count: number; total: number }> = {};
@@ -107,10 +108,11 @@ export default function Dashboard() {
       montantPrestations,
       nombrePrestationsSansPaiement,
       montantPrestationsSansPaiement,
-      nombrePaiements,
-      montantPaiements,
+      nombrePaiementsEncaisses,
+      montantPaiementsEncaisses,
       nombrePaiementsEnAttente,
       montantPaiementsEnAttente,
+      montantPaiementsTotal,
       topClientsWithPendingPayments,
     };
   }, [prestations, paiements, selectedYear]);
@@ -235,7 +237,7 @@ export default function Dashboard() {
             <div className="flex items-center justify-between bg-orange-50 hover:bg-orange-100 rounded-lg p-3 transition-all duration-200 border border-orange-200">
               <div className="flex-1">
                 <p className="text-gray-700">
-                  <span className="font-semibold">{stats.nombrePrestationsSansPaiement}</span> prestations (
+                  dont <span className="font-semibold">{stats.nombrePrestationsSansPaiement}</span> prestations (
                   <span className="font-semibold text-orange-600">{formatCurrency(stats.montantPrestationsSansPaiement)}</span>
                   ) n'ont pas de paiement
                 </p>
@@ -259,28 +261,36 @@ export default function Dashboard() {
           <h2 className="text-xl font-bold text-gray-900">Paiements</h2>
         </div>
         <div className="space-y-3 text-sm sm:text-base">
-          <p className="text-gray-700">
-            <span className="font-semibold">{stats.nombrePaiements}</span> paiements (
-            <span className="font-semibold text-green-600">{formatCurrency(stats.montantPaiements)}</span>
-            ) sur l'année <span className="font-semibold">{selectedYear === 'all' ? 'toutes' : selectedYear}</span>.
-          </p>
+          <div className="bg-green-50 rounded-lg p-3 border border-green-200">
+            <p className="text-gray-700">
+              <span className="font-semibold">{stats.nombrePaiementsEncaisses}</span> paiements (
+              <span className="font-semibold text-green-600">{formatCurrency(stats.montantPaiementsEncaisses)}</span>
+              ) encaissés sur l'année <span className="font-semibold">{selectedYear === 'all' ? 'toutes' : selectedYear}</span>
+            </p>
+          </div>
           <button
             onClick={() => navigate('/paiements?filter=en_attente')}
             className="w-full text-left group"
           >
-            <div className="flex items-center justify-between bg-red-50 hover:bg-red-100 rounded-lg p-3 transition-all duration-200 border border-red-200">
+            <div className="flex items-center justify-between bg-orange-50 hover:bg-orange-100 rounded-lg p-3 transition-all duration-200 border border-orange-200">
               <div className="flex-1">
                 <p className="text-gray-700">
                   <span className="font-semibold">{stats.nombrePaiementsEnAttente}</span> paiements (
-                  <span className="font-semibold text-red-600">{formatCurrency(stats.montantPaiementsEnAttente)}</span>
-                  ) sont en attente de règlement
+                  <span className="font-semibold text-orange-600">{formatCurrency(stats.montantPaiementsEnAttente)}</span>
+                  ) en attente de règlement
                 </p>
               </div>
-              <svg className="w-6 h-6 text-red-600 ml-3 group-hover:translate-x-1 transition-transform flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-6 h-6 text-orange-600 ml-3 group-hover:translate-x-1 transition-transform flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
               </svg>
             </div>
           </button>
+          <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
+            <p className="text-gray-700">
+              <span className="font-semibold">Total potentiel:</span>{' '}
+              <span className="font-semibold text-blue-600">{formatCurrency(stats.montantPaiementsTotal)}</span>
+            </p>
+          </div>
         </div>
       </div>
 
