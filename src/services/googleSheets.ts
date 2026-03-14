@@ -11,6 +11,7 @@ import type {
   TypePrestation,
   Prestation,
   Paiement,
+  Depense,
   GoogleSheetsResponse,
 } from '@/types';
 
@@ -90,11 +91,16 @@ async function writeRange(range: string, values: unknown[][]): Promise<void> {
  */
 async function appendRange(range: string, values: unknown[][]): Promise<void> {
   try {
-    await sheetsRequest(
+    const response = await sheetsRequest(
       `/values/${encodeURIComponent(range)}:append?valueInputOption=RAW`,
       'POST',
       { values }
     );
+
+    // Log where the data was appended
+    if (response.updates?.updatedRange) {
+      console.log(`✅ Appended data to: ${response.updates.updatedRange}`);
+    }
   } catch (error) {
     console.error('Error appending range:', error);
     throw error;
@@ -111,13 +117,23 @@ export async function getClients(): Promise<GoogleSheetsResponse<Client>> {
     const range = `${SHEET_TABS.CLIENTS}!A2:E`;
     const rows = await readRange(range);
 
-    const clients: Client[] = rows.map((row) => ({
-      nom: String(row[0] || ''),
-      email: String(row[1] || ''),
-      telephone: row[2] ? String(row[2]) : undefined,
-      adresse: row[3] ? String(row[3]) : undefined,
-      numero_siret: row[4] ? String(row[4]) : undefined,
-    }));
+    const clients: Client[] = [];
+
+    rows.forEach((row, index) => {
+      // Skip empty rows
+      if (!(row[0] || row[1])) {
+        return;
+      }
+
+      clients.push({
+        nom: String(row[0] || ''),
+        email: String(row[1] || ''),
+        telephone: row[2] ? String(row[2]) : undefined,
+        adresse: row[3] ? String(row[3]) : undefined,
+        numero_siret: row[4] ? String(row[4]) : undefined,
+        _rowNumber: index,
+      });
+    });
 
     return { data: clients };
   } catch (error) {
@@ -176,10 +192,20 @@ export async function getTypesPrestations(): Promise<GoogleSheetsResponse<TypePr
     const range = `${SHEET_TABS.TYPE_PRESTATION}!A2:B`;
     const rows = await readRange(range);
 
-    const types: TypePrestation[] = rows.map((row) => ({
-      nom: String(row[0] || ''),
-      montant_suggere: parseFloat(String(row[1] || '0')),
-    }));
+    const types: TypePrestation[] = [];
+
+    rows.forEach((row, index) => {
+      // Skip empty rows
+      if (!(row[0])) {
+        return;
+      }
+
+      types.push({
+        nom: String(row[0] || ''),
+        montant_suggere: parseFloat(String(row[1] || '0')),
+        _rowNumber: index,
+      });
+    });
 
     return { data: types };
   } catch (error) {
@@ -224,16 +250,47 @@ export async function deleteTypePrestation(rowIndex: number): Promise<void> {
  */
 export async function getPrestations(): Promise<GoogleSheetsResponse<Prestation>> {
   try {
-    const range = `${SHEET_TABS.PRESTATION}!A2:E`;
+    const range = `${SHEET_TABS.PRESTATION}!A2:F`;
     const rows = await readRange(range);
 
-    const prestations: Prestation[] = rows.map((row) => ({
-      date: String(row[0] || ''),
-      nom_client: String(row[1] || ''),
-      type_prestation: String(row[2] || ''),
-      montant: parseFloat(String(row[3] || '0')),
-      paiement_id: row[4] ? String(row[4]) : undefined,
-    }));
+    const prestations: Prestation[] = [];
+
+    rows.forEach((row, index) => {
+      // Filter out empty rows (rows where all required fields are empty)
+      if (!(row[0] || row[1] || row[2] || row[3])) {
+        return; // Skip empty rows
+      }
+
+      // More robust handling of the associatif field
+      const associatifValue = row[5];
+      let associatif = false;
+
+      if (associatifValue !== undefined && associatifValue !== null && associatifValue !== '') {
+        const valueStr = String(associatifValue).trim().toUpperCase();
+        associatif = valueStr === 'TRUE' || valueStr === '1' || associatifValue === true;
+
+        // Debug log for associative prestations
+        if (associatif) {
+          console.log(`✅ Prestation associative (row ${index + 2}):`, {
+            client: String(row[1] || ''),
+            type: String(row[2] || ''),
+            montant: parseFloat(String(row[3] || '0')),
+            associatifValue,
+            associatif,
+          });
+        }
+      }
+
+      prestations.push({
+        date: String(row[0] || ''),
+        nom_client: String(row[1] || ''),
+        type_prestation: String(row[2] || ''),
+        montant: parseFloat(String(row[3] || '0')),
+        paiement_id: row[4] ? String(row[4]) : undefined,
+        associatif,
+        _rowNumber: index, // Store the actual row index from the sheet (0-based)
+      });
+    });
 
     return { data: prestations };
   } catch (error) {
@@ -245,13 +302,14 @@ export async function getPrestations(): Promise<GoogleSheetsResponse<Prestation>
  * Add a new prestation
  */
 export async function addPrestation(prestation: Prestation): Promise<void> {
-  const range = `${SHEET_TABS.PRESTATION}!A:E`;
+  const range = `${SHEET_TABS.PRESTATION}!A:F`;
   const values = [[
     prestation.date,
     prestation.nom_client,
     prestation.type_prestation,
     prestation.montant,
     prestation.paiement_id || '',
+    prestation.associatif ? 'TRUE' : 'FALSE',
   ]];
   await appendRange(range, values);
 }
@@ -263,13 +321,14 @@ export async function updatePrestation(
   rowIndex: number,
   prestation: Prestation
 ): Promise<void> {
-  const range = `${SHEET_TABS.PRESTATION}!A${rowIndex + 2}:E${rowIndex + 2}`;
+  const range = `${SHEET_TABS.PRESTATION}!A${rowIndex + 2}:F${rowIndex + 2}`;
   const values = [[
     prestation.date,
     prestation.nom_client,
     prestation.type_prestation,
     prestation.montant,
     prestation.paiement_id || '',
+    prestation.associatif ? 'TRUE' : 'FALSE',
   ]];
   await writeRange(range, values);
 }
@@ -278,8 +337,8 @@ export async function updatePrestation(
  * Delete a prestation
  */
 export async function deletePrestation(rowIndex: number): Promise<void> {
-  const range = `${SHEET_TABS.PRESTATION}!A${rowIndex + 2}:E${rowIndex + 2}`;
-  const values = [['', '', '', '', '']];
+  const range = `${SHEET_TABS.PRESTATION}!A${rowIndex + 2}:F${rowIndex + 2}`;
+  const values = [['', '', '', '', '', '']];
   await writeRange(range, values);
 }
 
@@ -316,15 +375,25 @@ export async function getPaiements(): Promise<GoogleSheetsResponse<Paiement>> {
     const range = `${SHEET_TABS.PAIEMENT}!A2:G`;
     const rows = await readRange(range);
 
-    const paiements: Paiement[] = rows.map((row) => ({
-      reference: String(row[0] || ''),
-      client: String(row[1] || ''),
-      total: parseFloat(String(row[2] || '0')),
-      date_encaissement: row[3] ? String(row[3]) : undefined,
-      mode_encaissement: row[4] ? String(row[4]) : undefined,
-      facture: row[5] ? String(row[5]) : undefined,
-      recu: row[6] ? String(row[6]) : undefined,
-    })) as Paiement[];
+    const paiements: Paiement[] = [];
+
+    rows.forEach((row, index) => {
+      // Skip empty rows
+      if (!(row[0] || row[1])) {
+        return;
+      }
+
+      paiements.push({
+        reference: String(row[0] || ''),
+        client: String(row[1] || ''),
+        total: parseFloat(String(row[2] || '0')),
+        date_encaissement: row[3] ? String(row[3]) : undefined,
+        mode_encaissement: row[4] ? String(row[4]) as any : undefined,
+        facture: row[5] ? String(row[5]) : undefined,
+        recu: row[6] ? String(row[6]) : undefined,
+        _rowNumber: index,
+      });
+    });
 
     return { data: paiements };
   } catch (error) {
@@ -372,5 +441,75 @@ export async function updatePaiement(rowIndex: number, paiement: Paiement): Prom
 export async function deletePaiement(rowIndex: number): Promise<void> {
   const range = `${SHEET_TABS.PAIEMENT}!A${rowIndex + 2}:G${rowIndex + 2}`;
   const values = [['', '', '', '', '', '', '']];
+  await writeRange(range, values);
+}
+
+// ==================== DEPENSES ====================
+
+/**
+ * Get all depenses
+ */
+export async function getDepenses(): Promise<GoogleSheetsResponse<Depense>> {
+  try {
+    const range = `${SHEET_TABS.DEPENSE}!A2:D`;
+    const rows = await readRange(range);
+
+    const depenses: Depense[] = [];
+
+    rows.forEach((row, index) => {
+      // Skip empty rows
+      if (!(row[0] || row[1] || row[2])) {
+        return;
+      }
+
+      depenses.push({
+        date: String(row[0] || ''),
+        compte: String(row[1] || ''),
+        montant: parseFloat(String(row[2] || '0')),
+        description: String(row[3] || ''),
+        _rowNumber: index,
+      });
+    });
+
+    return { data: depenses };
+  } catch (error) {
+    return { data: [], error: String(error) };
+  }
+}
+
+/**
+ * Add a new depense
+ */
+export async function addDepense(depense: Depense): Promise<void> {
+  const range = `${SHEET_TABS.DEPENSE}!A:D`;
+  const values = [[
+    depense.date,
+    depense.compte,
+    depense.montant,
+    depense.description,
+  ]];
+  await appendRange(range, values);
+}
+
+/**
+ * Update a depense
+ */
+export async function updateDepense(rowIndex: number, depense: Depense): Promise<void> {
+  const range = `${SHEET_TABS.DEPENSE}!A${rowIndex + 2}:D${rowIndex + 2}`;
+  const values = [[
+    depense.date,
+    depense.compte,
+    depense.montant,
+    depense.description,
+  ]];
+  await writeRange(range, values);
+}
+
+/**
+ * Delete a depense
+ */
+export async function deleteDepense(rowIndex: number): Promise<void> {
+  const range = `${SHEET_TABS.DEPENSE}!A${rowIndex + 2}:D${rowIndex + 2}`;
+  const values = [['', '', '', '']];
   await writeRange(range, values);
 }

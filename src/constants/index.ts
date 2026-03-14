@@ -15,6 +15,7 @@ export const SHEET_TABS = {
   TYPE_PRESTATION: 'TypeDePrestation',
   PRESTATION: 'Prestation',
   PAIEMENT: 'Paiement',
+  DEPENSE: 'Depense',
 } as const;
 
 // Google Sheets Column Mapping
@@ -36,6 +37,7 @@ export const SHEET_COLUMNS = {
     TYPE_PRESTATION: 'C',
     MONTANT: 'D',
     PAIEMENT_ID: 'E',
+    ASSOCIATIF: 'F',
   },
   PAIEMENT: {
     REFERENCE: 'A',
@@ -45,6 +47,12 @@ export const SHEET_COLUMNS = {
     MODE_ENCAISSEMENT: 'E',
     FACTURE: 'F',
     RECU: 'G',
+  },
+  DEPENSE: {
+    DATE: 'A',
+    COMPTE: 'B',
+    MONTANT: 'C',
+    DESCRIPTION: 'D',
   },
 } as const;
 
@@ -118,6 +126,9 @@ export const ROUTES = {
   PAIEMENTS: '/paiements',
   PAIEMENTS_NEW: '/paiements/new',
   PAIEMENTS_EDIT: '/paiements/:id',
+  DEPENSES: '/depenses',
+  DEPENSES_NEW: '/depenses/new',
+  DEPENSES_EDIT: '/depenses/:id',
   SETTINGS: '/settings',
 } as const;
 
@@ -157,3 +168,6 @@ export const APP_INFO = {
   DESCRIPTION: 'Application de gestion comptable',
   VERSION: '0.1.0',
 } as const;
+
+// Accounts
+export const MON_COMPTE = 'Mon compte' as const;

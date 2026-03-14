@@ -3,11 +3,13 @@
  * Manages application data (Clients, Types, Prestations, Paiements)
  */
 
-import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
-import type { Client, TypePrestation, Prestation, Paiement } from '@/types';
+import { createContext, useContext, useState, useEffect, ReactNode, useCallback, useMemo, useRef } from 'react';
+import type { Client, TypePrestation, Prestation, Paiement, Depense, Compte } from '@/types';
 import * as sheetsService from '@/services/googleSheets';
 import * as docsService from '@/services/googleDocs';
+import * as setupService from '@/services/googleSetup';
 import { generatePaiementID } from '@/utils/validators';
+import { MON_COMPTE } from '@/constants';
 import { useAuth } from './AuthContext';
 import { useConfig } from './ConfigContext';
 import { useNotification } from './NotificationContext';
@@ -17,6 +19,7 @@ interface DataState {
   typesPrestations: TypePrestation[];
   prestations: Prestation[];
   paiements: Paiement[];
+  depenses: Depense[];
   isLoading: boolean;
   error: string | null;
 }
@@ -49,6 +52,15 @@ interface DataContextValue extends DataState {
   generateFactureForPaiement: (index: number) => Promise<string>;
   generateRecuForPaiement: (index: number) => Promise<string>;
 
+  // Depenses
+  refreshDepenses: () => Promise<void>;
+  addDepense: (depense: Depense) => Promise<void>;
+  updateDepense: (index: number, depense: Depense) => Promise<void>;
+  deleteDepense: (index: number) => Promise<void>;
+
+  // Comptes
+  comptes: Compte[];
+
   // Global
   refreshAll: () => Promise<void>;
 }
@@ -61,28 +73,52 @@ interface DataProviderProps {
 
 export function DataProvider({ children }: DataProviderProps) {
   const { isAuthenticated } = useAuth();
-  const { isConfigured } = useConfig();
+  const { isConfigured, config } = useConfig();
   const { error: notifyError, success: notifySuccess } = useNotification();
+  const migrationsRun = useRef(false);
 
   const [state, setState] = useState<DataState>({
     clients: [],
     typesPrestations: [],
     prestations: [],
     paiements: [],
+    depenses: [],
     isLoading: false,
     error: null,
   });
+
+  // Run migrations if needed (only once per session)
+  const runMigrationsIfNeeded = useCallback(async () => {
+    if (migrationsRun.current || !config?.spreadsheetId) {
+      return;
+    }
+
+    try {
+      console.log('🔄 Running database migrations...');
+      await setupService.runMigrations(config.spreadsheetId);
+      migrationsRun.current = true;
+      console.log('✅ Migrations completed');
+    } catch (error) {
+      console.error('Migration error:', error);
+      // Don't throw - allow app to continue even if migrations fail
+      // The error will be caught when trying to access the sheet
+    }
+  }, [config]);
 
   // Declare refreshAll first (hoisted for use in useEffect)
   const refreshAll = useCallback(async () => {
     setState((prev) => ({ ...prev, isLoading: true, error: null }));
 
     try {
-      const [clientsRes, typesRes, prestationsRes, paiementsRes] = await Promise.all([
+      // Run migrations before first data load
+      await runMigrationsIfNeeded();
+
+      const [clientsRes, typesRes, prestationsRes, paiementsRes, depensesRes] = await Promise.all([
         sheetsService.getClients(),
         sheetsService.getTypesPrestations(),
         sheetsService.getPrestations(),
         sheetsService.getPaiements(),
+        sheetsService.getDepenses(),
       ]);
 
       setState({
@@ -90,6 +126,7 @@ export function DataProvider({ children }: DataProviderProps) {
         typesPrestations: typesRes.data,
         prestations: prestationsRes.data,
         paiements: paiementsRes.data,
+        depenses: depensesRes.data,
         isLoading: false,
         error: null,
       });
@@ -98,7 +135,7 @@ export function DataProvider({ children }: DataProviderProps) {
       setState((prev) => ({ ...prev, error: message, isLoading: false }));
       notifyError(message);
     }
-  }, [notifyError]);
+  }, [notifyError, runMigrationsIfNeeded]);
 
   // Load all data when authenticated and configured
   useEffect(() => {
@@ -158,7 +195,11 @@ export function DataProvider({ children }: DataProviderProps) {
 
   const updateClient = useCallback(async (index: number, client: Client) => {
     try {
-      await sheetsService.updateClient(index, client);
+      const actualRowNumber = state.clients[index]?._rowNumber;
+      if (actualRowNumber === undefined) {
+        throw new Error('Client missing _rowNumber metadata');
+      }
+      await sheetsService.updateClient(actualRowNumber, client);
       await refreshClients();
       notifySuccess('Client modifié avec succès');
     } catch (error) {
@@ -166,20 +207,31 @@ export function DataProvider({ children }: DataProviderProps) {
       notifyError(message);
       throw error;
     }
-  }, [refreshClients, notifyError, notifySuccess]);
+  }, [state.clients, refreshClients, notifyError, notifySuccess]);
 
   const deleteClient = useCallback(async (index: number) => {
     try {
-      // Check if client has related prestations or paiements
+      // Check if client has related prestations, paiements, or depenses (has account)
       const client = state.clients[index];
       const hasPrestations = state.prestations.some(p => p.nom_client === client.nom);
       const hasPaiements = state.paiements.some(p => p.client === client.nom);
+      const hasDepenses = state.depenses.some(d => d.compte === client.nom);
+      const hasPrestationsAssociatives = state.prestations.some(p => p.nom_client === client.nom && p.associatif);
 
       if (hasPrestations || hasPaiements) {
         throw new Error('Ce client a des prestations ou paiements associés. Suppression impossible.');
       }
 
-      await sheetsService.deleteClient(index);
+      if (hasDepenses || hasPrestationsAssociatives) {
+        throw new Error('Ce client a un compte avec des dépenses ou prestations associatives. Suppression impossible.');
+      }
+
+      const actualRowNumber = state.clients[index]?._rowNumber;
+      if (actualRowNumber === undefined) {
+        throw new Error('Client missing _rowNumber metadata');
+      }
+
+      await sheetsService.deleteClient(actualRowNumber);
       await refreshClients();
       notifySuccess('Client supprimé avec succès');
     } catch (error) {
@@ -187,7 +239,7 @@ export function DataProvider({ children }: DataProviderProps) {
       notifyError(message);
       throw error;
     }
-  }, [state.clients, state.prestations, state.paiements, refreshClients, notifyError, notifySuccess]);
+  }, [state.clients, state.prestations, state.paiements, state.depenses, refreshClients, notifyError, notifySuccess]);
 
   const getClientByName = useCallback((name: string) => {
     return state.clients.find(c => c.nom === name);
@@ -230,7 +282,11 @@ export function DataProvider({ children }: DataProviderProps) {
 
   const updateTypePrestation = useCallback(async (index: number, type: TypePrestation) => {
     try {
-      await sheetsService.updateTypePrestation(index, type);
+      const actualRowNumber = state.typesPrestations[index]?._rowNumber;
+      if (actualRowNumber === undefined) {
+        throw new Error('TypePrestation missing _rowNumber metadata');
+      }
+      await sheetsService.updateTypePrestation(actualRowNumber, type);
       await refreshTypesPrestations();
       notifySuccess('Type de prestation modifié avec succès');
     } catch (error) {
@@ -238,7 +294,7 @@ export function DataProvider({ children }: DataProviderProps) {
       notifyError(message);
       throw error;
     }
-  }, [refreshTypesPrestations, notifyError, notifySuccess]);
+  }, [state.typesPrestations, refreshTypesPrestations, notifyError, notifySuccess]);
 
   const deleteTypePrestation = useCallback(async (index: number) => {
     try {
@@ -249,7 +305,12 @@ export function DataProvider({ children }: DataProviderProps) {
         throw new Error('Ce type a des prestations associées. Suppression impossible.');
       }
 
-      await sheetsService.deleteTypePrestation(index);
+      const actualRowNumber = state.typesPrestations[index]?._rowNumber;
+      if (actualRowNumber === undefined) {
+        throw new Error('TypePrestation missing _rowNumber metadata');
+      }
+
+      await sheetsService.deleteTypePrestation(actualRowNumber);
       await refreshTypesPrestations();
       notifySuccess('Type de prestation supprimé avec succès');
     } catch (error) {
@@ -296,7 +357,19 @@ export function DataProvider({ children }: DataProviderProps) {
 
   const updatePrestation = useCallback(async (index: number, prestation: Prestation) => {
     try {
-      await sheetsService.updatePrestation(index, prestation);
+      console.log('📝 DataContext.updatePrestation called:', { index, prestation });
+      if (index < 0 || index >= state.prestations.length) {
+        throw new Error(`Invalid prestation index: ${index} (total: ${state.prestations.length})`);
+      }
+
+      // Get the actual row number from the prestation being updated
+      const actualRowNumber = state.prestations[index]._rowNumber;
+      if (actualRowNumber === undefined) {
+        throw new Error('Prestation missing _rowNumber metadata');
+      }
+
+      console.log(`📝 Updating prestation at array index ${index}, sheet row ${actualRowNumber + 2}`);
+      await sheetsService.updatePrestation(actualRowNumber, prestation);
       await refreshPrestations();
       notifySuccess('Prestation modifiée avec succès');
     } catch (error) {
@@ -304,11 +377,22 @@ export function DataProvider({ children }: DataProviderProps) {
       notifyError(message);
       throw error;
     }
-  }, [refreshPrestations, notifyError, notifySuccess]);
+  }, [state.prestations, refreshPrestations, notifyError, notifySuccess]);
 
   const deletePrestation = useCallback(async (index: number) => {
     try {
-      await sheetsService.deletePrestation(index);
+      if (index < 0 || index >= state.prestations.length) {
+        throw new Error(`Invalid prestation index: ${index} (total: ${state.prestations.length})`);
+      }
+
+      // Get the actual row number from the prestation being deleted
+      const actualRowNumber = state.prestations[index]._rowNumber;
+      if (actualRowNumber === undefined) {
+        throw new Error('Prestation missing _rowNumber metadata');
+      }
+
+      console.log(`🗑️ Deleting prestation at array index ${index}, sheet row ${actualRowNumber + 2}`);
+      await sheetsService.deletePrestation(actualRowNumber);
       await refreshPrestations();
       notifySuccess('Prestation supprimée avec succès');
     } catch (error) {
@@ -316,7 +400,7 @@ export function DataProvider({ children }: DataProviderProps) {
       notifyError(message);
       throw error;
     }
-  }, [refreshPrestations, notifyError, notifySuccess]);
+  }, [state.prestations, refreshPrestations, notifyError, notifySuccess]);
 
   // ==================== PAIEMENTS ====================
 
@@ -343,6 +427,14 @@ export function DataProvider({ children }: DataProviderProps) {
 
   const addPaiement = useCallback(async (paiement: Paiement, prestationIndices: number[]) => {
     try {
+      // Check if any prestation is associatif
+      for (const index of prestationIndices) {
+        const prestation = state.prestations[index];
+        if (prestation?.associatif) {
+          throw new Error('Impossible de créer un paiement pour des prestations associatives.');
+        }
+      }
+
       // Generate payment reference
       const existingRefs = state.paiements.map(p => p.reference);
       const reference = generatePaiementID(existingRefs);
@@ -378,7 +470,11 @@ export function DataProvider({ children }: DataProviderProps) {
 
   const updatePaiement = useCallback(async (index: number, paiement: Paiement) => {
     try {
-      await sheetsService.updatePaiement(index, paiement);
+      const actualRowNumber = state.paiements[index]?._rowNumber;
+      if (actualRowNumber === undefined) {
+        throw new Error('Paiement missing _rowNumber metadata');
+      }
+      await sheetsService.updatePaiement(actualRowNumber, paiement);
       await refreshPaiements();
       notifySuccess('Paiement modifié avec succès');
     } catch (error) {
@@ -386,11 +482,15 @@ export function DataProvider({ children }: DataProviderProps) {
       notifyError(message);
       throw error;
     }
-  }, [refreshPaiements, notifyError, notifySuccess]);
+  }, [state.paiements, refreshPaiements, notifyError, notifySuccess]);
 
   const deletePaiement = useCallback(async (index: number) => {
     try {
-      await sheetsService.deletePaiement(index);
+      const actualRowNumber = state.paiements[index]?._rowNumber;
+      if (actualRowNumber === undefined) {
+        throw new Error('Paiement missing _rowNumber metadata');
+      }
+      await sheetsService.deletePaiement(actualRowNumber);
       await refreshPaiements();
       notifySuccess('Paiement supprimé avec succès');
     } catch (error) {
@@ -398,13 +498,18 @@ export function DataProvider({ children }: DataProviderProps) {
       notifyError(message);
       throw error;
     }
-  }, [refreshPaiements, notifyError, notifySuccess]);
+  }, [state.paiements, refreshPaiements, notifyError, notifySuccess]);
 
   const generateFactureForPaiement = useCallback(async (index: number): Promise<string> => {
     try {
       const paiement = state.paiements[index];
       if (!paiement) {
         throw new Error('Paiement not found');
+      }
+
+      const actualRowNumber = paiement._rowNumber;
+      if (actualRowNumber === undefined) {
+        throw new Error('Paiement missing _rowNumber metadata');
       }
 
       // Get client
@@ -425,7 +530,7 @@ export function DataProvider({ children }: DataProviderProps) {
         facture: factureUrl,
       };
 
-      await sheetsService.updatePaiement(index, updatedPaiement);
+      await sheetsService.updatePaiement(actualRowNumber, updatedPaiement);
       await refreshPaiements();
       notifySuccess('Facture générée avec succès');
 
@@ -442,6 +547,11 @@ export function DataProvider({ children }: DataProviderProps) {
       const paiement = state.paiements[index];
       if (!paiement) {
         throw new Error('Paiement not found');
+      }
+
+      const actualRowNumber = paiement._rowNumber;
+      if (actualRowNumber === undefined) {
+        throw new Error('Paiement missing _rowNumber metadata');
       }
 
       if (!paiement.date_encaissement) {
@@ -466,7 +576,7 @@ export function DataProvider({ children }: DataProviderProps) {
         recu: recuUrl,
       };
 
-      await sheetsService.updatePaiement(index, updatedPaiement);
+      await sheetsService.updatePaiement(actualRowNumber, updatedPaiement);
       await refreshPaiements();
       notifySuccess('Reçu généré avec succès');
 
@@ -477,6 +587,147 @@ export function DataProvider({ children }: DataProviderProps) {
       throw error;
     }
   }, [state.paiements, state.clients, state.prestations, refreshPaiements, notifyError, notifySuccess]);
+
+  // ==================== DEPENSES ====================
+
+  const refreshDepenses = useCallback(async () => {
+    try {
+      setState((prev) => ({ ...prev, isLoading: true, error: null }));
+      const response = await sheetsService.getDepenses();
+
+      if (response.error) {
+        throw new Error(response.error);
+      }
+
+      setState((prev) => ({
+        ...prev,
+        depenses: response.data,
+        isLoading: false,
+      }));
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to load depenses';
+      setState((prev) => ({ ...prev, error: message, isLoading: false }));
+      notifyError(message);
+    }
+  }, [notifyError]);
+
+  const addDepense = useCallback(async (depense: Depense) => {
+    try {
+      await sheetsService.addDepense(depense);
+      await refreshDepenses();
+      notifySuccess('Dépense ajoutée avec succès');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to add depense';
+      notifyError(message);
+      throw error;
+    }
+  }, [refreshDepenses, notifyError, notifySuccess]);
+
+  const updateDepense = useCallback(async (index: number, depense: Depense) => {
+    try {
+      const actualRowNumber = state.depenses[index]?._rowNumber;
+      if (actualRowNumber === undefined) {
+        throw new Error('Depense missing _rowNumber metadata');
+      }
+      await sheetsService.updateDepense(actualRowNumber, depense);
+      await refreshDepenses();
+      notifySuccess('Dépense modifiée avec succès');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to update depense';
+      notifyError(message);
+      throw error;
+    }
+  }, [state.depenses, refreshDepenses, notifyError, notifySuccess]);
+
+  const deleteDepense = useCallback(async (index: number) => {
+    try {
+      const actualRowNumber = state.depenses[index]?._rowNumber;
+      if (actualRowNumber === undefined) {
+        throw new Error('Depense missing _rowNumber metadata');
+      }
+      await sheetsService.deleteDepense(actualRowNumber);
+      await refreshDepenses();
+      notifySuccess('Dépense supprimée avec succès');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to delete depense';
+      notifyError(message);
+      throw error;
+    }
+  }, [state.depenses, refreshDepenses, notifyError, notifySuccess]);
+
+  // ==================== COMPTES ====================
+
+  const comptes = useMemo<Compte[]>(() => {
+    const comptesMap = new Map<string, Compte>();
+
+    // Create "Mon compte" for user's personal account
+    const monCompte: Compte = {
+      nom: MON_COMPTE,
+      balance: 0,
+      paiements: [],
+      depenses: [],
+    };
+
+    // Credit: All encaissed payments (non-associatif)
+    state.paiements.forEach((paiement) => {
+      if (paiement.date_encaissement) {
+        monCompte.balance += paiement.total;
+        monCompte.paiements!.push(paiement);
+      }
+    });
+
+    // Debit: All expenses on "Mon compte"
+    state.depenses.forEach((depense) => {
+      if (depense.compte === MON_COMPTE) {
+        monCompte.balance -= depense.montant;
+        monCompte.depenses!.push(depense);
+      }
+    });
+
+    comptesMap.set(MON_COMPTE, monCompte);
+
+    // Create accounts for clients with associative prestations or expenses
+    state.clients.forEach((client) => {
+      const clientPrestations = state.prestations.filter(
+        (p) => p.nom_client === client.nom && p.associatif
+      );
+      const clientDepenses = state.depenses.filter((d) => d.compte === client.nom);
+
+      if (clientPrestations.length > 0 || clientDepenses.length > 0) {
+        let balance = 0;
+
+        // Credit: Associative prestations
+        clientPrestations.forEach((prestation) => {
+          balance += prestation.montant;
+        });
+
+        // Debit: Expenses
+        clientDepenses.forEach((depense) => {
+          balance -= depense.montant;
+        });
+
+        // Debug logging for account calculation
+        if (clientPrestations.length > 0 || clientDepenses.length > 0) {
+          console.log(`📊 Compte "${client.nom}":`, {
+            prestations: clientPrestations.length,
+            totalPrestations: clientPrestations.reduce((sum, p) => sum + p.montant, 0),
+            depenses: clientDepenses.length,
+            totalDepenses: clientDepenses.reduce((sum, d) => sum + d.montant, 0),
+            balance,
+          });
+        }
+
+        comptesMap.set(client.nom, {
+          nom: client.nom,
+          balance,
+          prestations: clientPrestations,
+          depenses: clientDepenses,
+        });
+      }
+    });
+
+    return Array.from(comptesMap.values());
+  }, [state.clients, state.prestations, state.paiements, state.depenses]);
 
   // ==================== GLOBAL ====================
   // refreshAll is defined earlier in the file before useEffect
@@ -502,6 +753,11 @@ export function DataProvider({ children }: DataProviderProps) {
     deletePaiement,
     generateFactureForPaiement,
     generateRecuForPaiement,
+    refreshDepenses,
+    addDepense,
+    updateDepense,
+    deleteDepense,
+    comptes,
     refreshAll,
   };
 

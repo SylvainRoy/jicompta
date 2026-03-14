@@ -13,7 +13,7 @@ import { formatCurrency } from '@/utils/currencyFormatter';
 import { formatDateForDisplay } from '@/utils/dateFormatter';
 
 export default function Dashboard() {
-  const { prestations, paiements, clients, typesPrestations, isLoading } = useData();
+  const { prestations, paiements, clients, typesPrestations, depenses, comptes, isLoading } = useData();
   const navigate = useNavigate();
   const { info, success, error: notifyError } = useNotification();
   const currentYear = new Date().getFullYear();
@@ -40,11 +40,12 @@ export default function Dashboard() {
 
   // Calculate statistics based on selected year
   const stats = useMemo(() => {
-    // Filter prestations by year
+    // Filter prestations by year (exclude associative prestations)
     const filteredPrestations = selectedYear === 'all'
-      ? prestations
+      ? prestations.filter((p) => !p.associatif)
       : prestations.filter((p) => {
           if (!p.date) return false;
+          if (p.associatif) return false;
           const year = parseInt(p.date.split('-')[0], 10);
           return year === selectedYear;
         });
@@ -55,7 +56,7 @@ export default function Dashboard() {
       0
     );
 
-    // Prestations without payment
+    // Prestations without payment (non-associative)
     const prestationsSansPaiement = filteredPrestations.filter((p) => !p.paiement_id);
     const nombrePrestationsSansPaiement = prestationsSansPaiement.length;
     const montantPrestationsSansPaiement = prestationsSansPaiement.reduce(
@@ -151,7 +152,7 @@ export default function Dashboard() {
     setIsGeneratingReport(true);
     try {
       info('Génération du rapport fiscal en cours... Cela peut prendre jusqu\'à 30 secondes.');
-      const filename = await generateTaxReport(selectedYear, prestations, paiements, clients, typesPrestations);
+      const filename = await generateTaxReport(selectedYear, prestations, paiements, clients, typesPrestations, depenses);
       success(`Rapport fiscal ${selectedYear} téléchargé: ${filename}`);
     } catch (error) {
       console.error('Failed to generate tax report:', error);
@@ -343,6 +344,53 @@ export default function Dashboard() {
           )}
         </div>
       </div>
+
+      {/* Comptes Section */}
+      {comptes.length > 0 && (
+        <div className="bg-gradient-to-br from-teal-50 to-white rounded-lg shadow-md p-4 sm:p-6 mb-4 border border-teal-100">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="flex-shrink-0 w-12 h-12 bg-teal-500 rounded-xl flex items-center justify-center shadow-lg">
+              <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+              </svg>
+            </div>
+            <h2 className="text-xl font-bold text-gray-900">Comptes</h2>
+          </div>
+          <div className="space-y-2 text-sm sm:text-base">
+            {comptes.map((compte) => (
+              <div
+                key={compte.nom}
+                className="bg-white rounded-lg p-3 border border-teal-200 hover:shadow-sm transition-shadow"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <p className="font-semibold text-gray-900">{compte.nom}</p>
+                    <p className="text-xs text-gray-600">
+                      {compte.prestations && compte.prestations.length > 0 && (
+                        <span>{compte.prestations.length} prestation{compte.prestations.length > 1 ? 's' : ''}</span>
+                      )}
+                      {compte.paiements && compte.paiements.length > 0 && (
+                        <span>{compte.paiements.length} paiement{compte.paiements.length > 1 ? 's' : ''}</span>
+                      )}
+                      {compte.depenses && compte.depenses.length > 0 && (
+                        <>
+                          {(compte.prestations?.length || compte.paiements?.length) ? ' • ' : ''}
+                          {compte.depenses.length} dépense{compte.depenses.length > 1 ? 's' : ''}
+                        </>
+                      )}
+                    </p>
+                  </div>
+                  <div className="text-right ml-4">
+                    <p className={`text-lg font-bold ${compte.balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {formatCurrency(compte.balance)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Recent Lists Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">

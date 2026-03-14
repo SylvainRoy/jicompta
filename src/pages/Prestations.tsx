@@ -66,12 +66,16 @@ export default function Prestations() {
 
     // Filter by status
     if (filterStatut) {
-      if (filterStatut === 'non_facturee') {
-        // No payment linked
-        filtered = filtered.filter((prestation) => !prestation.paiement_id);
+      if (filterStatut === 'associatif') {
+        // Associative prestations
+        filtered = filtered.filter((prestation) => prestation.associatif);
+      } else if (filterStatut === 'non_facturee') {
+        // No payment linked (non-associative)
+        filtered = filtered.filter((prestation) => !prestation.paiement_id && !prestation.associatif);
       } else if (filterStatut === 'facturee') {
         // Payment linked but not received
         filtered = filtered.filter((prestation) => {
+          if (prestation.associatif) return false;
           if (!prestation.paiement_id) return false;
           const linkedPaiement = paiements.find(p => p.reference === prestation.paiement_id);
           return linkedPaiement && !linkedPaiement.date_encaissement;
@@ -79,6 +83,7 @@ export default function Prestations() {
       } else if (filterStatut === 'encaissee') {
         // Payment received
         filtered = filtered.filter((prestation) => {
+          if (prestation.associatif) return false;
           if (!prestation.paiement_id) return false;
           const linkedPaiement = paiements.find(p => p.reference === prestation.paiement_id);
           return linkedPaiement && !!linkedPaiement.date_encaissement;
@@ -98,6 +103,10 @@ export default function Prestations() {
 
   const handleEdit = async (prestation: Prestation) => {
     if (editingPrestation) {
+      console.log('🔧 Updating prestation at index:', editingPrestation.index, {
+        original: editingPrestation.prestation,
+        updated: prestation,
+      });
       await updatePrestation(editingPrestation.index, prestation);
       setEditingPrestation(null);
     }
@@ -116,6 +125,14 @@ export default function Prestations() {
   };
 
   const getStatutDisplay = (prestation: Prestation) => {
+    // Associative prestation
+    if (prestation.associatif) {
+      return {
+        label: 'Associatif',
+        color: 'bg-purple-100 text-purple-800',
+      };
+    }
+
     // No payment linked
     if (!prestation.paiement_id) {
       return {
@@ -206,6 +223,7 @@ export default function Prestations() {
               <option value="non_facturee">Non facturée</option>
               <option value="facturee">Facturée</option>
               <option value="encaissee">Encaissée</option>
+              <option value="associatif">Associatif</option>
             </select>
           </div>
         </div>
@@ -240,13 +258,25 @@ export default function Prestations() {
         <>
           {/* Mobile View - Cards (< md breakpoint) */}
           <div className="md:hidden space-y-4">
-            {filteredPrestations.map((prestation) => {
-              const actualIndex = prestations.indexOf(prestation);
+            {filteredPrestations.map((prestation, filteredIdx) => {
+              const actualIndex = prestations.findIndex(
+                (p) =>
+                  p.date === prestation.date &&
+                  p.nom_client === prestation.nom_client &&
+                  p.type_prestation === prestation.type_prestation &&
+                  p.montant === prestation.montant
+              );
               const statut = getStatutDisplay(prestation);
               const canModify = !prestation.paiement_id; // Only allow modification if not linked to payment
+
+              if (actualIndex === -1) {
+                console.error('❌ Could not find prestation in original array:', prestation);
+                return null;
+              }
+
               return (
                 <PrestationCard
-                  key={actualIndex}
+                  key={`${actualIndex}-${filteredIdx}`}
                   prestation={prestation}
                   statusLabel={statut.label}
                   statusColor={statut.color}
@@ -293,13 +323,24 @@ export default function Prestations() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredPrestations.map((prestation) => {
-                    const actualIndex = prestations.indexOf(prestation);
+                  {filteredPrestations.map((prestation, filteredIdx) => {
+                    const actualIndex = prestations.findIndex(
+                      (p) =>
+                        p.date === prestation.date &&
+                        p.nom_client === prestation.nom_client &&
+                        p.type_prestation === prestation.type_prestation &&
+                        p.montant === prestation.montant
+                    );
                     const statut = getStatutDisplay(prestation);
                     const canModify = !prestation.paiement_id; // Only allow modification if not linked to payment
 
+                    if (actualIndex === -1) {
+                      console.error('❌ Could not find prestation in original array:', prestation);
+                      return null;
+                    }
+
                     return (
-                      <tr key={actualIndex} className="hover:bg-gray-50">
+                      <tr key={`${actualIndex}-${filteredIdx}`} className="hover:bg-gray-50">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm font-medium text-gray-900">
                             {prestation.nom_client}

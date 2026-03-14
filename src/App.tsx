@@ -17,6 +17,7 @@ import Clients from '@/pages/Clients';
 import TypesPrestations from '@/pages/TypesPrestations';
 import Prestations from '@/pages/Prestations';
 import Paiements from '@/pages/Paiements';
+import Depenses from '@/pages/Depenses';
 import Settings from '@/pages/Settings';
 import { ROUTES } from '@/constants';
 
@@ -85,6 +86,17 @@ function App() {
                 <ProtectedRoute>
                   <Layout>
                     <Paiements />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path={ROUTES.DEPENSES}
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <Depenses />
                   </Layout>
                 </ProtectedRoute>
               }

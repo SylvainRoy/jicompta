@@ -32,6 +32,7 @@ export default function PrestationForm({
     nom_client: prestation?.nom_client || '',
     type_prestation: prestation?.type_prestation || '',
     montant: prestation?.montant.toString() || '',
+    associatif: prestation?.associatif || false,
   });
 
   const [errors, setErrors] = useState<Partial<PrestationFormData>>({});
@@ -104,7 +105,8 @@ export default function PrestationForm({
         nom_client: formData.nom_client.trim(),
         type_prestation: formData.type_prestation.trim(),
         montant: parseFloat(formData.montant),
-        paiement_id: prestation?.paiement_id, // Keep existing paiement_id when editing
+        paiement_id: formData.associatif ? undefined : prestation?.paiement_id, // Keep existing paiement_id when editing (but not for associative)
+        associatif: formData.associatif,
       };
 
       await onSubmit(prestationData);
@@ -194,6 +196,30 @@ export default function PrestationForm({
         helperText="Le montant est pré-rempli avec le montant suggéré du type"
         disabled={isSubmitting}
       />
+
+      {/* Associatif Checkbox */}
+      <div className="flex items-start">
+        <div className="flex items-center h-5">
+          <input
+            id="associatif"
+            type="checkbox"
+            checked={formData.associatif}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, associatif: e.target.checked }))
+            }
+            disabled={isSubmitting || !!prestation?.paiement_id}
+            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+          />
+        </div>
+        <div className="ml-3">
+          <label htmlFor="associatif" className="text-sm font-medium text-gray-700">
+            Prestation associative
+          </label>
+          <p className="text-xs text-gray-500 mt-1">
+            Les prestations associatives ne génèrent pas de facture et sont créditées sur le compte du client
+          </p>
+        </div>
+      </div>
 
       <div className="flex gap-3 pt-4">
         <Button type="submit" variant="primary" disabled={isSubmitting} fullWidth>

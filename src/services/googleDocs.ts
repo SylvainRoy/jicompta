@@ -5,8 +5,8 @@
 
 import { loadAuthData } from './googleAuth';
 import { getConfigValue } from './googleSetup';
-import type { Paiement, Client, Prestation } from '@/types';
-import { TEMPLATE_PLACEHOLDERS } from '@/constants';
+import type { Paiement, Client, Prestation, Depense, Compte } from '@/types';
+import { TEMPLATE_PLACEHOLDERS, MON_COMPTE } from '@/constants';
 import { formatDateForDisplay } from '@/utils/dateFormatter';
 import { formatCurrency } from '@/utils/currencyFormatter';
 
@@ -347,16 +347,18 @@ export async function generateTaxReport(
   prestations: Prestation[],
   paiements: Paiement[],
   clients: Client[],
-  typesPrestations: { nom: string; montant_suggere: number }[]
+  typesPrestations: { nom: string; montant_suggere: number }[],
+  depenses: Depense[]
 ): Promise<string> {
   console.log(`Generating tax report for year ${year}`);
 
   try {
     const comptabiliteFolderId = getConfigValue('folderComptabiliteId');
 
-    // Filter data for the year
+    // Filter data for the year (exclude associative prestations from revenue calculations)
     const yearPrestations = prestations.filter((p) => {
       if (!p.date) return false;
+      if (p.associatif) return false; // Exclude associative prestations from revenue
       const prestationYear = parseInt(p.date.split('-')[0], 10);
       return prestationYear === year;
     });
@@ -574,11 +576,115 @@ export async function generateTaxReport(
     });
     currentIndex += paymentsText.length;
 
+    // Compute accounts
+    const comptesMap = new Map<string, Compte>();
+
+    // Create "Mon compte" for user's personal account
+    const monCompte: Compte = {
+      nom: MON_COMPTE,
+      balance: 0,
+      paiements: [],
+      depenses: [],
+    };
+
+    // Credit: All encaissed payments (non-associatif)
+    paiements.forEach((paiement) => {
+      if (paiement.date_encaissement) {
+        monCompte.balance += paiement.total;
+        monCompte.paiements!.push(paiement);
+      }
+    });
+
+    // Debit: All expenses on "Mon compte"
+    depenses.forEach((depense) => {
+      if (depense.compte === MON_COMPTE) {
+        monCompte.balance -= depense.montant;
+        monCompte.depenses!.push(depense);
+      }
+    });
+
+    comptesMap.set(MON_COMPTE, monCompte);
+
+    // Create accounts for clients with associative prestations or expenses
+    clients.forEach((client) => {
+      const clientPrestations = prestations.filter(
+        (p) => p.nom_client === client.nom && p.associatif
+      );
+      const clientDepenses = depenses.filter((d) => d.compte === client.nom);
+
+      if (clientPrestations.length > 0 || clientDepenses.length > 0) {
+        let balance = 0;
+
+        // Credit: Associative prestations
+        clientPrestations.forEach((prestation) => {
+          balance += prestation.montant;
+        });
+
+        // Debit: Expenses
+        clientDepenses.forEach((depense) => {
+          balance -= depense.montant;
+        });
+
+        comptesMap.set(client.nom, {
+          nom: client.nom,
+          balance,
+          prestations: clientPrestations,
+          depenses: clientDepenses,
+        });
+      }
+    });
+
+    const comptes = Array.from(comptesMap.values());
+
+    // Add accounts section
+    let comptesText = 'ÉTAT DES COMPTES\n\n';
+    comptes.forEach((compte) => {
+      comptesText += `${compte.nom}:\n`;
+      comptesText += `  Solde: ${formatCurrency(compte.balance)}\n`;
+
+      // List prestations (associative for clients, paiements for "Mon compte")
+      if (compte.paiements && compte.paiements.length > 0) {
+        comptesText += `  Paiements encaissés (${compte.paiements.length}):\n`;
+        compte.paiements.forEach((p) => {
+          const date = p.date_encaissement ? formatDateForDisplay(p.date_encaissement) : 'N/A';
+          comptesText += `    ${date} - ${p.reference} - ${formatCurrency(p.total)}\n`;
+        });
+      }
+
+      if (compte.prestations && compte.prestations.length > 0) {
+        comptesText += `  Prestations associatives (${compte.prestations.length}):\n`;
+        compte.prestations.forEach((p) => {
+          comptesText += `    ${formatDateForDisplay(p.date)} - ${p.type_prestation} - ${formatCurrency(p.montant)}\n`;
+        });
+      }
+
+      // List expenses
+      if (compte.depenses && compte.depenses.length > 0) {
+        comptesText += `  Dépenses (${compte.depenses.length}):\n`;
+        compte.depenses.forEach((d) => {
+          comptesText += `    ${formatDateForDisplay(d.date)} - ${d.description} - ${formatCurrency(d.montant)}\n`;
+        });
+      }
+
+      comptesText += '\n';
+    });
+
+    requests.push({
+      insertText: {
+        location: { index: currentIndex },
+        text: comptesText,
+      },
+    });
+    currentIndex += comptesText.length;
+
     // Add notes
     const notesText = 'NOTES IMPORTANTES\n\n' +
       `- Ce rapport couvre la période du 01/01/${year} au 31/12/${year}\n` +
-      `- Seuls les paiements effectivement encaissés sont comptabilisés\n` +
-      `- Tous les totaux (par mois, par client, par type, par mode, prestations, paiements) doivent correspondre au chiffre d'affaires encaissé\n` +
+      `- Seuls les paiements effectivement encaissés sont comptabilisés dans le chiffre d'affaires\n` +
+      `- Les prestations associatives ne génèrent pas de revenu et ne sont pas incluses dans le chiffre d'affaires\n` +
+      `- Les prestations associatives créditent le compte du client associé\n` +
+      `- L'état des comptes montre les soldes de tous les comptes (prestations associatives - dépenses)\n` +
+      `- Tous les totaux (par mois, par client, par type, par mode, prestations, paiements) correspondent au chiffre d'affaires encaissé\n` +
       `- Montants en EUR\n` +
       `- Rapport généré le ${formatDateForDisplay(new Date().toISOString().split('T')[0])}\n`;
 

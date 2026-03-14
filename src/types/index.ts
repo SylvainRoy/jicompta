@@ -8,11 +8,13 @@ export interface Client {
   telephone?: string;
   adresse?: string;
   numero_siret?: string;
+  _rowNumber?: number; // Internal: actual row number in Google Sheets
 }
 
 export interface TypePrestation {
   nom: string;
   montant_suggere: number;
+  _rowNumber?: number; // Internal: actual row number in Google Sheets
 }
 
 export interface Prestation {
@@ -21,6 +23,8 @@ export interface Prestation {
   type_prestation: string;
   montant: number;
   paiement_id?: string;
+  associatif?: boolean;
+  _rowNumber?: number; // Internal: actual row number in Google Sheets (for updates)
 }
 
 export type ModeEncaissement = 'virement' | 'espece' | 'cheque' | 'paypal' | 'autre';
@@ -33,6 +37,15 @@ export interface Paiement {
   mode_encaissement?: ModeEncaissement;
   facture?: string; // URL
   recu?: string; // URL
+  _rowNumber?: number; // Internal: actual row number in Google Sheets
+}
+
+export interface Depense {
+  date: string; // Format: YYYY-MM-DD
+  compte: string; // "Mon compte" or client name
+  montant: number;
+  description: string;
+  _rowNumber?: number; // Internal: actual row number in Google Sheets
 }
 
 // ============================================
@@ -53,6 +66,14 @@ export interface PrestationAvecStatut extends Prestation {
 export interface PaiementAvecStatut extends Paiement {
   estEncaisse: boolean;
   prestations: Prestation[];
+}
+
+export interface Compte {
+  nom: string; // "Mon compte" or client name
+  balance: number;
+  prestations?: Prestation[]; // For association accounts
+  paiements?: Paiement[]; // For "Mon compte"
+  depenses?: Depense[];
 }
 
 // ============================================
@@ -77,12 +98,20 @@ export interface PrestationFormData {
   nom_client: string;
   type_prestation: string;
   montant: string;
+  associatif?: boolean;
 }
 
 export interface PaiementFormData {
   prestationIds: string[];
   mode_encaissement?: ModeEncaissement;
   date_encaissement?: string;
+}
+
+export interface DepenseFormData {
+  date: string;
+  compte: string;
+  montant: string;
+  description: string;
 }
 
 // ============================================
@@ -128,7 +157,7 @@ export interface PrestationFilters {
   annee?: number;
   client?: string;
   type?: string;
-  statut?: 'tous' | 'paye' | 'non_paye';
+  statut?: 'tous' | 'paye' | 'non_paye' | 'associatif';
 }
 
 export interface PaiementFilters {
