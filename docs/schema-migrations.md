@@ -42,10 +42,11 @@ When the app loads (`DataContext.refreshAll()` -> `runMigrations()`):
 2. `getSchemaVersion()` reads the current version from `_Meta`.
 3. Pending migrations are filtered: `MIGRATIONS.filter(m => m.version > currentVersion)`.
 4. If no pending migrations, return early (single API call overhead on normal loads).
-5. For each pending migration in order:
+5. **Automatic backup**: Before any migration runs, a backup of the spreadsheet is created in the `Comptabilite/` folder. This allows the user to restore their data if a migration fails or produces unexpected results. The backup is best-effort — if it fails, migrations still proceed.
+6. For each pending migration in order:
    - Execute `migration.run(spreadsheetId)`
    - Update `schema_version` in `_Meta` to `migration.version`
-6. `clearColumnMapCache()` invalidates the header-based column cache (since migrations may add columns or sheets).
+7. `clearColumnMapCache()` invalidates the header-based column cache (since migrations may add columns or sheets).
 
 ### Header-Based Column Resolution
 

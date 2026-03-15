@@ -539,6 +539,7 @@ async function setSchemaVersion(spreadsheetId: string, version: number): Promise
  * Run all pending schema migrations.
  * Reads the current version from _Meta, runs only newer migrations in order,
  * and updates the version after each successful migration.
+ * Automatically creates a backup before running any migration.
  */
 export async function runMigrations(spreadsheetId: string): Promise<void> {
   await ensureMetaSheet(spreadsheetId);
@@ -552,6 +553,17 @@ export async function runMigrations(spreadsheetId: string): Promise<void> {
   }
 
   console.log(`Schema version ${currentVersion} -> ${LATEST_SCHEMA_VERSION}: ${pending.length} migration(s) to run`);
+
+  // Create a backup before running migrations
+  const config = loadConfig();
+  if (config?.folderComptabiliteId) {
+    try {
+      const backup = await createBackup(spreadsheetId, config.folderComptabiliteId);
+      console.log(`Pre-migration backup created: ${backup.name}`);
+    } catch (error) {
+      console.warn('Failed to create pre-migration backup, proceeding anyway:', error);
+    }
+  }
 
   for (const migration of pending) {
     console.log(`Running migration v${migration.version}: ${migration.name}`);
