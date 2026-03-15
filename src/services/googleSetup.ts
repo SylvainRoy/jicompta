@@ -484,7 +484,7 @@ const MIGRATIONS: Migration[] = [
   },
 ];
 
-const LATEST_SCHEMA_VERSION = MIGRATIONS[MIGRATIONS.length - 1].version;
+export const LATEST_SCHEMA_VERSION = MIGRATIONS[MIGRATIONS.length - 1].version;
 
 /**
  * Ensure the _Meta sheet exists. For spreadsheets created before the migration

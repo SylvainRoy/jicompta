@@ -7,7 +7,7 @@ import { useState, useEffect } from 'react';
 import { useConfig } from '@/contexts/ConfigContext';
 import { useNotification } from '@/contexts/NotificationContext';
 import { useData } from '@/contexts/DataContext';
-import { autoSetup, createBackup, listBackups, restoreFromBackup, deleteBackup, type Backup } from '@/services/googleSetup';
+import { autoSetup, createBackup, listBackups, restoreFromBackup, deleteBackup, LATEST_SCHEMA_VERSION, type Backup } from '@/services/googleSetup';
 import Button from '@/components/common/Button';
 import { formatDateForDisplay } from '@/utils/dateFormatter';
 
@@ -176,6 +176,14 @@ export default function Settings() {
           <>
             <p className="text-sm text-gray-600 mb-4">
               Configuration créée le {formatDateForDisplay(config.setupDate.split('T')[0])}
+              {' '}&middot; Version du schéma : {LATEST_SCHEMA_VERSION}
+              {' '}&middot; Emplacement :{' '}
+              <button
+                onClick={() => openInDrive(config.folderComptabiliteId, 'folder')}
+                className="text-blue-600 hover:text-blue-800 underline"
+              >
+                Mon Drive/Comptabilite/
+              </button>
             </p>
 
             <div className="space-y-4">
