@@ -8,8 +8,9 @@ import { useConfig } from '@/contexts/ConfigContext';
 import { useNotification } from '@/contexts/NotificationContext';
 import { useData } from '@/contexts/DataContext';
 import {
-  autoSetup, checkExistingSetup, createBackup, listBackups, restoreFromBackup, deleteBackup,
-  LATEST_SCHEMA_VERSION, loadRepositories, removeRepository, type Backup, type SetupConfig,
+  autoSetup, checkExistingSetup, checkExistingSetupById, createBackup, listBackups,
+  restoreFromBackup, deleteBackup, LATEST_SCHEMA_VERSION, loadRepositories, removeRepository,
+  type Backup, type SetupConfig,
 } from '@/services/googleSetup';
 import Button from '@/components/common/Button';
 import { formatDateForDisplay } from '@/utils/dateFormatter';
@@ -31,8 +32,10 @@ export default function Settings() {
   // Repository management
   const [repositories, setRepositories] = useState<SetupConfig[]>([]);
   const [newRepoName, setNewRepoName] = useState('');
+  const [newRepoId, setNewRepoId] = useState('');
   const [isSwitching, setIsSwitching] = useState(false);
   const [isAddingRepo, setIsAddingRepo] = useState(false);
+  const [isLinkingRepo, setIsLinkingRepo] = useState(false);
 
   const handleReset = async () => {
     setIsResetting(true);
@@ -204,6 +207,32 @@ export default function Settings() {
     }
   };
 
+  const handleLinkRepoById = async () => {
+    const id = newRepoId.trim();
+    if (!id) return;
+
+    setIsLinkingRepo(true);
+    try {
+      info('Recherche du dépôt par ID...');
+      const existing = await checkExistingSetupById(id);
+
+      if (existing) {
+        saveConfig(existing);
+        setRepositories(loadRepositories());
+        await refreshAll();
+        setNewRepoId('');
+        success(`Dépôt "${existing.folderName}" lié et activé`);
+      } else {
+        notifyError('Aucun dépôt JiCompta valide trouvé dans ce dossier');
+      }
+    } catch (error) {
+      console.error('Link repo by ID failed:', error);
+      notifyError('Échec de la liaison du dépôt');
+    } finally {
+      setIsLinkingRepo(false);
+    }
+  };
+
   const handleRemoveRepo = (repo: SetupConfig) => {
     if (repo.folderComptabiliteId === config?.folderComptabiliteId) {
       notifyError('Impossible de retirer le dépôt actif');
@@ -368,8 +397,8 @@ export default function Settings() {
                           <p className="text-sm font-medium text-gray-900 truncate">
                             {repo.folderName}
                           </p>
-                          <p className="text-xs text-gray-500">
-                            {isActive ? 'Actif' : formatDateForDisplay(repo.setupDate.split('T')[0])}
+                          <p className="text-xs text-gray-500 font-mono truncate" title={repo.folderComptabiliteId}>
+                            {repo.folderComptabiliteId}
                           </p>
                         </div>
                       </div>
@@ -424,8 +453,31 @@ export default function Settings() {
                   {isAddingRepo ? 'Création...' : 'Ajouter'}
                 </Button>
               </div>
-              <p className="text-xs text-gray-500 mt-2">
+              <p className="text-xs text-gray-500 mt-2 mb-4">
                 Si le dépôt existe dans Google Drive, il sera détecté automatiquement. Sinon, il sera créé.
+              </p>
+
+              {/* Link by Folder ID */}
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={newRepoId}
+                  onChange={(e) => setNewRepoId(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && !isLinkingRepo && newRepoId.trim() && handleLinkRepoById()}
+                  placeholder="ID du dossier Google Drive"
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  disabled={isLinkingRepo}
+                />
+                <Button
+                  onClick={handleLinkRepoById}
+                  variant="secondary"
+                  disabled={isLinkingRepo || !newRepoId.trim()}
+                >
+                  {isLinkingRepo ? 'Recherche...' : 'Lier'}
+                </Button>
+              </div>
+              <p className="text-xs text-gray-500 mt-2">
+                Liez un dépôt existant en utilisant l'ID du dossier Google Drive.
               </p>
             </div>
 

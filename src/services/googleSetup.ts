@@ -578,11 +578,60 @@ export async function runMigrations(spreadsheetId: string): Promise<void> {
 }
 
 /**
- * Check if a JiCompta setup already exists in the user's Drive
+ * Detect a JiCompta setup inside a known folder (by ID and name).
+ */
+async function detectSetupInFolder(folderComptabiliteId: string, folderName: string): Promise<SetupConfig | null> {
+  // Search for "Compta" spreadsheet in the folder
+  const spreadsheetQuery = `name='Compta' and '${folderComptabiliteId}' in parents and mimeType='application/vnd.google-apps.spreadsheet' and trashed=false`;
+  const spreadsheetResponse = await driveRequest(`/files?q=${encodeURIComponent(spreadsheetQuery)}&fields=files(id,name,createdTime)`);
+
+  if (!spreadsheetResponse.files || spreadsheetResponse.files.length === 0) {
+    return null;
+  }
+
+  const spreadsheetId = spreadsheetResponse.files[0].id;
+
+  // Find subfolders (Factures, Recus, Modeles)
+  const subfolderQuery = `'${folderComptabiliteId}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`;
+  const subfoldersResponse = await driveRequest(`/files?q=${encodeURIComponent(subfolderQuery)}&fields=files(id,name)`);
+
+  const facturesFolder = subfoldersResponse.files?.find((f: any) => f.name === 'Factures');
+  const recusFolder = subfoldersResponse.files?.find((f: any) => f.name === 'Recus');
+  const templatesFolder = subfoldersResponse.files?.find((f: any) => f.name === 'Modeles');
+
+  if (!facturesFolder || !recusFolder || !templatesFolder) {
+    return null;
+  }
+
+  // Find templates in Modeles folder
+  const templateQuery = `'${templatesFolder.id}' in parents and name contains 'Modèle' and mimeType='application/vnd.google-apps.document' and trashed=false`;
+  const templatesResponse = await driveRequest(`/files?q=${encodeURIComponent(templateQuery)}&fields=files(id,name)`);
+
+  const factureTemplate = templatesResponse.files?.find((f: any) => f.name.includes('Facture'));
+  const recuTemplate = templatesResponse.files?.find((f: any) => f.name.includes('Reçu'));
+
+  if (!factureTemplate || !recuTemplate) {
+    return null;
+  }
+
+  return {
+    spreadsheetId,
+    templateFactureId: factureTemplate.id,
+    templateRecuId: recuTemplate.id,
+    folderComptabiliteId,
+    folderFacturesId: facturesFolder.id,
+    folderRecusId: recusFolder.id,
+    setupDate: spreadsheetResponse.files[0].createdTime,
+    version: '1.0',
+    folderName,
+  };
+}
+
+/**
+ * Check if a JiCompta setup already exists in the user's Drive (by folder name).
  */
 export async function checkExistingSetup(folderName: string = 'Comptabilite'): Promise<SetupConfig | null> {
   try {
-    // Search for the root folder
     const folderQuery = `name='${folderName}' and mimeType='application/vnd.google-apps.folder' and trashed=false`;
     const folderResponse = await driveRequest(`/files?q=${encodeURIComponent(folderQuery)}&fields=files(id,name)`);
 
@@ -590,54 +639,27 @@ export async function checkExistingSetup(folderName: string = 'Comptabilite'): P
       return null;
     }
 
-    const folderComptabiliteId = folderResponse.files[0].id;
-
-    // Search for "Compta" spreadsheet in Comptabilite folder
-    const spreadsheetQuery = `name='Compta' and '${folderComptabiliteId}' in parents and mimeType='application/vnd.google-apps.spreadsheet' and trashed=false`;
-    const spreadsheetResponse = await driveRequest(`/files?q=${encodeURIComponent(spreadsheetQuery)}&fields=files(id,name,createdTime)`);
-
-    if (!spreadsheetResponse.files || spreadsheetResponse.files.length === 0) {
-      return null;
-    }
-
-    const spreadsheetId = spreadsheetResponse.files[0].id;
-
-    // Find subfolders (Factures, Recus, Modeles)
-    const subfolderQuery = `'${folderComptabiliteId}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`;
-    const subfoldersResponse = await driveRequest(`/files?q=${encodeURIComponent(subfolderQuery)}&fields=files(id,name)`);
-
-    const facturesFolder = subfoldersResponse.files?.find((f: any) => f.name === 'Factures');
-    const recusFolder = subfoldersResponse.files?.find((f: any) => f.name === 'Recus');
-    const templatesFolder = subfoldersResponse.files?.find((f: any) => f.name === 'Modeles');
-
-    if (!facturesFolder || !recusFolder || !templatesFolder) {
-      return null;
-    }
-
-    // Find templates in Modeles folder
-    const templateQuery = `'${templatesFolder.id}' in parents and name contains 'Modèle' and mimeType='application/vnd.google-apps.document' and trashed=false`;
-    const templatesResponse = await driveRequest(`/files?q=${encodeURIComponent(templateQuery)}&fields=files(id,name)`);
-
-    const factureTemplate = templatesResponse.files?.find((f: any) => f.name.includes('Facture'));
-    const recuTemplate = templatesResponse.files?.find((f: any) => f.name.includes('Reçu'));
-
-    if (!factureTemplate || !recuTemplate) {
-      return null;
-    }
-
-    return {
-      spreadsheetId,
-      templateFactureId: factureTemplate.id,
-      templateRecuId: recuTemplate.id,
-      folderComptabiliteId,
-      folderFacturesId: facturesFolder.id,
-      folderRecusId: recusFolder.id,
-      setupDate: spreadsheetResponse.files[0].createdTime,
-      version: '1.0',
-      folderName,
-    };
+    return await detectSetupInFolder(folderResponse.files[0].id, folderName);
   } catch (error) {
     console.error('Error checking existing setup:', error);
+    return null;
+  }
+}
+
+/**
+ * Check if a JiCompta setup exists in a specific Drive folder (by folder ID).
+ */
+export async function checkExistingSetupById(folderId: string): Promise<SetupConfig | null> {
+  try {
+    // Get the folder name from Drive
+    const folderInfo = await driveRequest(`/files/${folderId}?fields=name`);
+    if (!folderInfo?.name) {
+      return null;
+    }
+
+    return await detectSetupInFolder(folderId, folderInfo.name);
+  } catch (error) {
+    console.error('Error checking existing setup by ID:', error);
     return null;
   }
 }
