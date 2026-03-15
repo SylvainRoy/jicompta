@@ -74,7 +74,7 @@ const navItems: NavItem[] = [
 
 export default function Sidebar({ onNavigate }: SidebarProps) {
   return (
-    <aside className="w-64 bg-gray-900 text-white min-h-screen shadow-xl flex flex-col">
+    <aside className="w-64 bg-gray-900 text-white h-full shadow-xl flex flex-col">
       <nav className="p-4 flex-1">
         <ul className="space-y-2">
           {navItems.map((item) => (

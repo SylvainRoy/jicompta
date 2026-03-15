@@ -17,10 +17,10 @@ export default function Layout({ children }: LayoutProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-gray-50 overflow-x-hidden">
+    <div className="h-screen flex flex-col bg-gray-50 overflow-hidden">
       <Header onMenuToggle={() => setIsMobileMenuOpen(!isMobileMenuOpen)} />
 
-      <div className="flex overflow-x-hidden">
+      <div className="flex flex-1 min-h-0 overflow-hidden">
         {/* Desktop Sidebar - Always visible on large screens */}
         <div className="hidden lg:block">
           <Sidebar />
@@ -42,8 +42,8 @@ export default function Layout({ children }: LayoutProps) {
           </>
         )}
 
-        {/* Main Content */}
-        <main className="flex-1 px-3 py-4 sm:p-6 lg:p-8 min-h-screen w-full overflow-x-hidden">
+        {/* Main Content - Only this panel scrolls */}
+        <main className="flex-1 px-3 py-4 sm:p-6 lg:p-8 overflow-y-auto overflow-x-hidden">
           <div className="max-w-7xl mx-auto w-full">{children}</div>
         </main>
       </div>
