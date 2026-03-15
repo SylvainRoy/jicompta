@@ -4,6 +4,7 @@
  */
 
 import { loadAuthData } from './googleAuth';
+import { clearColumnMapCache } from './googleSheets';
 
 const SHEETS_API_BASE = 'https://sheets.googleapis.com/v4/spreadsheets';
 const DRIVE_API_BASE = 'https://www.googleapis.com/drive/v3';
@@ -210,6 +211,12 @@ export async function createSpreadsheet(folderId: string): Promise<string> {
           },
         },
       },
+      {
+        properties: {
+          title: '_Meta',
+          hidden: true,
+        },
+      },
     ],
   });
 
@@ -239,6 +246,10 @@ export async function createSpreadsheet(folderId: string): Promise<string> {
     {
       range: 'Depense!A1:D1',
       values: [['date', 'compte', 'montant', 'description']],
+    },
+    {
+      range: '_Meta!A1:B2',
+      values: [['key', 'value'], ['schema_version', String(LATEST_SCHEMA_VERSION)]],
     },
   ];
 
@@ -377,152 +388,180 @@ Mode d'encaissement: {{MODE_ENCAISSEMENT}}
 `;
 }
 
+// ==================== SCHEMA MIGRATION FRAMEWORK ====================
+
+interface Migration {
+  version: number;
+  name: string;
+  run: (spreadsheetId: string) => Promise<void>;
+}
+
 /**
- * Migrate spreadsheet to add Depense sheet if missing
+ * Ordered list of all schema migrations.
+ * Each migration has a version number, a descriptive name, and a run function.
+ * Migrations are idempotent — they check before modifying.
+ * New migrations must be appended at the end with an incremented version.
  */
-async function ensureDepenseSheet(spreadsheetId: string): Promise<void> {
-  try {
-    // Check if Depense sheet exists
-    const spreadsheet = await sheetsRequest(`/${spreadsheetId}?includeGridData=false`);
-    const sheets = spreadsheet.sheets || [];
-    const hasDepenseSheet = sheets.some((sheet: any) => sheet.properties.title === 'Depense');
+const MIGRATIONS: Migration[] = [
+  {
+    version: 1,
+    name: 'add_depense_sheet',
+    run: async (spreadsheetId: string) => {
+      const spreadsheet = await sheetsRequest(`/${spreadsheetId}?includeGridData=false`);
+      const sheets = spreadsheet.sheets || [];
+      if (sheets.some((sheet: any) => sheet.properties.title === 'Depense')) return;
 
-    if (!hasDepenseSheet) {
-      console.log('Depense sheet not found, creating it...');
-
-      // Create the Depense sheet
       await sheetsRequest(`/${spreadsheetId}:batchUpdate`, 'POST', {
-        requests: [
-          {
-            addSheet: {
-              properties: {
-                title: 'Depense',
-                gridProperties: {
-                  frozenRowCount: 1,
-                },
-              },
+        requests: [{
+          addSheet: {
+            properties: {
+              title: 'Depense',
+              gridProperties: { frozenRowCount: 1 },
             },
           },
-        ],
+        }],
       });
 
-      // Add headers
       await sheetsRequest(`/${spreadsheetId}/values/Depense!A1:D1?valueInputOption=RAW`, 'PUT', {
         values: [['date', 'compte', 'montant', 'description']],
       });
 
-      // Get the sheet ID for formatting
-      const updatedSpreadsheet = await sheetsRequest(`/${spreadsheetId}?includeGridData=false`);
-      const depenseSheet = updatedSpreadsheet.sheets.find((sheet: any) => sheet.properties.title === 'Depense');
-
+      const updated = await sheetsRequest(`/${spreadsheetId}?includeGridData=false`);
+      const depenseSheet = updated.sheets.find((s: any) => s.properties.title === 'Depense');
       if (depenseSheet) {
-        // Format headers (bold)
         await sheetsRequest(`/${spreadsheetId}:batchUpdate`, 'POST', {
-          requests: [
-            {
-              repeatCell: {
-                range: {
-                  sheetId: depenseSheet.properties.sheetId,
-                  startRowIndex: 0,
-                  endRowIndex: 1,
-                },
-                cell: {
-                  userEnteredFormat: {
-                    textFormat: {
-                      bold: true,
-                    },
-                  },
-                },
-                fields: 'userEnteredFormat.textFormat.bold',
-              },
+          requests: [{
+            repeatCell: {
+              range: { sheetId: depenseSheet.properties.sheetId, startRowIndex: 0, endRowIndex: 1 },
+              cell: { userEnteredFormat: { textFormat: { bold: true } } },
+              fields: 'userEnteredFormat.textFormat.bold',
             },
-          ],
+          }],
         });
       }
+    },
+  },
+  {
+    version: 2,
+    name: 'add_prestation_associatif_column',
+    run: async (spreadsheetId: string) => {
+      const range = 'Prestation!F1:F1';
+      const response = await sheetsRequest(`/${spreadsheetId}/values/${encodeURIComponent(range)}`);
+      if (response.values?.length > 0 && response.values[0].length > 0) return;
 
-      console.log('Depense sheet created successfully');
-    }
-  } catch (error) {
-    console.error('Error ensuring Depense sheet:', error);
-    // Don't throw - migration should be non-blocking
-  }
-}
-
-/**
- * Migrate spreadsheet to add associatif column to Prestation sheet if missing
- */
-async function ensurePrestationAssociatifColumn(spreadsheetId: string): Promise<void> {
-  try {
-    // Check if the associatif column (F) exists by trying to read it
-    const range = 'Prestation!F1:F1';
-    const response = await sheetsRequest(`/${spreadsheetId}/values/${encodeURIComponent(range)}`);
-
-    const hasAssociatifColumn = response.values && response.values.length > 0 && response.values[0].length > 0;
-
-    if (!hasAssociatifColumn) {
-      console.log('Associatif column not found in Prestation sheet, adding it...');
-
-      // Add header
       await sheetsRequest(`/${spreadsheetId}/values/Prestation!F1:F1?valueInputOption=RAW`, 'PUT', {
         values: [['associatif']],
       });
 
-      // Get all existing prestations to set default value
-      const prestationsRange = 'Prestation!A2:E';
-      const prestationsResponse = await sheetsRequest(`/${spreadsheetId}/values/${encodeURIComponent(prestationsRange)}`);
-
-      if (prestationsResponse.values && prestationsResponse.values.length > 0) {
-        // Set default value (FALSE) for all existing prestations
+      const prestationsResponse = await sheetsRequest(
+        `/${spreadsheetId}/values/${encodeURIComponent('Prestation!A2:E')}`
+      );
+      if (prestationsResponse.values?.length > 0) {
         const defaultValues = prestationsResponse.values.map(() => ['FALSE']);
         await sheetsRequest(`/${spreadsheetId}/values/Prestation!F2:F?valueInputOption=RAW`, 'PUT', {
           values: defaultValues,
         });
       }
 
-      // Format header (bold)
       const spreadsheet = await sheetsRequest(`/${spreadsheetId}?includeGridData=false`);
-      const prestationSheet = spreadsheet.sheets.find((sheet: any) => sheet.properties.title === 'Prestation');
-
+      const prestationSheet = spreadsheet.sheets.find((s: any) => s.properties.title === 'Prestation');
       if (prestationSheet) {
         await sheetsRequest(`/${spreadsheetId}:batchUpdate`, 'POST', {
-          requests: [
-            {
-              repeatCell: {
-                range: {
-                  sheetId: prestationSheet.properties.sheetId,
-                  startRowIndex: 0,
-                  endRowIndex: 1,
-                  startColumnIndex: 5, // Column F
-                  endColumnIndex: 6,
-                },
-                cell: {
-                  userEnteredFormat: {
-                    textFormat: {
-                      bold: true,
-                    },
-                  },
-                },
-                fields: 'userEnteredFormat.textFormat.bold',
+          requests: [{
+            repeatCell: {
+              range: {
+                sheetId: prestationSheet.properties.sheetId,
+                startRowIndex: 0, endRowIndex: 1,
+                startColumnIndex: 5, endColumnIndex: 6,
               },
+              cell: { userEnteredFormat: { textFormat: { bold: true } } },
+              fields: 'userEnteredFormat.textFormat.bold',
             },
-          ],
+          }],
         });
       }
+    },
+  },
+];
 
-      console.log('Associatif column added successfully');
+const LATEST_SCHEMA_VERSION = MIGRATIONS[MIGRATIONS.length - 1].version;
+
+/**
+ * Ensure the _Meta sheet exists. For spreadsheets created before the migration
+ * framework, this bootstraps the _Meta sheet with version 0 (all migrations pending).
+ */
+async function ensureMetaSheet(spreadsheetId: string): Promise<void> {
+  const spreadsheet = await sheetsRequest(`/${spreadsheetId}?includeGridData=false`);
+  const sheets = spreadsheet.sheets || [];
+  if (sheets.some((s: any) => s.properties.title === '_Meta')) return;
+
+  await sheetsRequest(`/${spreadsheetId}:batchUpdate`, 'POST', {
+    requests: [{
+      addSheet: {
+        properties: { title: '_Meta', hidden: true },
+      },
+    }],
+  });
+
+  await sheetsRequest(`/${spreadsheetId}/values/_Meta!A1:B2?valueInputOption=RAW`, 'PUT', {
+    values: [['key', 'value'], ['schema_version', '0']],
+  });
+}
+
+/**
+ * Read the current schema version from the _Meta sheet.
+ */
+async function getSchemaVersion(spreadsheetId: string): Promise<number> {
+  try {
+    const response = await sheetsRequest(`/${spreadsheetId}/values/${encodeURIComponent('_Meta!A2:B')}`);
+    const rows = response.values || [];
+    for (const row of rows) {
+      if (String(row[0]).trim().toLowerCase() === 'schema_version') {
+        return parseInt(String(row[1] || '0'), 10) || 0;
+      }
     }
-  } catch (error) {
-    console.error('Error ensuring associatif column:', error);
-    // Don't throw - migration should be non-blocking
+    return 0;
+  } catch {
+    return 0;
   }
 }
 
 /**
- * Run all necessary migrations
+ * Update the schema version in the _Meta sheet.
+ */
+async function setSchemaVersion(spreadsheetId: string, version: number): Promise<void> {
+  await sheetsRequest(`/${spreadsheetId}/values/_Meta!B2?valueInputOption=RAW`, 'PUT', {
+    values: [[String(version)]],
+  });
+}
+
+/**
+ * Run all pending schema migrations.
+ * Reads the current version from _Meta, runs only newer migrations in order,
+ * and updates the version after each successful migration.
  */
 export async function runMigrations(spreadsheetId: string): Promise<void> {
-  await ensureDepenseSheet(spreadsheetId);
-  await ensurePrestationAssociatifColumn(spreadsheetId);
+  await ensureMetaSheet(spreadsheetId);
+
+  const currentVersion = await getSchemaVersion(spreadsheetId);
+  const pending = MIGRATIONS.filter(m => m.version > currentVersion);
+
+  if (pending.length === 0) {
+    console.log(`Schema is up to date (version ${currentVersion})`);
+    return;
+  }
+
+  console.log(`Schema version ${currentVersion} -> ${LATEST_SCHEMA_VERSION}: ${pending.length} migration(s) to run`);
+
+  for (const migration of pending) {
+    console.log(`Running migration v${migration.version}: ${migration.name}`);
+    await migration.run(spreadsheetId);
+    await setSchemaVersion(spreadsheetId, migration.version);
+    console.log(`Migration v${migration.version} completed`);
+  }
+
+  // Invalidate column map cache since migrations may have changed sheet structure
+  clearColumnMapCache();
 }
 
 /**
@@ -572,9 +611,6 @@ export async function checkExistingSetup(): Promise<SetupConfig | null> {
     if (!factureTemplate || !recuTemplate) {
       return null;
     }
-
-    // Run migrations to ensure the spreadsheet is up-to-date
-    await runMigrations(spreadsheetId);
 
     return {
       spreadsheetId,

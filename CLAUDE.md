@@ -63,7 +63,7 @@ This order matters: ConfigContext depends on AuthContext, DataContext depends on
 1. `AuthContext` initializes → loads token from localStorage → validates with Google
 2. `ConfigContext` initializes → loads config from localStorage
 3. `DataContext` useEffect triggers when `isAuthenticated && isConfigured` → calls `refreshAll()`
-4. `refreshAll()` fetches all 4 sheets in parallel → updates state
+4. `refreshAll()` runs schema migrations if needed → fetches all sheets in parallel → updates state
 
 **On User Action** (e.g., add client):
 1. User submits form → calls `addClient(client)` from DataContext
@@ -78,8 +78,8 @@ This order matters: ConfigContext depends on AuthContext, DataContext depends on
 ### Services Layer (`src/services/`)
 
 - **googleAuth.ts**: OAuth flow, token management, user info fetching
-- **googleSetup.ts**: Auto-setup wizard, Drive resource creation, config detection
-- **googleSheets.ts**: All CRUD operations for the 4 sheets (Clients, TypeDePrestation, Prestation, Paiement)
+- **googleSetup.ts**: Auto-setup wizard, Drive resource creation, config detection, schema migration framework
+- **googleSheets.ts**: All CRUD operations for the sheets (header-based column resolution for forward/backward compatibility)
 - **googleDocs.ts**: PDF generation (factures/reçus) via template copying and replacement
 
 ### Auto-Configuration System
@@ -103,17 +103,32 @@ The app can automatically detect existing setups or create new ones:
 
 **Row indexing**: Row 1 = headers, data starts at row 2. When calling API functions with `rowIndex`, use 0-based indexing (0 = first data row = row 2 in sheet).
 
+**Header-based column resolution**: The app reads column names from the header row and maps data by name, not position. This ensures compatibility across app versions and resilience to column reordering. See `readSheetWithHeaders()` and `getColumnMap()` in `googleSheets.ts`.
+
 **Sheets structure**:
 - `Clients`: nom, email, telephone, adresse, numero_siret
 - `TypeDePrestation`: nom, montant_suggere
-- `Prestation`: date, nom_client, type_prestation, montant, paiement_id
+- `Prestation`: date, nom_client, type_prestation, montant, paiement_id, associatif
 - `Paiement`: reference, client, total, date_encaissement, mode_encaissement, facture, recu
+- `Depense`: date, compte, montant, description
+- `_Meta` (hidden): key, value — stores `schema_version`
 
 **Key relationships**:
 - `Prestation.nom_client` → `Client.nom`
 - `Prestation.type_prestation` → `TypePrestation.nom`
 - `Prestation.paiement_id` → `Paiement.reference`
 - `Paiement.client` → `Client.nom`
+- `Depense.compte` → `Client.nom` or `"Mon compte"`
+
+### Schema Migration Framework
+
+The app uses a versioned migration system to evolve the sheet structure safely. Full documentation: `docs/schema-migrations.md`.
+
+**Key rules for development**:
+1. **Never change existing column order or names** — add new columns at the end
+2. **To add a sheet/column**: Add a migration to the `MIGRATIONS` array in `googleSetup.ts`, update `createSpreadsheet()` for new setups, update types and sheet service
+3. **Migrations must be idempotent** — check before modifying, so they can safely retry on failure
+4. **Version is tracked in `_Meta` sheet** — only pending migrations run, not all of them every session
 
 ### PDF Generation Flow
 
@@ -231,6 +246,10 @@ No test framework currently configured. When adding tests:
    - These are independent fields - a payment can exist without being encaissé
 
 6. **PDF generation is slow**: Copying template + replacing text + exporting PDF takes 10-15 seconds. Show loading state.
+
+7. **Schema changes require a migration**: Never modify sheet structure (add columns/sheets) without adding an entry to `MIGRATIONS` in `googleSetup.ts`. See `docs/schema-migrations.md`.
+
+8. **Column access is by name, not position**: `googleSheets.ts` uses header-based resolution. Never use hardcoded column indices (e.g., `row[0]`) — use `getCellString(row, columns, 'nom')` instead.
 
 ## Development Workflow
 
