@@ -5,6 +5,7 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback, useMemo } from 'react';
 import type { SetupConfig } from '@/services/googleSetup';
+import { addRepository } from '@/services/googleSetup';
 
 const CONFIG_STORAGE_KEY = 'jicompta_config';
 
@@ -44,8 +45,10 @@ export function ConfigProvider({ children }: ConfigProviderProps) {
   }, []);
 
   const saveConfig = useCallback((newConfig: SetupConfig) => {
-    setConfig(newConfig);
-    localStorage.setItem(CONFIG_STORAGE_KEY, JSON.stringify(newConfig));
+    const configWithDefaults = { ...newConfig, folderName: newConfig.folderName || 'Comptabilite' };
+    setConfig(configWithDefaults);
+    localStorage.setItem(CONFIG_STORAGE_KEY, JSON.stringify(configWithDefaults));
+    addRepository(configWithDefaults);
   }, []);
 
   const clearConfig = useCallback(() => {

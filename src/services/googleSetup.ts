@@ -19,6 +19,7 @@ export interface SetupConfig {
   folderRecusId: string;
   setupDate: string;
   version: string;
+  folderName: string;
 }
 
 /**
@@ -140,14 +141,14 @@ async function createFolder(name: string, parentId?: string): Promise<string> {
 /**
  * Create the folder structure: Comptabilite/Factures, Comptabilite/Recus, and Comptabilite/Modeles
  */
-export async function createFolderStructure(): Promise<{
+export async function createFolderStructure(folderName: string = 'Comptabilite'): Promise<{
   folderComptabiliteId: string;
   folderFacturesId: string;
   folderRecusId: string;
   folderTemplatesId: string;
 }> {
-  // Create main Comptabilite folder
-  const folderComptabiliteId = await createFolder('Comptabilite');
+  // Create main folder
+  const folderComptabiliteId = await createFolder(folderName);
 
   // Create subfolders
   const folderFacturesId = await createFolder('Factures', folderComptabiliteId);
@@ -579,10 +580,10 @@ export async function runMigrations(spreadsheetId: string): Promise<void> {
 /**
  * Check if a JiCompta setup already exists in the user's Drive
  */
-export async function checkExistingSetup(): Promise<SetupConfig | null> {
+export async function checkExistingSetup(folderName: string = 'Comptabilite'): Promise<SetupConfig | null> {
   try {
-    // Search for Comptabilite folder first
-    const folderQuery = `name='Comptabilite' and mimeType='application/vnd.google-apps.folder' and trashed=false`;
+    // Search for the root folder
+    const folderQuery = `name='${folderName}' and mimeType='application/vnd.google-apps.folder' and trashed=false`;
     const folderResponse = await driveRequest(`/files?q=${encodeURIComponent(folderQuery)}&fields=files(id,name)`);
 
     if (!folderResponse.files || folderResponse.files.length === 0) {
@@ -633,6 +634,7 @@ export async function checkExistingSetup(): Promise<SetupConfig | null> {
       folderRecusId: recusFolder.id,
       setupDate: spreadsheetResponse.files[0].createdTime,
       version: '1.0',
+      folderName,
     };
   } catch (error) {
     console.error('Error checking existing setup:', error);
@@ -644,12 +646,13 @@ export async function checkExistingSetup(): Promise<SetupConfig | null> {
  * Perform complete automatic setup
  */
 export async function autoSetup(
+  folderName: string = 'Comptabilite',
   onProgress?: (step: string, progress: number) => void
 ): Promise<SetupConfig> {
   try {
     // Step 1: Create folders
     onProgress?.('Création de la structure de dossiers...', 20);
-    const folders = await createFolderStructure();
+    const folders = await createFolderStructure(folderName);
 
     // Step 2: Create spreadsheet
     onProgress?.('Création du tableur Compta...', 40);
@@ -674,6 +677,7 @@ export async function autoSetup(
       folderRecusId: folders.folderRecusId,
       setupDate: new Date().toISOString(),
       version: '1.0',
+      folderName,
     };
 
     return config;
@@ -711,6 +715,69 @@ export function getConfigValue(key: keyof SetupConfig): string {
     throw new Error(`Configuration value '${key}' not found.`);
   }
   return String(value);
+}
+
+// ==================== REPOSITORY LIST MANAGEMENT ====================
+
+const REPOSITORIES_STORAGE_KEY = 'jicompta_repositories';
+
+/**
+ * Load the list of known repositories from localStorage.
+ * Ensures backward compatibility: if no list exists but a config does,
+ * bootstraps the list with that config.
+ */
+export function loadRepositories(): SetupConfig[] {
+  const stored = localStorage.getItem(REPOSITORIES_STORAGE_KEY);
+  if (stored) {
+    try {
+      const repos = JSON.parse(stored) as SetupConfig[];
+      // Backward compat: ensure all entries have folderName
+      return repos.map(r => ({ ...r, folderName: r.folderName || 'Comptabilite' }));
+    } catch {
+      // corrupted, fall through
+    }
+  }
+
+  // Bootstrap from current config if it exists
+  const currentConfig = loadConfig();
+  if (currentConfig) {
+    const config = { ...currentConfig, folderName: currentConfig.folderName || 'Comptabilite' };
+    localStorage.setItem(REPOSITORIES_STORAGE_KEY, JSON.stringify([config]));
+    return [config];
+  }
+
+  return [];
+}
+
+/**
+ * Save the repository list to localStorage.
+ */
+export function saveRepositories(repos: SetupConfig[]): void {
+  localStorage.setItem(REPOSITORIES_STORAGE_KEY, JSON.stringify(repos));
+}
+
+/**
+ * Add a repository to the list (avoids duplicates by folderComptabiliteId).
+ */
+export function addRepository(config: SetupConfig): SetupConfig[] {
+  const repos = loadRepositories();
+  const existing = repos.findIndex(r => r.folderComptabiliteId === config.folderComptabiliteId);
+  if (existing >= 0) {
+    repos[existing] = config;
+  } else {
+    repos.push(config);
+  }
+  saveRepositories(repos);
+  return repos;
+}
+
+/**
+ * Remove a repository from the list by folderComptabiliteId.
+ */
+export function removeRepository(folderComptabiliteId: string): SetupConfig[] {
+  const repos = loadRepositories().filter(r => r.folderComptabiliteId !== folderComptabiliteId);
+  saveRepositories(repos);
+  return repos;
 }
 
 /**

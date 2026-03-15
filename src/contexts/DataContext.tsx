@@ -75,7 +75,7 @@ export function DataProvider({ children }: DataProviderProps) {
   const { isAuthenticated } = useAuth();
   const { isConfigured, config } = useConfig();
   const { error: notifyError, success: notifySuccess } = useNotification();
-  const migrationsRun = useRef(false);
+  const migrationsRunFor = useRef<string | null>(null);
 
   const [state, setState] = useState<DataState>({
     clients: [],
@@ -87,17 +87,17 @@ export function DataProvider({ children }: DataProviderProps) {
     error: null,
   });
 
-  // Run migrations if needed (only once per session)
+  // Run migrations if needed (once per spreadsheet)
   const runMigrationsIfNeeded = useCallback(async () => {
-    if (migrationsRun.current || !config?.spreadsheetId) {
+    if (!config?.spreadsheetId || migrationsRunFor.current === config.spreadsheetId) {
       return;
     }
 
     try {
-      console.log('🔄 Running database migrations...');
+      console.log('Running database migrations...');
       await setupService.runMigrations(config.spreadsheetId);
-      migrationsRun.current = true;
-      console.log('✅ Migrations completed');
+      migrationsRunFor.current = config.spreadsheetId;
+      console.log('Migrations completed');
     } catch (error) {
       console.error('Migration error:', error);
       // Don't throw - allow app to continue even if migrations fail

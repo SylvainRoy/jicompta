@@ -52,7 +52,7 @@ export default function SetupWizard({ onComplete }: SetupWizardProps) {
 
       // Create new setup
       setStep('creating');
-      const config = await autoSetup((message, progressValue) => {
+      const config = await autoSetup('Comptabilite', (message, progressValue) => {
         setProgressMessage(message);
         setProgress(progressValue);
       });

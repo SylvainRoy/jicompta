@@ -7,7 +7,10 @@ import { useState, useEffect } from 'react';
 import { useConfig } from '@/contexts/ConfigContext';
 import { useNotification } from '@/contexts/NotificationContext';
 import { useData } from '@/contexts/DataContext';
-import { autoSetup, createBackup, listBackups, restoreFromBackup, deleteBackup, LATEST_SCHEMA_VERSION, type Backup } from '@/services/googleSetup';
+import {
+  autoSetup, checkExistingSetup, createBackup, listBackups, restoreFromBackup, deleteBackup,
+  LATEST_SCHEMA_VERSION, loadRepositories, removeRepository, type Backup, type SetupConfig,
+} from '@/services/googleSetup';
 import Button from '@/components/common/Button';
 import { formatDateForDisplay } from '@/utils/dateFormatter';
 
@@ -24,6 +27,12 @@ export default function Settings() {
   const [showRestoreConfirm, setShowRestoreConfirm] = useState<Backup | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<Backup | null>(null);
+
+  // Repository management
+  const [repositories, setRepositories] = useState<SetupConfig[]>([]);
+  const [newRepoName, setNewRepoName] = useState('');
+  const [isSwitching, setIsSwitching] = useState(false);
+  const [isAddingRepo, setIsAddingRepo] = useState(false);
 
   const handleReset = async () => {
     setIsResetting(true);
@@ -47,7 +56,11 @@ export default function Settings() {
     setShowResetConfirm(false);
   };
 
-  // Load backups on mount
+  // Load repositories and backups on mount
+  useEffect(() => {
+    setRepositories(loadRepositories());
+  }, []);
+
   useEffect(() => {
     if (isConfigured && config) {
       loadBackupsList();
@@ -138,6 +151,67 @@ export default function Settings() {
     } finally {
       setIsDeleting(false);
     }
+  };
+
+  const handleSwitchRepo = async (repo: SetupConfig) => {
+    if (repo.folderComptabiliteId === config?.folderComptabiliteId) return;
+
+    setIsSwitching(true);
+    try {
+      saveConfig(repo);
+      setRepositories(loadRepositories());
+      await refreshAll();
+      success(`Basculé vers ${repo.folderName}`);
+    } catch (error) {
+      console.error('Switch failed:', error);
+      notifyError('Échec du changement de dépôt');
+    } finally {
+      setIsSwitching(false);
+    }
+  };
+
+  const handleAddRepo = async () => {
+    const name = newRepoName.trim();
+    if (!name) return;
+
+    setIsAddingRepo(true);
+    try {
+      // First try to detect an existing setup in that folder
+      info(`Recherche de "${name}" dans Google Drive...`);
+      const existing = await checkExistingSetup(name);
+
+      if (existing) {
+        saveConfig(existing);
+        setRepositories(loadRepositories());
+        await refreshAll();
+        success(`Dépôt existant "${name}" trouvé et activé`);
+      } else {
+        // Create a new repository
+        info(`Création du dépôt "${name}"...`);
+        const newConfig = await autoSetup(name);
+        saveConfig(newConfig);
+        setRepositories(loadRepositories());
+        await refreshAll();
+        success(`Nouveau dépôt "${name}" créé et activé`);
+      }
+
+      setNewRepoName('');
+    } catch (error) {
+      console.error('Add repo failed:', error);
+      notifyError('Échec de l\'ajout du dépôt');
+    } finally {
+      setIsAddingRepo(false);
+    }
+  };
+
+  const handleRemoveRepo = (repo: SetupConfig) => {
+    if (repo.folderComptabiliteId === config?.folderComptabiliteId) {
+      notifyError('Impossible de retirer le dépôt actif');
+      return;
+    }
+    const updated = removeRepository(repo.folderComptabiliteId);
+    setRepositories(updated);
+    success(`Dépôt "${repo.folderName}" retiré de la liste`);
   };
 
   const openInDrive = (id: string, type: 'spreadsheet' | 'document' | 'folder') => {
@@ -266,6 +340,93 @@ export default function Settings() {
                   </button>
                 </div>
               </div>
+            </div>
+
+            {/* Repository Management Section */}
+            <div className="mt-6 pt-6 border-t border-gray-200">
+              <h3 className="text-sm font-medium text-gray-900 mb-1">Dépôts</h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Gérez vos dépôts de données dans Google Drive
+              </p>
+
+              {/* Repository List */}
+              <div className="space-y-2 mb-4">
+                {repositories.map((repo) => {
+                  const isActive = repo.folderComptabiliteId === config.folderComptabiliteId;
+                  return (
+                    <div
+                      key={repo.folderComptabiliteId}
+                      className={`flex items-center justify-between border rounded-lg p-3 ${
+                        isActive ? 'border-blue-300 bg-blue-50' : 'border-gray-200'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        {isActive && (
+                          <span className="flex-shrink-0 w-2 h-2 bg-blue-600 rounded-full" />
+                        )}
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-gray-900 truncate">
+                            {repo.folderName}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {isActive ? 'Actif' : formatDateForDisplay(repo.setupDate.split('T')[0])}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        {!isActive && (
+                          <>
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              onClick={() => handleSwitchRepo(repo)}
+                              disabled={isSwitching}
+                            >
+                              {isSwitching ? '...' : 'Activer'}
+                            </Button>
+                            <button
+                              onClick={() => handleRemoveRepo(repo)}
+                              className="px-2 py-1 text-xs text-red-600 hover:bg-red-50 rounded transition-colors"
+                              title="Retirer de la liste"
+                            >
+                              Retirer
+                            </button>
+                          </>
+                        )}
+                        <button
+                          onClick={() => openInDrive(repo.folderComptabiliteId, 'folder')}
+                          className="px-2 py-1 text-xs text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                        >
+                          Ouvrir
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Add New Repository */}
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={newRepoName}
+                  onChange={(e) => setNewRepoName(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && !isAddingRepo && newRepoName.trim() && handleAddRepo()}
+                  placeholder="Nom du nouveau dépôt (ex: Association)"
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  disabled={isAddingRepo}
+                />
+                <Button
+                  onClick={handleAddRepo}
+                  variant="secondary"
+                  disabled={isAddingRepo || !newRepoName.trim()}
+                >
+                  {isAddingRepo ? 'Création...' : 'Ajouter'}
+                </Button>
+              </div>
+              <p className="text-xs text-gray-500 mt-2">
+                Si le dépôt existe dans Google Drive, il sera détecté automatiquement. Sinon, il sera créé.
+              </p>
             </div>
 
             {/* Backup & Restore Section */}
