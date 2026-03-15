@@ -98,7 +98,7 @@ export default function Depenses() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <Loading size="large" />
+        <Loading size="lg" />
       </div>
     );
   }
@@ -162,8 +162,7 @@ export default function Depenses() {
           <EmptyState
             title="Aucune dépense"
             description="Commencez par créer votre première dépense"
-            actionLabel="Nouvelle dépense"
-            onAction={() => setIsAddModalOpen(true)}
+            action={{ label: "Nouvelle dépense", onClick: () => setIsAddModalOpen(true) }}
           />
         ) : (
           <table className="min-w-full divide-y divide-gray-200">
@@ -206,14 +205,14 @@ export default function Depenses() {
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <Button
                         variant="secondary"
-                        size="small"
+                        size="sm"
                         onClick={() => setEditingDepense({ depense, index: originalIndex })}
                       >
                         Modifier
                       </Button>
                       <Button
                         variant="danger"
-                        size="small"
+                        size="sm"
                         onClick={() => setDeletingDepense({ depense, index: originalIndex })}
                         className="ml-2"
                       >
@@ -234,8 +233,7 @@ export default function Depenses() {
           <EmptyState
             title="Aucune dépense"
             description="Commencez par créer votre première dépense"
-            actionLabel="Nouvelle dépense"
-            onAction={() => setIsAddModalOpen(true)}
+            action={{ label: "Nouvelle dépense", onClick: () => setIsAddModalOpen(true) }}
           />
         ) : (
           filteredDepenses.map((depense, index) => {
