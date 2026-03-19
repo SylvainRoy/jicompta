@@ -36,6 +36,7 @@ build
 coverage
 .next
 out
+*.tsbuildinfo
 
 # OS files
 Thumbs.db
