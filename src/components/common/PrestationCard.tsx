@@ -14,6 +14,7 @@ interface PrestationCardProps {
   isHighlighted?: boolean;
   onEdit: () => void;
   onDelete: () => void;
+  onViewPayment?: (paymentReference: string) => void;
 }
 
 export default function PrestationCard({
@@ -24,6 +25,7 @@ export default function PrestationCard({
   isHighlighted = false,
   onEdit,
   onDelete,
+  onViewPayment,
 }: PrestationCardProps) {
 
   return (
@@ -39,6 +41,14 @@ export default function PrestationCard({
         <div className="flex-1">
           <h3 className="text-lg font-semibold text-gray-900">{prestation.nom_client}</h3>
           <p className="text-sm text-gray-600">{prestation.type_prestation}</p>
+          {prestation.paiement_id && onViewPayment && (
+            <button
+              onClick={() => onViewPayment(prestation.paiement_id!)}
+              className="text-xs font-mono text-blue-600 hover:text-blue-800 hover:underline mt-1 inline-block"
+            >
+              Paiement #{prestation.paiement_id}
+            </button>
+          )}
         </div>
         <span
           className={`px-2 py-1 text-xs font-semibold rounded-full ${statusColor}`}

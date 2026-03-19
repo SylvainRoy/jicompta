@@ -3,9 +3,10 @@
  */
 
 import { useState, useMemo, useEffect, useRef } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useData } from '@/contexts/DataContext';
 import type { Prestation } from '@/types';
+import { ROUTES } from '@/constants';
 import Button from '@/components/common/Button';
 import Modal, { ConfirmModal } from '@/components/common/Modal';
 import SearchBar from '@/components/common/SearchBar';
@@ -29,6 +30,7 @@ export default function Prestations() {
   } = useData();
 
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
 
   // UI State
   const [searchQuery, setSearchQuery] = useState('');
@@ -144,6 +146,10 @@ export default function Prestations() {
   const handleAdd = async (prestation: Prestation) => {
     await addPrestation(prestation);
     setIsAddModalOpen(false);
+  };
+
+  const handleNavigateToPayment = (paymentReference: string) => {
+    navigate(`${ROUTES.PAIEMENTS}?viewPayment=${paymentReference}`);
   };
 
   const handleEdit = async (prestation: Prestation) => {
@@ -333,6 +339,7 @@ export default function Prestations() {
                   isHighlighted={isHighlighted}
                   onEdit={() => setEditingPrestation({ prestation, index: actualIndex })}
                   onDelete={() => setDeletingIndex(actualIndex)}
+                  onViewPayment={handleNavigateToPayment}
                 />
               );
             })}
@@ -368,7 +375,7 @@ export default function Prestations() {
                       Statut
                     </th>
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
+                      Paiement / Actions
                     </th>
                   </tr>
                 </thead>
@@ -449,7 +456,12 @@ export default function Prestations() {
                               </button>
                             </div>
                           ) : (
-                            <span className="text-sm text-gray-400 italic">Liée à un paiement</span>
+                            <button
+                              onClick={() => handleNavigateToPayment(prestation.paiement_id!)}
+                              className="text-sm font-mono text-blue-600 hover:text-blue-800 hover:underline"
+                            >
+                              #{prestation.paiement_id}
+                            </button>
                           )}
                         </td>
                       </tr>

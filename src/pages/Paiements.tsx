@@ -54,6 +54,7 @@ export default function Paiements() {
   useEffect(() => {
     const filterParam = searchParams.get('filter');
     const clientParam = searchParams.get('client');
+    const viewPaymentParam = searchParams.get('viewPayment');
 
     if (filterParam) {
       setFilterStatut(filterParam);
@@ -63,11 +64,19 @@ export default function Paiements() {
       setSearchQuery(decodeURIComponent(clientParam));
     }
 
+    // Handle viewPayment parameter - open detail modal for specific payment
+    if (viewPaymentParam) {
+      const targetPaiement = paiements.find(p => p.reference === viewPaymentParam);
+      if (targetPaiement) {
+        setViewingPaiement(targetPaiement);
+      }
+    }
+
     // Clear the URL parameters after reading them
-    if (filterParam || clientParam) {
+    if (filterParam || clientParam || viewPaymentParam) {
       setSearchParams({});
     }
-  }, [searchParams, setSearchParams]);
+  }, [searchParams, setSearchParams, paiements]);
 
   // Filtered paiements based on search and status filter
   const filteredPaiements = useMemo(() => {
