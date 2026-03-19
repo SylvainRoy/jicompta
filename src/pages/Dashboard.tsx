@@ -227,7 +227,7 @@ export default function Dashboard() {
         </div>
         <div className="space-y-3 text-sm sm:text-base">
           <p className="text-gray-700">
-            <span className="font-semibold">{stats.nombrePrestations}</span> prestations (
+            <span className="font-semibold">{stats.nombrePrestations}</span> prestation{stats.nombrePrestations > 1 ? 's' : ''} (
             <span className="font-semibold text-blue-600">{formatCurrency(stats.montantPrestations)}</span>
             ) sur l'année <span className="font-semibold">{selectedYear === 'all' ? 'toutes' : selectedYear}</span>.
           </p>
@@ -238,9 +238,9 @@ export default function Dashboard() {
             <div className="flex items-center justify-between bg-orange-50 hover:bg-orange-100 rounded-lg p-3 transition-all duration-200 border border-orange-200">
               <div className="flex-1">
                 <p className="text-gray-700">
-                  dont <span className="font-semibold">{stats.nombrePrestationsSansPaiement}</span> prestations (
+                  dont <span className="font-semibold">{stats.nombrePrestationsSansPaiement}</span> prestation{stats.nombrePrestationsSansPaiement > 1 ? 's' : ''} (
                   <span className="font-semibold text-orange-600">{formatCurrency(stats.montantPrestationsSansPaiement)}</span>
-                  ) n'ont pas de paiement
+                  ) {stats.nombrePrestationsSansPaiement > 1 ? 'n\'ont' : 'n\'a'} pas de paiement
                 </p>
               </div>
               <svg className="w-6 h-6 text-orange-600 ml-3 group-hover:translate-x-1 transition-transform flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -264,9 +264,9 @@ export default function Dashboard() {
         <div className="space-y-3 text-sm sm:text-base">
           <div className="bg-green-50 rounded-lg p-3 border border-green-200">
             <p className="text-gray-700">
-              <span className="font-semibold">{stats.nombrePaiementsEncaisses}</span> paiements (
+              <span className="font-semibold">{stats.nombrePaiementsEncaisses}</span> paiement{stats.nombrePaiementsEncaisses > 1 ? 's' : ''} (
               <span className="font-semibold text-green-600">{formatCurrency(stats.montantPaiementsEncaisses)}</span>
-              ) encaissés sur l'année <span className="font-semibold">{selectedYear === 'all' ? 'toutes' : selectedYear}</span>
+              ) encaissé{stats.nombrePaiementsEncaisses > 1 ? 's' : ''} sur l'année <span className="font-semibold">{selectedYear === 'all' ? 'toutes' : selectedYear}</span>
             </p>
           </div>
           <button
@@ -276,7 +276,7 @@ export default function Dashboard() {
             <div className="flex items-center justify-between bg-orange-50 hover:bg-orange-100 rounded-lg p-3 transition-all duration-200 border border-orange-200">
               <div className="flex-1">
                 <p className="text-gray-700">
-                  <span className="font-semibold">{stats.nombrePaiementsEnAttente}</span> paiements (
+                  <span className="font-semibold">{stats.nombrePaiementsEnAttente}</span> paiement{stats.nombrePaiementsEnAttente > 1 ? 's' : ''} (
                   <span className="font-semibold text-orange-600">{formatCurrency(stats.montantPaiementsEnAttente)}</span>
                   ) en attente de règlement
                 </p>
