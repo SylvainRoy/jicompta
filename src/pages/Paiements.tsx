@@ -14,6 +14,7 @@ import EmptyState from '@/components/common/EmptyState';
 import Loading from '@/components/common/Loading';
 import PaiementForm from '@/components/forms/PaiementForm';
 import PaiementCard from '@/components/common/PaiementCard';
+import PaiementDetailModal from '@/components/common/PaiementDetailModal';
 import { formatCurrency } from '@/utils/currencyFormatter';
 import { formatDateForDisplay } from '@/utils/dateFormatter';
 
@@ -47,6 +48,7 @@ export default function Paiements() {
     paiement: Paiement;
     index: number;
   } | null>(null);
+  const [viewingPaiement, setViewingPaiement] = useState<Paiement | null>(null);
 
   // Initialize filter and search from URL parameters
   useEffect(() => {
@@ -327,6 +329,7 @@ export default function Paiements() {
                   key={actualIndex}
                   paiement={paiement}
                   prestationsCount={prestationsCount}
+                  onViewDetails={() => setViewingPaiement(paiement)}
                   onEdit={() => setEditingPaiement({ paiement, index: actualIndex })}
                   onDelete={() => setDeletingPaiement({ paiement, index: actualIndex })}
                   onGenerateFacture={() => handleGenerateFacture(paiement, actualIndex)}
@@ -384,17 +387,23 @@ export default function Paiements() {
                     return (
                       <tr key={actualIndex} className="hover:bg-gray-50">
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-mono font-medium text-gray-900">
+                          <button
+                            onClick={() => setViewingPaiement(paiement)}
+                            className="text-sm font-mono font-medium text-blue-600 hover:text-blue-800 hover:underline"
+                          >
                             #{paiement.reference}
-                          </div>
+                          </button>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm font-medium text-gray-900">{paiement.client}</div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">
+                          <button
+                            onClick={() => setViewingPaiement(paiement)}
+                            className="text-sm text-blue-600 hover:text-blue-800 hover:underline"
+                          >
                             {prestationsCount} prestation{prestationsCount > 1 ? 's' : ''}
-                          </div>
+                          </button>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm font-semibold text-blue-600">
@@ -545,6 +554,16 @@ export default function Paiements() {
             </div>
           </div>
         </Modal>
+      )}
+
+      {/* Detail Modal */}
+      {viewingPaiement && (
+        <PaiementDetailModal
+          isOpen={true}
+          onClose={() => setViewingPaiement(null)}
+          paiement={viewingPaiement}
+          prestations={prestations}
+        />
       )}
     </div>
   );

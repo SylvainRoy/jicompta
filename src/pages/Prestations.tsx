@@ -2,7 +2,7 @@
  * Prestations Page - Complete CRUD
  */
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useData } from '@/contexts/DataContext';
 import type { Prestation } from '@/types';
@@ -39,6 +39,10 @@ export default function Prestations() {
     index: number;
   } | null>(null);
   const [deletingIndex, setDeletingIndex] = useState<number | null>(null);
+  const [highlightedRowNumber, setHighlightedRowNumber] = useState<number | null>(null);
+
+  // Refs for scrolling to highlighted row
+  const rowRefs = useRef<Map<number, HTMLTableRowElement>>(new Map());
 
   // Initialize filter from URL parameter
   useEffect(() => {
@@ -49,6 +53,47 @@ export default function Prestations() {
       setSearchParams({});
     }
   }, [searchParams, setSearchParams]);
+
+  // Handle highlight parameter for navigation from payment detail
+  useEffect(() => {
+    const highlightParam = searchParams.get('highlight');
+    const dateParam = searchParams.get('date');
+    const clientParam = searchParams.get('client');
+
+    if (highlightParam || (dateParam && clientParam)) {
+      // Try to find the prestation by row number or by date+client
+      let targetPrestation: Prestation | undefined;
+
+      if (highlightParam && highlightParam !== '') {
+        const rowNumber = parseInt(highlightParam, 10);
+        targetPrestation = prestations.find((p) => p._rowNumber === rowNumber);
+      } else if (dateParam && clientParam) {
+        targetPrestation = prestations.find(
+          (p) => p.date === dateParam && p.nom_client === decodeURIComponent(clientParam)
+        );
+      }
+
+      if (targetPrestation && targetPrestation._rowNumber !== undefined) {
+        setHighlightedRowNumber(targetPrestation._rowNumber);
+
+        // Scroll to the highlighted row after a short delay to ensure DOM is ready
+        setTimeout(() => {
+          const rowElement = rowRefs.current.get(targetPrestation._rowNumber!);
+          if (rowElement) {
+            rowElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }, 100);
+
+        // Clear highlight after 3 seconds
+        setTimeout(() => {
+          setHighlightedRowNumber(null);
+        }, 3000);
+      }
+
+      // Clear URL parameters
+      setSearchParams({});
+    }
+  }, [searchParams, setSearchParams, prestations]);
 
   // Filtered prestations based on search and status filter
   const filteredPrestations = useMemo(() => {
@@ -274,6 +319,10 @@ export default function Prestations() {
                 return null;
               }
 
+              const isHighlighted =
+                prestation._rowNumber !== undefined &&
+                prestation._rowNumber === highlightedRowNumber;
+
               return (
                 <PrestationCard
                   key={`${actualIndex}-${filteredIdx}`}
@@ -281,6 +330,7 @@ export default function Prestations() {
                   statusLabel={statut.label}
                   statusColor={statut.color}
                   canModify={canModify}
+                  isHighlighted={isHighlighted}
                   onEdit={() => setEditingPrestation({ prestation, index: actualIndex })}
                   onDelete={() => setDeletingIndex(actualIndex)}
                 />
@@ -339,8 +389,22 @@ export default function Prestations() {
                       return null;
                     }
 
+                    const isHighlighted =
+                      prestation._rowNumber !== undefined &&
+                      prestation._rowNumber === highlightedRowNumber;
+
                     return (
-                      <tr key={`${actualIndex}-${filteredIdx}`} className="hover:bg-gray-50">
+                      <tr
+                        key={`${actualIndex}-${filteredIdx}`}
+                        ref={(el) => {
+                          if (el && prestation._rowNumber !== undefined) {
+                            rowRefs.current.set(prestation._rowNumber, el);
+                          }
+                        }}
+                        className={`hover:bg-gray-50 transition-colors ${
+                          isHighlighted ? 'bg-blue-100 ring-2 ring-blue-400' : ''
+                        }`}
+                      >
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm font-medium text-gray-900">
                             {prestation.nom_client}

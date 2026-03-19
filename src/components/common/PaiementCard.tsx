@@ -9,6 +9,7 @@ import { formatDateForDisplay } from '@/utils/dateFormatter';
 interface PaiementCardProps {
   paiement: Paiement;
   prestationsCount: number;
+  onViewDetails: () => void;
   onEdit: () => void;
   onDelete?: () => void;
   onGenerateFacture: () => void;
@@ -20,6 +21,7 @@ interface PaiementCardProps {
 export default function PaiementCard({
   paiement,
   prestationsCount,
+  onViewDetails,
   onEdit,
   onDelete,
   onGenerateFacture,
@@ -37,10 +39,12 @@ export default function PaiementCard({
     <div className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
       {/* Header with Reference and Status */}
       <div className="flex items-start justify-between mb-3">
-        <div className="flex-1">
-          <h3 className="text-lg font-semibold text-gray-900">#{paiement.reference}</h3>
+        <button onClick={onViewDetails} className="flex-1 text-left group">
+          <h3 className="text-lg font-semibold text-blue-600 group-hover:text-blue-800 group-hover:underline">
+            #{paiement.reference}
+          </h3>
           <p className="text-sm text-gray-600">{paiement.client}</p>
-        </div>
+        </button>
         <span className={`px-2 py-1 text-xs font-semibold rounded-full ${statusColor}`}>
           {statusLabel}
         </span>
@@ -69,9 +73,12 @@ export default function PaiementCard({
         {/* Bottom-left: Prestations */}
         <div className="min-w-0">
           <p className="text-xs text-gray-500 mb-1">Prestations</p>
-          <p className="text-sm font-medium text-gray-900">
+          <button
+            onClick={onViewDetails}
+            className="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline"
+          >
             {prestationsCount} prestation{prestationsCount > 1 ? 's' : ''}
-          </p>
+          </button>
         </div>
 
         {/* Bottom-right: Mode */}

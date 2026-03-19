@@ -11,6 +11,7 @@ interface PrestationCardProps {
   statusLabel: string;
   statusColor: string;
   canModify: boolean;
+  isHighlighted?: boolean;
   onEdit: () => void;
   onDelete: () => void;
 }
@@ -20,12 +21,19 @@ export default function PrestationCard({
   statusLabel,
   statusColor,
   canModify,
+  isHighlighted = false,
   onEdit,
   onDelete,
 }: PrestationCardProps) {
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+    <div
+      className={`bg-white border rounded-lg p-4 hover:shadow-md transition-all ${
+        isHighlighted
+          ? 'border-blue-400 ring-2 ring-blue-400 bg-blue-50'
+          : 'border-gray-200'
+      }`}
+    >
       {/* Header with Client and Status */}
       <div className="flex items-start justify-between mb-3">
         <div className="flex-1">
