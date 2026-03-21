@@ -20,7 +20,7 @@ export default function Header({ onMenuToggle }: HeaderProps) {
           {onMenuToggle && (
             <button
               onClick={onMenuToggle}
-              className="lg:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              className="xl:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
               aria-label="Menu"
             >
               <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">

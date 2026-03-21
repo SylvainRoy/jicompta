@@ -21,8 +21,8 @@ export default function Layout({ children }: LayoutProps) {
       <Header onMenuToggle={() => setIsMobileMenuOpen(!isMobileMenuOpen)} />
 
       <div className="flex flex-1 min-h-0 overflow-hidden">
-        {/* Desktop Sidebar - Always visible on large screens */}
-        <div className="hidden lg:block">
+        {/* Desktop Sidebar - Always visible on xl screens */}
+        <div className="hidden xl:block">
           <Sidebar />
         </div>
 
@@ -31,19 +31,19 @@ export default function Layout({ children }: LayoutProps) {
           <>
             {/* Backdrop */}
             <div
-              className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+              className="fixed inset-0 bg-black bg-opacity-50 z-40 xl:hidden"
               onClick={() => setIsMobileMenuOpen(false)}
             />
 
             {/* Sidebar */}
-            <div className="fixed inset-y-0 left-0 z-50 lg:hidden">
+            <div className="fixed inset-y-0 left-0 z-50 xl:hidden">
               <Sidebar onNavigate={() => setIsMobileMenuOpen(false)} />
             </div>
           </>
         )}
 
         {/* Main Content - Only this panel scrolls */}
-        <main className="flex-1 px-3 py-4 sm:p-6 lg:p-8 overflow-y-auto overflow-x-hidden">
+        <main className="flex-1 px-3 py-4 sm:p-6 xl:p-8 overflow-y-auto overflow-x-hidden">
           <div className="max-w-7xl mx-auto w-full">{children}</div>
         </main>
       </div>
