@@ -313,6 +313,40 @@ describe('PaiementCard', () => {
     expect(screen.getByText('Voir reçu')).toBeInTheDocument()
   })
 
+  it('shows notes indicator when paiement has notes', () => {
+    const paiementWithNotes: Paiement = {
+      ...encaissePaiement,
+      notes: 'Note sur le paiement',
+    }
+    render(
+      <PaiementCard
+        paiement={paiementWithNotes}
+        prestationsCount={2}
+        onViewDetails={onViewDetails}
+        onEdit={onEdit}
+        onGenerateFacture={onGenerateFacture}
+        onGenerateRecu={onGenerateRecu}
+      />
+    )
+
+    expect(screen.getByText('Note sur le paiement')).toBeInTheDocument()
+  })
+
+  it('does not show notes indicator when no notes', () => {
+    render(
+      <PaiementCard
+        paiement={pendingPaiement}
+        prestationsCount={1}
+        onViewDetails={onViewDetails}
+        onEdit={onEdit}
+        onGenerateFacture={onGenerateFacture}
+        onGenerateRecu={onGenerateRecu}
+      />
+    )
+
+    expect(screen.queryByText(/Note sur/)).not.toBeInTheDocument()
+  })
+
   it('"Voir reçu" when recu URL exists', () => {
     render(
       <PaiementCard

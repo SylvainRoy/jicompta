@@ -33,6 +33,7 @@ export default function PrestationForm({
     type_prestation: prestation?.type_prestation || '',
     montant: prestation?.montant.toString() || '',
     associatif: prestation?.associatif || false,
+    notes: prestation?.notes || '',
   });
 
   const [errors, setErrors] = useState<Partial<PrestationFormData>>({});
@@ -107,6 +108,7 @@ export default function PrestationForm({
         montant: parseFloat(formData.montant),
         paiement_id: formData.associatif ? undefined : prestation?.paiement_id, // Keep existing paiement_id when editing (but not for associative)
         associatif: formData.associatif,
+        notes: formData.notes?.trim() || undefined,
       };
 
       await onSubmit(prestationData);
@@ -219,6 +221,26 @@ export default function PrestationForm({
             Les prestations associatives ne génèrent pas de facture et sont créditées sur le compte du client
           </p>
         </div>
+      </div>
+
+      {/* Notes */}
+      <div>
+        <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-1">
+          Notes
+        </label>
+        <textarea
+          id="notes"
+          value={formData.notes || ''}
+          onChange={(e) =>
+            setFormData((prev) => ({ ...prev, notes: e.target.value }))
+          }
+          disabled={isSubmitting}
+          rows={2}
+          placeholder="Commentaires optionnels..."
+          className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors resize-none ${
+            isSubmitting ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'
+          }`}
+        />
       </div>
 
       <div className="flex gap-3 pt-4">

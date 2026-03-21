@@ -53,11 +53,13 @@ export default function PaiementForm({
   const [formData, setFormData] = useState<{
     mode_encaissement: ModeEncaissement | '';
     date_encaissement: string;
+    notes: string;
   }>({
     mode_encaissement: paiement?.mode_encaissement || '',
     date_encaissement: paiement?.date_encaissement
       ? formatDateForInput(paiement.date_encaissement)
       : '',
+    notes: paiement?.notes || '',
   });
 
   const [errors, setErrors] = useState<{
@@ -130,6 +132,7 @@ export default function PaiementForm({
         mode_encaissement: (formData.mode_encaissement as ModeEncaissement) || undefined,
         facture: paiement?.facture,
         recu: paiement?.recu,
+        notes: formData.notes.trim() || undefined,
       };
 
       await onSubmit(paiementData, selectedPrestationIndices);
@@ -310,6 +313,28 @@ export default function PaiementForm({
               </select>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Notes */}
+      {(paiement || selectedPrestationIndices.length > 0) && (
+        <div>
+          <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-1">
+            Notes
+          </label>
+          <textarea
+            id="notes"
+            value={formData.notes}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, notes: e.target.value }))
+            }
+            disabled={isSubmitting}
+            rows={2}
+            placeholder="Commentaires optionnels..."
+            className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors resize-none ${
+              isSubmitting ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'
+            }`}
+          />
         </div>
       )}
 

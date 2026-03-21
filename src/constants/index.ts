@@ -38,6 +38,7 @@ export const SHEET_COLUMNS = {
     MONTANT: 'D',
     PAIEMENT_ID: 'E',
     ASSOCIATIF: 'F',
+    NOTES: 'G',
   },
   PAIEMENT: {
     REFERENCE: 'A',
@@ -47,6 +48,7 @@ export const SHEET_COLUMNS = {
     MODE_ENCAISSEMENT: 'E',
     FACTURE: 'F',
     RECU: 'G',
+    NOTES: 'H',
   },
   DEPENSE: {
     DATE: 'A',

@@ -12,7 +12,7 @@ Every JiCompta spreadsheet contains a hidden `_Meta` sheet that tracks the curre
 
 | key            | value |
 |----------------|-------|
-| schema_version | 2     |
+| schema_version | 3     |
 
 - **New setups** (`autoSetup()`): The `_Meta` sheet is created with `schema_version` set to the latest version. No migrations run.
 - **Existing setups** (pre-framework spreadsheets): On first load, `ensureMetaSheet()` creates the `_Meta` sheet with version `0`, meaning all migrations are pending.
@@ -152,6 +152,7 @@ const row = buildRow(columns, {
 |---------|------|-------------|
 | 1 | `add_depense_sheet` | Adds the `Depense` sheet with headers (date, compte, montant, description) |
 | 2 | `add_prestation_associatif_column` | Adds the `associatif` column (F) to the `Prestation` sheet, defaults existing rows to `FALSE` |
+| 3 | `add_notes_columns` | Adds `notes` column to both `Prestation` and `Paiement` sheets |
 
 ## Key Files
 

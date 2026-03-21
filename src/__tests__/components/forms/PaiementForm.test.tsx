@@ -193,6 +193,64 @@ describe('PaiementForm', () => {
     expect(onCancel).toHaveBeenCalled()
   })
 
+  it('shows notes textarea after selecting prestations', async () => {
+    const user = userEvent.setup()
+    render(
+      <PaiementForm
+        prestations={unpaidPrestations}
+        onSubmit={onSubmit}
+        onCancel={onCancel}
+      />
+    )
+    // Notes field not visible before selecting a prestation
+    expect(screen.queryByLabelText('Notes')).not.toBeInTheDocument()
+
+    await user.selectOptions(screen.getByLabelText(/Client/), 'Martin & Co')
+    const checkbox = screen.getByRole('checkbox')
+    await user.click(checkbox)
+
+    // Notes field should now be visible
+    expect(screen.getByLabelText('Notes')).toBeInTheDocument()
+  })
+
+  it('submits notes when provided', async () => {
+    const user = userEvent.setup()
+    const submitFn = vi.fn().mockResolvedValue(undefined)
+    render(
+      <PaiementForm
+        prestations={unpaidPrestations}
+        onSubmit={submitFn}
+        onCancel={onCancel}
+      />
+    )
+    await user.selectOptions(screen.getByLabelText(/Client/), 'Martin & Co')
+    const checkbox = screen.getByRole('checkbox')
+    await user.click(checkbox)
+    await user.type(screen.getByLabelText('Notes'), 'Note de paiement')
+    await user.click(screen.getByRole('button', { name: /Créer le paiement/ }))
+
+    expect(submitFn).toHaveBeenCalledWith(
+      expect.objectContaining({ notes: 'Note de paiement' }),
+      expect.any(Array)
+    )
+  })
+
+  it('pre-fills notes in edit mode', () => {
+    const paiementWithNotes: Paiement = {
+      ...existingPaiement,
+      notes: 'Note existante',
+    }
+    render(
+      <PaiementForm
+        paiement={paiementWithNotes}
+        prestations={unpaidPrestations}
+        onSubmit={onSubmit}
+        onCancel={onCancel}
+      />
+    )
+    expect(screen.getByDisplayValue('Note existante')).toBeInTheDocument()
+  })
+
   it('clears client error when user selects a client', async () => {
     const user = userEvent.setup()
     render(

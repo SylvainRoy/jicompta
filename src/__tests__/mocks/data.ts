@@ -60,6 +60,7 @@ export const mockPrestations: Prestation[] = [
     montant: 500,
     paiement_id: '',
     associatif: false,
+    notes: 'Première consultation',
     _rowNumber: 0,
   },
   {
@@ -95,6 +96,7 @@ export const mockPaiements: Paiement[] = [
     mode_encaissement: 'virement',
     facture: 'https://drive.google.com/file/facture1',
     recu: 'https://drive.google.com/file/recu1',
+    notes: 'Paiement reçu par virement',
     _rowNumber: 0,
   },
   {
@@ -148,18 +150,18 @@ export const mockSheetsRows = {
     ],
   },
   prestations: {
-    headers: ['date', 'nom_client', 'type_prestation', 'montant', 'paiement_id', 'associatif'],
+    headers: ['date', 'nom_client', 'type_prestation', 'montant', 'paiement_id', 'associatif', 'notes'],
     rows: [
-      ['2026-03-01', 'Dupont SARL', 'Conseil', '500', '', 'FALSE'],
-      ['2026-03-05', 'Martin & Co', 'Formation', '1200', '2603050001', 'FALSE'],
-      ['2026-03-10', 'Association Locale', 'Conseil', '300', '', 'TRUE'],
+      ['2026-03-01', 'Dupont SARL', 'Conseil', '500', '', 'FALSE', 'Première consultation'],
+      ['2026-03-05', 'Martin & Co', 'Formation', '1200', '2603050001', 'FALSE', ''],
+      ['2026-03-10', 'Association Locale', 'Conseil', '300', '', 'TRUE', ''],
     ],
   },
   paiements: {
-    headers: ['reference', 'client', 'total', 'date_encaissement', 'mode_encaissement', 'facture', 'recu'],
+    headers: ['reference', 'client', 'total', 'date_encaissement', 'mode_encaissement', 'facture', 'recu', 'notes'],
     rows: [
-      ['2603050001', 'Martin & Co', '1200', '2026-03-10', 'virement', 'https://drive.google.com/file/facture1', 'https://drive.google.com/file/recu1'],
-      ['2603150001', 'Dupont SARL', '500', '', '', '', ''],
+      ['2603050001', 'Martin & Co', '1200', '2026-03-10', 'virement', 'https://drive.google.com/file/facture1', 'https://drive.google.com/file/recu1', 'Paiement reçu par virement'],
+      ['2603150001', 'Dupont SARL', '500', '', '', '', '', ''],
     ],
   },
   depenses: {

@@ -212,6 +212,41 @@ describe('PrestationCard', () => {
     expect(screen.queryByText(/Paiement #/)).not.toBeInTheDocument()
   })
 
+  it('shows notes indicator when prestation has notes', () => {
+    const prestationWithNotes: Prestation = {
+      ...prestation,
+      notes: 'Remarque importante',
+    }
+    render(
+      <PrestationCard
+        prestation={prestationWithNotes}
+        statusLabel="Non payé"
+        statusColor="bg-yellow-100 text-yellow-800"
+        canModify={true}
+        onEdit={onEdit}
+        onDelete={onDelete}
+      />
+    )
+
+    expect(screen.getByText('Remarque importante')).toBeInTheDocument()
+  })
+
+  it('does not show notes indicator when no notes', () => {
+    render(
+      <PrestationCard
+        prestation={prestation}
+        statusLabel="Non payé"
+        statusColor="bg-yellow-100 text-yellow-800"
+        canModify={true}
+        onEdit={onEdit}
+        onDelete={onDelete}
+      />
+    )
+
+    // No notes text should be rendered (prestation has no notes field)
+    expect(screen.queryByText(/Remarque/)).not.toBeInTheDocument()
+  })
+
   it('highlighted card has ring classes', () => {
     const { container } = render(
       <PrestationCard

@@ -237,12 +237,12 @@ export async function createSpreadsheet(folderId: string): Promise<string> {
       values: [['nom', 'montant_suggere']],
     },
     {
-      range: 'Prestation!A1:F1',
-      values: [['date', 'nom_client', 'type_prestation', 'montant', 'paiement_id', 'associatif']],
+      range: 'Prestation!A1:G1',
+      values: [['date', 'nom_client', 'type_prestation', 'montant', 'paiement_id', 'associatif', 'notes']],
     },
     {
-      range: 'Paiement!A1:G1',
-      values: [['reference', 'client', 'total', 'date_encaissement', 'mode_encaissement', 'facture', 'recu']],
+      range: 'Paiement!A1:H1',
+      values: [['reference', 'client', 'total', 'date_encaissement', 'mode_encaissement', 'facture', 'recu', 'notes']],
     },
     {
       range: 'Depense!A1:D1',
@@ -479,6 +479,81 @@ const MIGRATIONS: Migration[] = [
               fields: 'userEnteredFormat.textFormat.bold',
             },
           }],
+        });
+      }
+    },
+  },
+  {
+    version: 3,
+    name: 'add_notes_columns',
+    run: async (spreadsheetId: string) => {
+      // Add 'notes' column to Prestation sheet (column G)
+      const prestationHeaders = await sheetsRequest(`/${spreadsheetId}/values/${encodeURIComponent('Prestation!1:1')}`);
+      const prestationHasNotes = prestationHeaders.values?.[0]?.some((h: string) => String(h).toLowerCase() === 'notes');
+      if (!prestationHasNotes) {
+        const nextCol = (prestationHeaders.values?.[0]?.length ?? 6) + 1;
+        const colLetter = String.fromCharCode(64 + nextCol);
+        await sheetsRequest(`/${spreadsheetId}/values/Prestation!${colLetter}1:${colLetter}1?valueInputOption=RAW`, 'PUT', {
+          values: [['notes']],
+        });
+      }
+
+      // Add 'notes' column to Paiement sheet (column H)
+      const paiementHeaders = await sheetsRequest(`/${spreadsheetId}/values/${encodeURIComponent('Paiement!1:1')}`);
+      const paiementHasNotes = paiementHeaders.values?.[0]?.some((h: string) => String(h).toLowerCase() === 'notes');
+      if (!paiementHasNotes) {
+        const nextCol = (paiementHeaders.values?.[0]?.length ?? 7) + 1;
+        const colLetter = String.fromCharCode(64 + nextCol);
+        await sheetsRequest(`/${spreadsheetId}/values/Paiement!${colLetter}1:${colLetter}1?valueInputOption=RAW`, 'PUT', {
+          values: [['notes']],
+        });
+      }
+
+      // Bold the new header cells
+      const spreadsheet = await sheetsRequest(`/${spreadsheetId}?includeGridData=false`);
+      const formatRequests: any[] = [];
+
+      const prestationSheet = spreadsheet.sheets.find((s: any) => s.properties.title === 'Prestation');
+      if (prestationSheet) {
+        const updatedHeaders = await sheetsRequest(`/${spreadsheetId}/values/${encodeURIComponent('Prestation!1:1')}`);
+        const notesIdx = updatedHeaders.values?.[0]?.findIndex((h: string) => String(h).toLowerCase() === 'notes');
+        if (notesIdx !== undefined && notesIdx >= 0) {
+          formatRequests.push({
+            repeatCell: {
+              range: {
+                sheetId: prestationSheet.properties.sheetId,
+                startRowIndex: 0, endRowIndex: 1,
+                startColumnIndex: notesIdx, endColumnIndex: notesIdx + 1,
+              },
+              cell: { userEnteredFormat: { textFormat: { bold: true } } },
+              fields: 'userEnteredFormat.textFormat.bold',
+            },
+          });
+        }
+      }
+
+      const paiementSheet = spreadsheet.sheets.find((s: any) => s.properties.title === 'Paiement');
+      if (paiementSheet) {
+        const updatedHeaders = await sheetsRequest(`/${spreadsheetId}/values/${encodeURIComponent('Paiement!1:1')}`);
+        const notesIdx = updatedHeaders.values?.[0]?.findIndex((h: string) => String(h).toLowerCase() === 'notes');
+        if (notesIdx !== undefined && notesIdx >= 0) {
+          formatRequests.push({
+            repeatCell: {
+              range: {
+                sheetId: paiementSheet.properties.sheetId,
+                startRowIndex: 0, endRowIndex: 1,
+                startColumnIndex: notesIdx, endColumnIndex: notesIdx + 1,
+              },
+              cell: { userEnteredFormat: { textFormat: { bold: true } } },
+              fields: 'userEnteredFormat.textFormat.bold',
+            },
+          });
+        }
+      }
+
+      if (formatRequests.length > 0) {
+        await sheetsRequest(`/${spreadsheetId}:batchUpdate`, 'POST', {
+          requests: formatRequests,
         });
       }
     },

@@ -108,8 +108,8 @@ The app can automatically detect existing setups or create new ones:
 **Sheets structure**:
 - `Clients`: nom, email, telephone, adresse, numero_siret
 - `TypeDePrestation`: nom, montant_suggere
-- `Prestation`: date, nom_client, type_prestation, montant, paiement_id, associatif
-- `Paiement`: reference, client, total, date_encaissement, mode_encaissement, facture, recu
+- `Prestation`: date, nom_client, type_prestation, montant, paiement_id, associatif, notes
+- `Paiement`: reference, client, total, date_encaissement, mode_encaissement, facture, recu, notes
 - `Depense`: date, compte, montant, description
 - `_Meta` (hidden): key, value — stores `schema_version`
 

@@ -180,6 +180,7 @@ describe('PrestationForm', () => {
       montant: 999.50,
       paiement_id: undefined,
       associatif: false,
+      notes: undefined,
     })
   })
 
@@ -205,6 +206,70 @@ describe('PrestationForm', () => {
 
     await user.click(checkbox)
     expect(checkbox.checked).toBe(false)
+  })
+
+  it('renders notes textarea', () => {
+    renderForm()
+    expect(screen.getByLabelText('Notes')).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('Commentaires optionnels...')).toBeInTheDocument()
+  })
+
+  it('pre-fills notes in edit mode', () => {
+    const existing: Prestation = {
+      date: '2026-03-10',
+      nom_client: 'Dupont SARL',
+      type_prestation: 'Conseil',
+      montant: 500,
+      notes: 'Une note importante',
+    }
+    renderForm({ prestation: existing })
+    expect(screen.getByDisplayValue('Une note importante')).toBeInTheDocument()
+  })
+
+  it('submits notes when provided', async () => {
+    const user = userEvent.setup()
+    const onSubmit = vi.fn().mockResolvedValue(undefined)
+    renderForm({ onSubmit })
+
+    await user.selectOptions(screen.getByLabelText(/Client/i), 'Martin & Co')
+    await user.selectOptions(screen.getByLabelText(/Type de prestation/i), 'Formation')
+
+    const montantInput = getMontantInput()
+    await user.clear(montantInput)
+    await user.type(montantInput, '100')
+
+    const dateInput = getDateInput()
+    await user.type(dateInput, '2026-03-20')
+
+    await user.type(screen.getByLabelText('Notes'), 'Test note')
+
+    await user.click(screen.getByRole('button', { name: 'Ajouter' }))
+
+    expect(onSubmit).toHaveBeenCalledWith(
+      expect.objectContaining({ notes: 'Test note' })
+    )
+  })
+
+  it('submits undefined notes when empty', async () => {
+    const user = userEvent.setup()
+    const onSubmit = vi.fn().mockResolvedValue(undefined)
+    renderForm({ onSubmit })
+
+    await user.selectOptions(screen.getByLabelText(/Client/i), 'Martin & Co')
+    await user.selectOptions(screen.getByLabelText(/Type de prestation/i), 'Formation')
+
+    const montantInput = getMontantInput()
+    await user.clear(montantInput)
+    await user.type(montantInput, '100')
+
+    const dateInput = getDateInput()
+    await user.type(dateInput, '2026-03-20')
+
+    await user.click(screen.getByRole('button', { name: 'Ajouter' }))
+
+    expect(onSubmit).toHaveBeenCalledWith(
+      expect.objectContaining({ notes: undefined })
+    )
   })
 
   it('associatif checkbox is disabled when prestation has paiement_id in edit mode', () => {

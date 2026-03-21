@@ -89,6 +89,14 @@ export default function PaiementDetailModal({
             )}
           </div>
 
+          {/* Notes */}
+          {paiement.notes && (
+            <div className="pt-2 border-t border-gray-200">
+              <span className="text-gray-600 text-sm">Notes:</span>
+              <p className="mt-1 text-sm text-gray-900 whitespace-pre-wrap">{paiement.notes}</p>
+            </div>
+          )}
+
           {/* PDF Links */}
           {(paiement.facture || paiement.recu) && (
             <div className="flex gap-2 pt-2 border-t border-gray-200">

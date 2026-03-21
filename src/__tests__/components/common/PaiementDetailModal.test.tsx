@@ -136,6 +136,21 @@ describe('PaiementDetailModal', () => {
     expect(recuLink).toHaveAttribute('target', '_blank')
   })
 
+  it('shows notes when paiement has notes', () => {
+    const paiementWithNotes: Paiement = {
+      ...paiement,
+      notes: 'Commentaire sur le paiement',
+    }
+    renderModal({ paiement: paiementWithNotes })
+    expect(screen.getByText('Notes:')).toBeInTheDocument()
+    expect(screen.getByText('Commentaire sur le paiement')).toBeInTheDocument()
+  })
+
+  it('does not show notes section when paiement has no notes', () => {
+    renderModal()
+    expect(screen.queryByText('Notes:')).not.toBeInTheDocument()
+  })
+
   it('does not show PDF links when paiement has no facture/recu', () => {
     const noPdfPaiement: Paiement = {
       ...paiement,

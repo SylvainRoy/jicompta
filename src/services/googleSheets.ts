@@ -425,6 +425,7 @@ export async function getPrestations(): Promise<GoogleSheetsResponse<Prestation>
         montant: getCellNumber(row, columns, 'montant'),
         paiement_id: getCellOptionalString(row, columns, 'paiement_id'),
         associatif: getCellBoolean(row, columns, 'associatif'),
+        notes: getCellOptionalString(row, columns, 'notes'),
         _rowNumber: index,
       });
     });
@@ -447,6 +448,7 @@ export async function addPrestation(prestation: Prestation): Promise<void> {
     montant: prestation.montant,
     paiement_id: prestation.paiement_id || '',
     associatif: prestation.associatif ? 'TRUE' : 'FALSE',
+    notes: prestation.notes || '',
   });
   await appendRange(getAppendRange(SHEET_TABS.PRESTATION, columns), [row]);
 }
@@ -466,6 +468,7 @@ export async function updatePrestation(
     montant: prestation.montant,
     paiement_id: prestation.paiement_id || '',
     associatif: prestation.associatif ? 'TRUE' : 'FALSE',
+    notes: prestation.notes || '',
   });
   await writeRange(getRowRange(SHEET_TABS.PRESTATION, columns, rowIndex), [row]);
 }
@@ -526,6 +529,7 @@ export async function getPaiements(): Promise<GoogleSheetsResponse<Paiement>> {
         mode_encaissement: getCellOptionalString(row, columns, 'mode_encaissement') as Paiement['mode_encaissement'],
         facture: getCellOptionalString(row, columns, 'facture'),
         recu: getCellOptionalString(row, columns, 'recu'),
+        notes: getCellOptionalString(row, columns, 'notes'),
         _rowNumber: index,
       });
     });
@@ -549,6 +553,7 @@ export async function addPaiement(paiement: Paiement): Promise<void> {
     mode_encaissement: paiement.mode_encaissement || '',
     facture: paiement.facture || '',
     recu: paiement.recu || '',
+    notes: paiement.notes || '',
   });
   await appendRange(getAppendRange(SHEET_TABS.PAIEMENT, columns), [row]);
 }
@@ -566,6 +571,7 @@ export async function updatePaiement(rowIndex: number, paiement: Paiement): Prom
     mode_encaissement: paiement.mode_encaissement || '',
     facture: paiement.facture || '',
     recu: paiement.recu || '',
+    notes: paiement.notes || '',
   });
   await writeRange(getRowRange(SHEET_TABS.PAIEMENT, columns, rowIndex), [row]);
 }

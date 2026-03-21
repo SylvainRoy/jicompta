@@ -139,6 +139,12 @@ describe('googleSheets service', () => {
       expect(result.data[0].paiement_id).toBeUndefined()
       expect(result.data[1].paiement_id).toBe('2603050001')
     })
+
+    it('parses notes as optional string', async () => {
+      const result = await getPrestations()
+      expect(result.data[0].notes).toBe('Première consultation')
+      expect(result.data[1].notes).toBeUndefined()
+    })
   })
 
   describe('getPaiements', () => {
@@ -149,6 +155,12 @@ describe('googleSheets service', () => {
       expect(result.data[0].mode_encaissement).toBe('virement')
       expect(result.data[1].date_encaissement).toBeUndefined()
       expect(result.data[1].mode_encaissement).toBeUndefined()
+    })
+
+    it('parses notes as optional string', async () => {
+      const result = await getPaiements()
+      expect(result.data[0].notes).toBe('Paiement reçu par virement')
+      expect(result.data[1].notes).toBeUndefined()
     })
   })
 
@@ -265,6 +277,47 @@ describe('googleSheets service', () => {
       })
       expect(capturedBody.values[0]).toContain('TRUE')
     })
+
+    it('sends notes in the row', async () => {
+      let capturedBody: any = null
+      server.use(
+        http.post(`${SHEETS_BASE}/:id/values/:range*`, async ({ request }) => {
+          capturedBody = await request.json()
+          return HttpResponse.json({ updates: { updatedRows: 1 } })
+        })
+      )
+      await addPrestation({
+        date: '2026-04-01',
+        nom_client: 'Test',
+        type_prestation: 'Conseil',
+        montant: 100,
+        associatif: false,
+        notes: 'Ma note',
+        _rowNumber: -1,
+      })
+      expect(capturedBody.values[0]).toContain('Ma note')
+    })
+
+    it('sends empty string when notes is undefined', async () => {
+      let capturedBody: any = null
+      server.use(
+        http.post(`${SHEETS_BASE}/:id/values/:range*`, async ({ request }) => {
+          capturedBody = await request.json()
+          return HttpResponse.json({ updates: { updatedRows: 1 } })
+        })
+      )
+      await addPrestation({
+        date: '2026-04-01',
+        nom_client: 'Test',
+        type_prestation: 'Conseil',
+        montant: 100,
+        associatif: false,
+        _rowNumber: -1,
+      })
+      // The notes column (index 6) should be empty string
+      const notesColIndex = mockSheetsRows.prestations.headers.indexOf('notes')
+      expect(capturedBody.values[0][notesColIndex]).toBe('')
+    })
   })
 
   describe('updatePrestationsPaiementId', () => {
@@ -301,6 +354,42 @@ describe('googleSheets service', () => {
       })
       expect(capturedBody.values[0]).toContain('REF001')
       expect(capturedBody.values[0]).toContain(1000)
+    })
+
+    it('sends notes in the row', async () => {
+      let capturedBody: any = null
+      server.use(
+        http.post(`${SHEETS_BASE}/:id/values/:range*`, async ({ request }) => {
+          capturedBody = await request.json()
+          return HttpResponse.json({ updates: { updatedRows: 1 } })
+        })
+      )
+      await addPaiement({
+        reference: 'REF002',
+        client: 'Client',
+        total: 500,
+        notes: 'Note paiement',
+        _rowNumber: -1,
+      })
+      expect(capturedBody.values[0]).toContain('Note paiement')
+    })
+
+    it('sends empty string when notes is undefined', async () => {
+      let capturedBody: any = null
+      server.use(
+        http.post(`${SHEETS_BASE}/:id/values/:range*`, async ({ request }) => {
+          capturedBody = await request.json()
+          return HttpResponse.json({ updates: { updatedRows: 1 } })
+        })
+      )
+      await addPaiement({
+        reference: 'REF003',
+        client: 'Client',
+        total: 300,
+        _rowNumber: -1,
+      })
+      const notesColIndex = mockSheetsRows.paiements.headers.indexOf('notes')
+      expect(capturedBody.values[0][notesColIndex]).toBe('')
     })
   })
 

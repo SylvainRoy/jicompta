@@ -24,6 +24,7 @@ export interface Prestation {
   montant: number;
   paiement_id?: string;
   associatif?: boolean;
+  notes?: string;
   _rowNumber?: number; // Internal: actual row number in Google Sheets (for updates)
 }
 
@@ -37,6 +38,7 @@ export interface Paiement {
   mode_encaissement?: ModeEncaissement;
   facture?: string; // URL
   recu?: string; // URL
+  notes?: string;
   _rowNumber?: number; // Internal: actual row number in Google Sheets
 }
 
@@ -99,12 +101,14 @@ export interface PrestationFormData {
   type_prestation: string;
   montant: string;
   associatif?: boolean;
+  notes?: string;
 }
 
 export interface PaiementFormData {
   prestationIds: string[];
   mode_encaissement?: ModeEncaissement;
   date_encaissement?: string;
+  notes?: string;
 }
 
 export interface DepenseFormData {
