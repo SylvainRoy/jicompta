@@ -18,6 +18,7 @@ Accounting management application for small French businesses with automatic con
 - **Styling**: Tailwind CSS v3
 - **Routing**: React Router v6
 - **State Management**: React Context API + Hooks
+- **Testing**: Vitest + React Testing Library + MSW
 - **APIs**: Google OAuth 2.0, Google Sheets, Google Docs, Google Drive
 
 ## 📦 Quick Installation
@@ -175,7 +176,50 @@ npm run dev          # Start development server
 npm run build        # Build for production
 npm run preview      # Preview production build
 npm run lint         # Lint the code
+npm test             # Run all tests once
+npm run test:watch   # Run tests in watch mode (re-runs on file changes)
+npm run test:ui      # Open the Vitest interactive UI in the browser
+npm run test:coverage # Run tests with code coverage report
 ```
+
+## 🧪 Testing
+
+The project includes a comprehensive test suite with ~400 tests covering all layers of the application.
+
+### Running Tests
+
+```bash
+npm test                # Run all tests once
+npm run test:watch      # Watch mode — re-runs on file changes
+npm run test:ui         # Interactive browser UI for exploring tests
+npm run test:coverage   # Generate code coverage report (text + HTML)
+```
+
+### Test Structure
+
+```
+src/__tests__/
+├── setup.ts                        # Global setup (localStorage polyfill, MSW, RTL cleanup)
+├── mocks/
+│   ├── data.ts                     # Shared test fixtures (clients, prestations, paiements, etc.)
+│   ├── handlers.ts                 # MSW request handlers for Google APIs
+│   └── server.ts                   # MSW server instance
+├── unit/
+│   ├── utils/                      # Utility function tests (date, currency, validators)
+│   └── services/                   # Google API service tests (Sheets, Docs, Auth, Setup)
+├── integration/
+│   └── contexts/                   # React Context integration tests (Auth, Config, Data, Notification)
+├── components/
+│   └── forms/                      # Form component tests (Client, Prestation, Paiement, etc.)
+└── pages/                          # Page-level tests (Dashboard, Clients, Prestations, etc.)
+```
+
+### Test Stack
+
+- **[Vitest](https://vitest.dev/)** — Test runner with native Vite integration (same aliases and transforms)
+- **[React Testing Library](https://testing-library.com/react)** — Component rendering and user interaction simulation
+- **[MSW (Mock Service Worker)](https://mswjs.io/)** — Network-level interception of Google API calls (Sheets, Drive, Docs)
+- **jsdom** — Browser DOM environment for Node.js
 
 ## 📖 Documentation
 

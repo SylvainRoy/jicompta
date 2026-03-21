@@ -57,7 +57,23 @@ VITE_GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
 
 **That's it!** No other manual configuration is needed.
 
-### 5. Launch the application
+### 5. Run the tests
+
+Verify the installation is correct by running the test suite:
+
+```bash
+npm test
+```
+
+All tests should pass. You can also use:
+
+```bash
+npm run test:watch      # Watch mode — re-runs automatically on file changes
+npm run test:ui         # Opens an interactive browser UI to explore tests
+npm run test:coverage   # Generates a code coverage report (text + HTML in ./coverage/)
+```
+
+### 6. Launch the application
 
 ```bash
 npm run dev
