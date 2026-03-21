@@ -182,38 +182,37 @@ describe('Paiements page', () => {
   it('shows Supprimer only for payments that are not encaiss\u00e9', () => {
     renderPage()
 
-    // In the desktop table, "Supprimer" buttons should appear only for non-encaisse
-    // mockPaiements[0] is encaisse => no Supprimer, mockPaiements[1] is not => has Supprimer
-    // Both mobile card and desktop table are rendered, but mobile card also conditionally shows Supprimer
+    // Desktop table uses icon buttons (no text), mobile cards use text labels
+    // Dupont SARL (non-encaisse) should have Supprimer in mobile card only
     const supprimerButtons = screen.getAllByText('Supprimer')
-    // Dupont SARL (non-encaisse) should have Supprimer in both views, Martin & Co should not
-    // So we expect exactly 2 (one from mobile card, one from desktop table)
-    expect(supprimerButtons).toHaveLength(2)
+    expect(supprimerButtons).toHaveLength(1)
 
-    // "Modifier" should appear for all payments (2 payments x 2 views = 4)
+    // "Modifier" appears only in mobile cards (2 payments = 2 text labels)
+    // Desktop table uses icon buttons with title="Modifier"
     const modifierButtons = screen.getAllByText('Modifier')
-    expect(modifierButtons).toHaveLength(4)
+    expect(modifierButtons).toHaveLength(2)
   })
 
   // 11. Facture/Recu buttons display correctly
   it('shows correct Facture/Recu button labels based on payment state', () => {
     renderPage()
 
-    // Martin & Co (encaisse, has facture URL) => "Voir Facture" (desktop + mobile views)
-    const voirFactureButtons = screen.getAllByText('Voir Facture')
+    // Desktop table uses icon buttons (no text), mobile cards use text labels
+    // Mobile card labels use lowercase: "Voir facture", "Générer facture", "Voir reçu", "Générer reçu"
+
+    // Martin & Co (encaisse, has facture URL) => "Voir facture" in mobile card
+    const voirFactureButtons = screen.getAllByText('Voir facture')
     expect(voirFactureButtons.length).toBeGreaterThanOrEqual(1)
 
-    // Martin & Co (encaisse, has recu URL) => "Voir Recu" (desktop + mobile)
-    const voirRecuText = screen.getAllByText(/Voir Re[cç]u/)
+    // Martin & Co (encaisse, has recu URL) => "Voir reçu" in mobile card
+    const voirRecuText = screen.getAllByText(/Voir re[cç]u/)
     expect(voirRecuText.length).toBeGreaterThanOrEqual(1)
 
-    // Dupont SARL (not encaisse, no facture URL) => "Facture" button
-    const factureButtons = screen.getAllByText('Facture')
-    expect(factureButtons.length).toBeGreaterThanOrEqual(1)
+    // Dupont SARL (not encaisse, no facture URL) => "Générer facture" in mobile card
+    const genFactureButtons = screen.getAllByText('Générer facture')
+    expect(genFactureButtons.length).toBeGreaterThanOrEqual(1)
 
     // Dupont SARL (not encaisse) => Recu button should NOT be shown
-    // The "Reçu" text should only appear for encaisse payments
-    // For the non-encaisse payment, no Recu/Voir Recu button is rendered
-    // Count ensures: only Martin & Co has recu-related buttons
+    // The reçu text should only appear for encaisse payments
   })
 })
