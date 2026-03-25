@@ -209,7 +209,7 @@ export default function Login() {
         {/* Additional Info */}
         <div className="text-center mt-4">
           <p className="text-sm text-gray-600">
-            Version 0.1.0 - JiCompta
+            Build {__BUILD_DATE__} &middot; {__COMMIT_HASH__}
           </p>
         </div>
       </div>
