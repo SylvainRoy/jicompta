@@ -415,7 +415,7 @@ export default function Settings() {
                             </Button>
                             <button
                               onClick={() => handleRemoveRepo(repo)}
-                              className="px-2 py-1 text-xs text-red-600 hover:bg-red-50 rounded transition-colors"
+                              className="px-3 py-1 text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded transition-colors"
                               title="Retirer de la liste"
                             >
                               Retirer
@@ -424,7 +424,7 @@ export default function Settings() {
                         )}
                         <button
                           onClick={() => openInDrive(repo.folderComptabiliteId, 'folder')}
-                          className="px-2 py-1 text-xs text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                          className="px-3 py-1 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded transition-colors"
                         >
                           Ouvrir
                         </button>
@@ -518,22 +518,22 @@ export default function Settings() {
                   {backups.map((backup) => (
                     <div
                       key={backup.id}
-                      className="flex items-center justify-between border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors"
+                      className="flex flex-wrap items-center justify-between gap-2 border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors"
                     >
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-3 min-w-0">
                         <div className="flex-shrink-0 w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
                           <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
                           </svg>
                         </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-900">{backup.name}</p>
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-gray-900 truncate">{backup.name}</p>
                           <p className="text-xs text-gray-500">
                             Créé le {formatBackupDate(backup.date)} à {formatBackupTime(backup.time)}
                           </p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-shrink-0 ml-auto">
                         <button
                           onClick={() => openInDrive(backup.id, 'spreadsheet')}
                           className="px-3 py-1 text-xs font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded transition-colors"
@@ -541,13 +541,13 @@ export default function Settings() {
                         >
                           Voir
                         </button>
-                        <Button
+                        <button
                           onClick={() => setShowRestoreConfirm(backup)}
-                          variant="secondary"
+                          className="px-3 py-1 text-xs font-medium text-orange-600 bg-orange-50 hover:bg-orange-100 rounded transition-colors"
                           disabled={isRestoring || isDeleting}
                         >
                           Restaurer
-                        </Button>
+                        </button>
                         <button
                           onClick={() => setShowDeleteConfirm(backup)}
                           className="px-3 py-1 text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded transition-colors"
