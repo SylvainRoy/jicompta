@@ -13,7 +13,7 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 const Input = forwardRef<HTMLInputElement, InputProps>(
   ({ label, error, helperText, className = '', ...props }, ref) => {
     const inputClasses = `
-      w-full px-3 py-2 border rounded-lg
+      w-full max-w-full box-border px-3 py-2 border rounded-lg
       focus:outline-none focus:ring-2 focus:ring-blue-500
       disabled:bg-gray-100 disabled:cursor-not-allowed
       ${error ? 'border-red-500 focus:ring-red-500' : 'border-gray-300'}
@@ -21,7 +21,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
     `.trim();
 
     return (
-      <div className="w-full">
+      <div className="w-full overflow-hidden">
         {label && (
           <label className="block text-sm font-medium text-gray-700 mb-1">
             {label}
