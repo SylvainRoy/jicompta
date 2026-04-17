@@ -9,6 +9,8 @@ npm run dev       # Start Vite dev server on http://localhost:5173
 npm run build     # TypeScript compile + Vite production build → dist/
 npm run preview   # Preview production build locally
 npm run lint      # ESLint check
+npx vitest run    # Run all tests (Vitest + React Testing Library)
+npx vitest run src/__tests__/path/to/file.test.ts  # Run a specific test file
 ```
 
 ## Architecture Overview
@@ -221,14 +223,17 @@ All other IDs (spreadsheet, templates, folders) are auto-detected from Google Dr
 
 **Security note**: The Client ID is public by design (OAuth 2.0 implicit flow). Security is enforced by redirect URI whitelist in Google Cloud Console.
 
-## Testing Considerations
+## Testing
 
-No test framework currently configured. When adding tests:
-- Mock Google API calls (sheets, docs, drive)
-- Mock `gapi` and `@react-oauth/google` libraries
-- Test DataContext CRUD operations
-- Test form validations
-- Test date/currency formatters
+The project uses **Vitest** + **React Testing Library** + **MSW** (Mock Service Worker). Tests live in `src/__tests__/` mirroring the source structure:
+
+- `src/__tests__/unit/utils/` — date, currency, validator utilities
+- `src/__tests__/unit/services/` — googleAuth, googleSetup, googleDocs
+- `src/__tests__/components/forms/` — form component tests
+- `src/__tests__/pages/` — page-level rendering/interaction tests
+- `src/__tests__/integration/` — DataContext integration tests
+
+Google API calls are mocked via MSW. Run `npx vitest run` after any code change.
 
 ## Common Gotchas
 

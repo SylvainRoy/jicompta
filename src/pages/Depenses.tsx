@@ -12,6 +12,8 @@ import EmptyState from '@/components/common/EmptyState';
 import Loading from '@/components/common/Loading';
 import DepenseForm from '@/components/forms/DepenseForm';
 import DepenseCard from '@/components/common/DepenseCard';
+import SortableHeader from '@/components/common/SortableHeader';
+import { useSortConfig, compareValues } from '@/hooks/useSortConfig';
 import { formatCurrency } from '@/utils/currencyFormatter';
 import { formatDateForDisplay } from '@/utils/dateFormatter';
 
@@ -36,6 +38,7 @@ export default function Depenses() {
     depense: Depense;
     index: number;
   } | null>(null);
+  const { sortConfig, toggleSort } = useSortConfig<string>('date', 'desc');
 
   // Get unique compte names for filter
   const compteNames = useMemo(() => {
@@ -62,9 +65,13 @@ export default function Depenses() {
       filtered = filtered.filter((depense) => depense.compte === filterCompte);
     }
 
-    // Sort by date descending (newest first)
-    return filtered.sort((a, b) => b.date.localeCompare(a.date));
-  }, [depenses, searchQuery, filterCompte]);
+    // Sort by selected column
+    return filtered.sort((a, b) => {
+      const valA = a[sortConfig.column as keyof Depense];
+      const valB = b[sortConfig.column as keyof Depense];
+      return compareValues(valA, valB, sortConfig.direction);
+    });
+  }, [depenses, searchQuery, filterCompte, sortConfig]);
 
   // Calculate total
   const totalDepenses = useMemo(() => {
@@ -168,18 +175,10 @@ export default function Depenses() {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Date
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Compte
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Description
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Montant
-                </th>
+                <SortableHeader label="Date" column="date" currentColumn={sortConfig.column} currentDirection={sortConfig.direction} onSort={toggleSort} />
+                <SortableHeader label="Compte" column="compte" currentColumn={sortConfig.column} currentDirection={sortConfig.direction} onSort={toggleSort} />
+                <SortableHeader label="Description" column="description" currentColumn={sortConfig.column} currentDirection={sortConfig.direction} onSort={toggleSort} />
+                <SortableHeader label="Montant" column="montant" currentColumn={sortConfig.column} currentDirection={sortConfig.direction} onSort={toggleSort} />
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Actions
                 </th>

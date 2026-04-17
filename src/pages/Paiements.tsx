@@ -15,6 +15,8 @@ import Loading from '@/components/common/Loading';
 import PaiementForm from '@/components/forms/PaiementForm';
 import PaiementCard from '@/components/common/PaiementCard';
 import PaiementDetailModal from '@/components/common/PaiementDetailModal';
+import SortableHeader from '@/components/common/SortableHeader';
+import { useSortConfig, compareValues } from '@/hooks/useSortConfig';
 import { formatCurrency } from '@/utils/currencyFormatter';
 import { formatDateForDisplay } from '@/utils/dateFormatter';
 
@@ -49,6 +51,7 @@ export default function Paiements() {
     index: number;
   } | null>(null);
   const [viewingPaiement, setViewingPaiement] = useState<Paiement | null>(null);
+  const { sortConfig, toggleSort } = useSortConfig<string>('reference', 'desc');
 
   // Initialize filter and search from URL parameters
   useEffect(() => {
@@ -101,9 +104,13 @@ export default function Paiements() {
       }
     }
 
-    // Sort by reference descending (newest first - reference format: yymmddnnnn)
-    return filtered.sort((a, b) => b.reference.localeCompare(a.reference));
-  }, [paiements, searchQuery, filterStatut]);
+    // Sort by selected column
+    return filtered.sort((a, b) => {
+      const valA = a[sortConfig.column as keyof Paiement];
+      const valB = b[sortConfig.column as keyof Paiement];
+      return compareValues(valA, valB, sortConfig.direction);
+    });
+  }, [paiements, searchQuery, filterStatut, sortConfig]);
 
   // Get prestations count for each paiement
   const getPrestationsCount = (reference: string): number => {
@@ -364,21 +371,13 @@ export default function Paiements() {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Référence
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Client
-                    </th>
+                    <SortableHeader label="Référence" column="reference" currentColumn={sortConfig.column} currentDirection={sortConfig.direction} onSort={toggleSort} />
+                    <SortableHeader label="Client" column="client" currentColumn={sortConfig.column} currentDirection={sortConfig.direction} onSort={toggleSort} />
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Prestations
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Total
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Date encaissement
-                    </th>
+                    <SortableHeader label="Total" column="total" currentColumn={sortConfig.column} currentDirection={sortConfig.direction} onSort={toggleSort} />
+                    <SortableHeader label="Date encaissement" column="date_encaissement" currentColumn={sortConfig.column} currentDirection={sortConfig.direction} onSort={toggleSort} />
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Statut
                     </th>

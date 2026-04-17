@@ -14,6 +14,8 @@ import EmptyState from '@/components/common/EmptyState';
 import Loading from '@/components/common/Loading';
 import PrestationForm from '@/components/forms/PrestationForm';
 import PrestationCard from '@/components/common/PrestationCard';
+import SortableHeader from '@/components/common/SortableHeader';
+import { useSortConfig, compareValues } from '@/hooks/useSortConfig';
 import { formatCurrency } from '@/utils/currencyFormatter';
 import { formatDateForDisplay } from '@/utils/dateFormatter';
 
@@ -42,6 +44,7 @@ export default function Prestations() {
   } | null>(null);
   const [deletingIndex, setDeletingIndex] = useState<number | null>(null);
   const [highlightedRowNumber, setHighlightedRowNumber] = useState<number | null>(null);
+  const { sortConfig, toggleSort } = useSortConfig<string>('date', 'desc');
 
   // Refs for scrolling to highlighted row
   const rowRefs = useRef<Map<number, HTMLTableRowElement>>(new Map());
@@ -138,9 +141,13 @@ export default function Prestations() {
       }
     }
 
-    // Sort by date descending (newest first)
-    return filtered.sort((a, b) => b.date.localeCompare(a.date));
-  }, [prestations, paiements, searchQuery, filterStatut]);
+    // Sort by selected column
+    return filtered.sort((a, b) => {
+      const valA = a[sortConfig.column as keyof Prestation];
+      const valB = b[sortConfig.column as keyof Prestation];
+      return compareValues(valA, valB, sortConfig.direction);
+    });
+  }, [prestations, paiements, searchQuery, filterStatut, sortConfig]);
 
   // Handlers
   const handleAdd = async (prestation: Prestation) => {
@@ -359,18 +366,10 @@ export default function Prestations() {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Client
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Type de prestation
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Date
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Montant
-                    </th>
+                    <SortableHeader label="Client" column="nom_client" currentColumn={sortConfig.column} currentDirection={sortConfig.direction} onSort={toggleSort} />
+                    <SortableHeader label="Type de prestation" column="type_prestation" currentColumn={sortConfig.column} currentDirection={sortConfig.direction} onSort={toggleSort} />
+                    <SortableHeader label="Date" column="date" currentColumn={sortConfig.column} currentDirection={sortConfig.direction} onSort={toggleSort} />
+                    <SortableHeader label="Montant" column="montant" currentColumn={sortConfig.column} currentDirection={sortConfig.direction} onSort={toggleSort} />
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Statut
                     </th>
