@@ -5,6 +5,8 @@
 import { useAuth } from '@/contexts/AuthContext';
 import Button from '@/components/common/Button';
 
+const isTestEnv = __APP_ENV__ === 'test';
+
 interface HeaderProps {
   onMenuToggle?: () => void;
 }
@@ -13,7 +15,12 @@ export default function Header({ onMenuToggle }: HeaderProps) {
   const { user, logout } = useAuth();
 
   return (
-    <header className="bg-white shadow-sm border-b border-gray-200 z-30 flex-shrink-0">
+    <header className={`shadow-sm border-b z-30 flex-shrink-0 ${isTestEnv ? 'bg-amber-50 border-amber-300' : 'bg-white border-gray-200'}`}>
+      {isTestEnv && (
+        <div className="bg-amber-400 text-amber-900 text-center text-xs font-bold py-1 tracking-wide">
+          ENVIRONNEMENT DE TEST
+        </div>
+      )}
       <div className="px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
           {/* Mobile Menu Button */}
@@ -30,6 +37,9 @@ export default function Header({ onMenuToggle }: HeaderProps) {
           )}
 
           <h1 className="text-lg sm:text-xl font-bold text-gray-900">JiCompta</h1>
+          {isTestEnv && (
+            <span className="text-xs font-bold bg-amber-400 text-amber-900 px-2 py-0.5 rounded">TEST</span>
+          )}
         </div>
 
         <div className="flex items-center gap-2 sm:gap-4">

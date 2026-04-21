@@ -11,7 +11,9 @@
     "test": "NODE_NO_WARNINGS=1 vitest run",
     "test:watch": "NODE_NO_WARNINGS=1 vitest",
     "test:ui": "NODE_NO_WARNINGS=1 vitest --ui",
-    "test:coverage": "NODE_NO_WARNINGS=1 vitest run --coverage"
+    "test:coverage": "NODE_NO_WARNINGS=1 vitest run --coverage",
+    "deploy:test": "VITE_APP_ENV=test tsc -b && VITE_APP_ENV=test vite build && firebase deploy --only hosting:test",
+    "deploy:prod": "tsc -b && vite build && firebase deploy --only hosting:production"
   },
   "dependencies": {
     "@react-oauth/google": "^0.13.4",

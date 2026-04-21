@@ -2,6 +2,7 @@
 
 declare const __BUILD_DATE__: string;
 declare const __COMMIT_HASH__: string;
+declare const __APP_ENV__: string;
 
 interface ImportMetaEnv {
   readonly VITE_GOOGLE_CLIENT_ID: string

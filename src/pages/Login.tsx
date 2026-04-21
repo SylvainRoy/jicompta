@@ -123,13 +123,21 @@ export default function Login() {
     return <SetupWizard onComplete={() => navigate(ROUTES.DASHBOARD)} />;
   }
 
+  const isTestEnv = __APP_ENV__ === 'test';
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className={`min-h-screen flex items-center justify-center ${isTestEnv ? 'bg-gradient-to-br from-amber-50 to-amber-100' : 'bg-gradient-to-br from-blue-50 to-indigo-100'}`}>
       <div className="max-w-md w-full mx-4">
-        <div className="bg-white rounded-lg shadow-xl p-8">
+        {isTestEnv && (
+          <div className="bg-amber-400 text-amber-900 text-center text-sm font-bold py-2 rounded-t-lg tracking-wide">
+            ENVIRONNEMENT DE TEST
+          </div>
+        )}
+        <div className={`bg-white shadow-xl p-8 ${isTestEnv ? 'rounded-b-lg' : 'rounded-lg'}`}>
           {/* Logo/Title */}
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold text-gray-900 mb-2">JiCompta</h1>
+            {isTestEnv && <span className="inline-block text-xs font-bold bg-amber-400 text-amber-900 px-2 py-0.5 rounded mb-2">TEST</span>}
             <p className="text-gray-600">Application de gestion comptable</p>
           </div>
 
