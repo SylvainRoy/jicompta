@@ -1,15 +1,15 @@
-# 🔥 Firebase Hosting Deployment Guide
+# Firebase Hosting Deployment Guide
 
-Complete guide for deploying JiCompta to Firebase Hosting.
+Complete guide for deploying JiCompta to Firebase Hosting, including the test/production environment setup.
 
-## 📋 Prerequisites
+## Prerequisites
 
 - Node.js 18+ installed
 - Firebase account (free tier works perfectly)
 - Firebase CLI installed globally
 - JiCompta application built and tested locally
 
-## 🚀 Initial Setup (One-time)
+## Initial Setup (One-time)
 
 ### Step 1: Install Firebase CLI
 
@@ -50,8 +50,8 @@ firebase projects:create jicompta
 ### Step 4: Initialize Firebase in Your Project
 
 The JiCompta repository already includes Firebase configuration files:
-- `firebase.json` - Hosting configuration
-- `.firebaserc` - Project settings
+- `firebase.json` - Hosting configuration (multi-site)
+- `.firebaserc` - Project and target settings (gitignored)
 
 If you need to reconfigure:
 ```bash
@@ -65,139 +65,160 @@ Select:
 - Set up automatic builds with GitHub: `No` (optional)
 - Don't overwrite `dist/index.html` if it exists
 
-## 📦 Build Configuration
+## Environments
 
-The `firebase.json` is already configured with optimal settings:
+JiCompta uses **Firebase multi-site hosting** with two environments:
 
+| Environment | URL | Site ID | Purpose |
+|---|---|---|---|
+| **Production** | https://jicompta.web.app | `jicompta` | Live app for end users |
+| **Test** | https://jicompta-test.web.app | `jicompta-test` | Validation before production release |
+
+### How environments differ
+
+| Aspect | Production | Test |
+|---|---|---|
+| App icon | Blue (`#3b82f6`) | Grey (`#6b7280`) |
+| PWA name | "JiCompta" | "JiCompta (TEST)" |
+| Theme color | Blue | Grey |
+| Header banner | None | Amber "ENVIRONNEMENT DE TEST" |
+| Login page | Blue gradient | Amber gradient + TEST badge |
+
+### How it works
+
+The environment is controlled by the `VITE_APP_ENV` build-time variable:
+
+- **Not set or `production`**: standard blue production visuals
+- **`test`**: grey icons, amber test banners, modified PWA manifest
+
+At build time:
+1. `vite.config.ts` injects `__APP_ENV__` into the JS bundle
+2. A Vite plugin (`envHtmlPlugin`) transforms `index.html` to swap icons, manifest, title, and theme colors for test builds
+3. Components (`Header.tsx`, `Login.tsx`) conditionally render the test banner based on `__APP_ENV__`
+
+### Setting up a new environment from scratch
+
+If `.firebaserc` is missing (it is gitignored), recreate it:
+
+```bash
+# Create the test hosting site (one-time)
+firebase hosting:sites:create jicompta-test
+
+# Set up deploy targets
+firebase target:apply hosting production jicompta
+firebase target:apply hosting test jicompta-test
+```
+
+This produces the `.firebaserc` file:
 ```json
 {
-  "hosting": {
-    "public": "dist",
-    "ignore": [
-      "firebase.json",
-      "**/.*",
-      "**/node_modules/**"
-    ],
-    "rewrites": [
-      {
-        "source": "**",
-        "destination": "/index.html"
+  "projects": {
+    "default": "jicompta"
+  },
+  "targets": {
+    "jicompta": {
+      "hosting": {
+        "production": ["jicompta"],
+        "test": ["jicompta-test"]
       }
-    ],
-    "headers": [
-      {
-        "source": "**/*.@(jpg|jpeg|gif|png|svg|webp)",
-        "headers": [
-          {
-            "key": "Cache-Control",
-            "value": "max-age=31536000"
-          }
-        ]
-      },
-      {
-        "source": "**/*.@(js|css)",
-        "headers": [
-          {
-            "key": "Cache-Control",
-            "value": "max-age=31536000"
-          }
-        ]
-      }
-    ]
+    }
   }
 }
 ```
 
-**Features:**
-- ✅ Serves SPA from `dist/` directory
-- ✅ All routes redirect to index.html (client-side routing)
-- ✅ Optimized caching for static assets (1 year)
-- ✅ Efficient file upload (ignores unnecessary files)
+## Deployment
 
-## 🏗️ Deployment Process
-
-### Quick Deploy
+### Deploy to test (recommended first step)
 
 ```bash
-npm run build && firebase deploy --only hosting
+npm run deploy:test
 ```
 
-### Step-by-Step Deploy
+This runs: `VITE_APP_ENV=test tsc -b && VITE_APP_ENV=test vite build && firebase deploy --only hosting:test`
 
-1. **Build the application**:
-   ```bash
-   npm run build
-   ```
+Visit https://jicompta-test.web.app to validate.
 
-   This creates optimized files in `dist/`:
-   - `index.html` - Main HTML file
-   - `assets/*.js` - Bundled JavaScript
-   - `assets/*.css` - Bundled CSS
+### Deploy to production
 
-2. **Preview locally** (optional):
-   ```bash
-   firebase serve
-   ```
-   Access at: `http://localhost:5000`
+```bash
+npm run deploy:prod
+```
 
-3. **Deploy to Firebase**:
-   ```bash
-   firebase deploy --only hosting
-   ```
+This runs: `tsc -b && vite build && firebase deploy --only hosting:production`
 
-4. **Deployment output**:
-   ```
-   === Deploying to 'jicompta'...
+Visit https://jicompta.web.app to confirm.
 
-   i  deploying hosting
-   i  hosting[jicompta]: beginning deploy...
-   i  hosting[jicompta]: found 3 files in dist
-   ✔  hosting[jicompta]: file upload complete
-   i  hosting[jicompta]: finalizing version...
-   ✔  hosting[jicompta]: version finalized
-   i  hosting[jicompta]: releasing new version...
-   ✔  hosting[jicompta]: release complete
+### Typical deployment workflow
 
-   ✔  Deploy complete!
+1. Make changes and test locally (`npm run dev`)
+2. Run tests (`npm test`)
+3. Deploy to test: `npm run deploy:test`
+4. Have users validate on https://jicompta-test.web.app
+5. Once validated, deploy to production: `npm run deploy:prod`
 
-   Project Console: https://console.firebase.google.com/project/jicompta/overview
-   Hosting URL: https://jicompta.web.app
-   ```
-
-## 🔐 Post-Deployment Configuration
+## Post-Deployment Configuration
 
 ### Update Google OAuth Settings
 
-After your first deployment, you **must** update Google Cloud Console:
+Both environment URLs **must** be registered in Google Cloud Console:
 
 1. Go to [Google Cloud Console](https://console.cloud.google.com/)
 2. Select your project
 3. Navigate to **APIs & Services** > **Credentials**
 4. Click on your OAuth 2.0 Client ID
-5. Add Firebase URLs to **Authorized JavaScript origins**:
+5. Add all URLs to **Authorized JavaScript origins**:
    ```
    https://jicompta.web.app
    https://jicompta.firebaseapp.com
+   https://jicompta-test.web.app
+   https://jicompta-test.firebaseapp.com
    ```
-6. Add Firebase URLs to **Authorized redirect URIs**:
+6. Add all URLs to **Authorized redirect URIs**:
    ```
    https://jicompta.web.app
    https://jicompta.firebaseapp.com
+   https://jicompta-test.web.app
+   https://jicompta-test.firebaseapp.com
    ```
 7. Click **SAVE**
 
 ### Test Your Deployment
 
-1. Visit your app: `https://jicompta.web.app`
+1. Visit your app URL
 2. Test the complete flow:
-   - ✅ Click "Sign in with Google"
-   - ✅ Authorize permissions
-   - ✅ Automatic setup wizard runs
-   - ✅ Dashboard loads correctly
-   - ✅ Client management works
-   - ✅ Google Sheets integration functions
+   - Click "Sign in with Google"
+   - Authorize permissions
+   - Automatic setup wizard runs
+   - Dashboard loads correctly
+   - Client management works
+   - Google Sheets integration functions
 
-## 🛠️ Advanced Configuration
+## Build Configuration
+
+### `firebase.json` (multi-site)
+
+The `firebase.json` defines two hosting targets (`production` and `test`) with identical configuration. Both serve from `dist/` with SPA rewrites and aggressive caching for static assets.
+
+### Vite environment plugin
+
+In `vite.config.ts`, the `envHtmlPlugin` transforms `index.html` at build time when `VITE_APP_ENV=test`:
+
+- `/icon.svg` → `/icon-test.svg`
+- `/manifest.json` → `/manifest-test.json`
+- `/apple-touch-icon.png` → `/apple-touch-icon-test.png`
+- Title → "JiCompta (TEST)"
+- Theme colors → grey tones
+
+### Test-specific assets
+
+The `public/` directory contains test variants of all PWA assets:
+
+- `icon-test.svg` — grey version of the app icon
+- `icon-test-192.png`, `icon-test-512.png` — grey PNG icons
+- `apple-touch-icon-test.png` — grey iOS icon
+- `manifest-test.json` — PWA manifest with test name and grey icons
+
+## Advanced Configuration
 
 ### Custom Domain
 
@@ -212,45 +233,18 @@ To use your own domain (e.g., `app.mycompany.com`):
    - Add your custom domain to Google Cloud Console
    - Update both authorized origins and redirect URIs
 
-### Environment-Specific Deployments
-
-Deploy to different Firebase projects:
-
-```bash
-# Production
-firebase use production
-npm run build
-firebase deploy --only hosting
-
-# Staging
-firebase use staging
-npm run build
-firebase deploy --only hosting
-```
-
-Configure in `.firebaserc`:
-```json
-{
-  "projects": {
-    "default": "jicompta",
-    "production": "jicompta-prod",
-    "staging": "jicompta-staging"
-  }
-}
-```
-
 ### Rollback Deployment
 
 If something goes wrong:
 
 ```bash
-# List previous deployments
-firebase hosting:channel:list
-
 # View deployment history in Firebase Console
 # Hosting > Dashboard > Release history
 
-# Or redeploy a previous version manually
+# Or redeploy a previous version by checking out the commit and redeploying
+git checkout <previous-commit>
+npm run deploy:prod   # or deploy:test
+git checkout main
 ```
 
 ### Preview Channels
@@ -265,77 +259,7 @@ firebase hosting:channel:deploy preview-feature-x
 # https://jicompta--preview-feature-x-hash.web.app
 ```
 
-## 📊 Monitoring & Analytics
-
-### Firebase Console
-
-Monitor your deployment at:
-`https://console.firebase.google.com/project/jicompta/overview`
-
-Available metrics:
-- Request count
-- Bandwidth usage
-- Response times
-- Error rates
-
-### Performance Monitoring (Optional)
-
-Add Firebase Performance Monitoring:
-
-```bash
-npm install firebase
-```
-
-Then add to your app initialization.
-
-## 🔄 CI/CD Integration
-
-### GitHub Actions
-
-Create `.github/workflows/firebase-deploy.yml`:
-
-```yaml
-name: Deploy to Firebase Hosting
-
-on:
-  push:
-    branches:
-      - main
-
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build
-        run: npm run build
-
-      - name: Deploy to Firebase
-        uses: FirebaseExtended/action-hosting-deploy@v0
-        with:
-          repoToken: '${{ secrets.GITHUB_TOKEN }}'
-          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
-          channelId: live
-          projectId: jicompta
-```
-
-Generate service account:
-```bash
-firebase login:ci
-```
-
-Add the token to GitHub Secrets as `FIREBASE_SERVICE_ACCOUNT`.
-
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### Build fails
 ```bash
@@ -357,8 +281,15 @@ firebase projects:list
 firebase use jicompta
 ```
 
+### Deploy target not configured
+If you see `Error: No hosting target(s) found`:
+```bash
+firebase target:apply hosting production jicompta
+firebase target:apply hosting test jicompta-test
+```
+
 ### OAuth errors after deployment
-- Verify URLs are added to Google Cloud Console
+- Verify all URLs are added to Google Cloud Console (both prod and test)
 - Check for typos in redirect URIs
 - Wait 5 minutes for changes to propagate
 
@@ -366,12 +297,7 @@ firebase use jicompta
 - Ensure `rewrites` are configured in `firebase.json`
 - All routes should redirect to `index.html`
 
-### Slow loading
-- Check that caching headers are set correctly
-- Verify gzip compression is enabled
-- Consider code splitting in Vite config
-
-## 💰 Costs
+## Costs
 
 Firebase Hosting **free tier** includes:
 - 10 GB storage
@@ -379,31 +305,22 @@ Firebase Hosting **free tier** includes:
 - SSL certificates included
 - Custom domains included
 
-For JiCompta's typical usage, the free tier is more than sufficient.
+For JiCompta's typical usage (two hosting sites), the free tier is more than sufficient.
 
-## 📞 Support
-
-- **Firebase Docs**: https://firebase.google.com/docs/hosting
-- **Firebase Status**: https://status.firebase.google.com/
-- **Community**: https://firebase.google.com/community
-
-## ✅ Deployment Checklist
+## Deployment Checklist
 
 Before deployment:
 - [ ] Application builds successfully (`npm run build`)
 - [ ] Tests pass (`npm test`)
-- [ ] Environment variables are correct
+- [ ] Environment variables are correct (`.env`)
 - [ ] Firebase project is created
 - [ ] Firebase CLI is installed and authenticated
+- [ ] Firebase deploy targets are configured (`.firebaserc`)
 
 After deployment:
-- [ ] Google OAuth URLs updated
-- [ ] Application loads at Firebase URL
-- [ ] Login flow works
-- [ ] Setup wizard functions correctly
+- [ ] Google OAuth URLs updated for both environments
+- [ ] Application loads at both Firebase URLs
+- [ ] Test environment shows grey icon and amber banner
+- [ ] Production environment shows blue icon and no banner
+- [ ] Login flow works on both environments
 - [ ] Google Sheets integration works
-- [ ] All features tested in production
-
----
-
-**Your JiCompta app is now deployed and ready for users! 🎉**
