@@ -726,10 +726,13 @@ export async function generateTaxReport(
     document.body.removeChild(a);
     window.URL.revokeObjectURL(url);
 
-    // Delete the temporary Google Doc
-    await driveRequest(`/files/${documentId}`, 'DELETE');
-
-    console.log('Tax report generated and downloaded, temporary doc deleted');
+    // Delete the temporary Google Doc (best-effort, don't fail the report if cleanup fails)
+    try {
+      await driveRequest(`/files/${documentId}`, 'DELETE');
+      console.log('Tax report generated and downloaded, temporary doc deleted');
+    } catch (cleanupError) {
+      console.warn('Failed to delete temporary doc (report was downloaded successfully):', cleanupError);
+    }
 
     return `Rapport_Fiscal_${year}.pdf`;
   } catch (error) {
