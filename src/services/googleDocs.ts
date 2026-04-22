@@ -454,12 +454,13 @@ export async function generateTaxReport(
     const monthNames = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
                         'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
     let monthlyText = 'REVENUS PAR MOIS\n\n';
-    Object.entries(revenueByMonth).forEach(([month, revenue]) => {
-      const monthName = monthNames[parseInt(month) - 1];
-      monthlyText += `${monthName}: ${formatCurrency(revenue)}\n`;
-    });
-    // Add total to verify it matches CA
-    const totalByMonth = Object.values(revenueByMonth).reduce((sum, revenue) => sum + revenue, 0);
+    let totalByMonth = 0;
+    for (let month = 1; month <= 12; month++) {
+      const monthKey = String(month).padStart(2, '0');
+      const revenue = revenueByMonth[monthKey] || 0;
+      monthlyText += `${monthNames[month - 1]}: ${formatCurrency(revenue)}\n`;
+      totalByMonth += revenue;
+    }
     monthlyText += `\nTOTAL: ${formatCurrency(totalByMonth)}\n\n`;
 
     requests.push({
@@ -469,6 +470,29 @@ export async function generateTaxReport(
       },
     });
     currentIndex += monthlyText.length;
+
+    // Add quarterly breakdown
+    const quarterNames = ['T1 (Janvier - Mars)', 'T2 (Avril - Juin)', 'T3 (Juillet - Septembre)', 'T4 (Octobre - Décembre)'];
+    let quarterlyText = 'REVENUS PAR TRIMESTRE\n\n';
+    let totalByQuarter = 0;
+    for (let q = 0; q < 4; q++) {
+      let quarterRevenue = 0;
+      for (let m = 1; m <= 3; m++) {
+        const monthKey = String(q * 3 + m).padStart(2, '0');
+        quarterRevenue += revenueByMonth[monthKey] || 0;
+      }
+      quarterlyText += `${quarterNames[q]}: ${formatCurrency(quarterRevenue)}\n`;
+      totalByQuarter += quarterRevenue;
+    }
+    quarterlyText += `\nTOTAL: ${formatCurrency(totalByQuarter)}\n\n`;
+
+    requests.push({
+      insertText: {
+        location: { index: currentIndex },
+        text: quarterlyText,
+      },
+    });
+    currentIndex += quarterlyText.length;
 
     // Add all clients with revenue
     let clientsText = 'REVENUS PAR CLIENT\n\n';
