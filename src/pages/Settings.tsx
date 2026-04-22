@@ -644,10 +644,10 @@ export default function Settings() {
             <span>En cas de problème, réinitialisez la configuration pour repartir de zéro</span>
           </li>
         </ul>
-        <p className="text-xs text-blue-600 mt-4">
-          Build {__BUILD_DATE__} &middot; {__COMMIT_HASH__}
-        </p>
       </div>
+      <p className="text-xs text-gray-400 text-center mt-2">
+        Build {__BUILD_DATE__} &middot; {__COMMIT_HASH__}
+      </p>
 
       {/* Reset Confirmation Modal */}
       {showResetConfirm && (
