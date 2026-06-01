@@ -178,10 +178,10 @@ describe('googleSheets service', () => {
 
   describe('addClient', () => {
     it('sends POST with correct values', async () => {
-      let capturedBody: any = null
+      const capturedBodies: any[] = []
       server.use(
         http.post(`${SHEETS_BASE}/:id/values/:range*`, async ({ request }) => {
-          capturedBody = await request.json()
+          capturedBodies.push(await request.json())
           return HttpResponse.json({ updates: { updatedRows: 1 } })
         })
       )
@@ -191,9 +191,10 @@ describe('googleSheets service', () => {
         telephone: '0600000000',
         _rowNumber: -1,
       })
-      expect(capturedBody.values).toBeDefined()
-      expect(capturedBody.values[0]).toContain('New Client')
-      expect(capturedBody.values[0]).toContain('new@test.fr')
+      const dataBody = capturedBodies[0]
+      expect(dataBody.values).toBeDefined()
+      expect(dataBody.values[0]).toContain('New Client')
+      expect(dataBody.values[0]).toContain('new@test.fr')
     })
   })
 
@@ -231,16 +232,17 @@ describe('googleSheets service', () => {
 
   describe('addTypePrestation', () => {
     it('appends with correct values', async () => {
-      let capturedBody: any = null
+      const capturedBodies: any[] = []
       server.use(
         http.post(`${SHEETS_BASE}/:id/values/:range*`, async ({ request }) => {
-          capturedBody = await request.json()
+          capturedBodies.push(await request.json())
           return HttpResponse.json({ updates: { updatedRows: 1 } })
         })
       )
       await addTypePrestation({ nom: 'Audit', montant_suggere: 1500, _rowNumber: -1 })
-      expect(capturedBody.values[0]).toContain('Audit')
-      expect(capturedBody.values[0]).toContain(1500)
+      const dataBody = capturedBodies[0]
+      expect(dataBody.values[0]).toContain('Audit')
+      expect(dataBody.values[0]).toContain(1500)
     })
   })
 
@@ -260,10 +262,10 @@ describe('googleSheets service', () => {
 
   describe('addPrestation', () => {
     it('sends associatif as TRUE/FALSE string', async () => {
-      let capturedBody: any = null
+      const capturedBodies: any[] = []
       server.use(
         http.post(`${SHEETS_BASE}/:id/values/:range*`, async ({ request }) => {
-          capturedBody = await request.json()
+          capturedBodies.push(await request.json())
           return HttpResponse.json({ updates: { updatedRows: 1 } })
         })
       )
@@ -275,14 +277,14 @@ describe('googleSheets service', () => {
         associatif: true,
         _rowNumber: -1,
       })
-      expect(capturedBody.values[0]).toContain('TRUE')
+      expect(capturedBodies[0].values[0]).toContain('TRUE')
     })
 
     it('sends notes in the row', async () => {
-      let capturedBody: any = null
+      const capturedBodies: any[] = []
       server.use(
         http.post(`${SHEETS_BASE}/:id/values/:range*`, async ({ request }) => {
-          capturedBody = await request.json()
+          capturedBodies.push(await request.json())
           return HttpResponse.json({ updates: { updatedRows: 1 } })
         })
       )
@@ -295,14 +297,14 @@ describe('googleSheets service', () => {
         notes: 'Ma note',
         _rowNumber: -1,
       })
-      expect(capturedBody.values[0]).toContain('Ma note')
+      expect(capturedBodies[0].values[0]).toContain('Ma note')
     })
 
     it('sends empty string when notes is undefined', async () => {
-      let capturedBody: any = null
+      const capturedBodies: any[] = []
       server.use(
         http.post(`${SHEETS_BASE}/:id/values/:range*`, async ({ request }) => {
-          capturedBody = await request.json()
+          capturedBodies.push(await request.json())
           return HttpResponse.json({ updates: { updatedRows: 1 } })
         })
       )
@@ -316,7 +318,7 @@ describe('googleSheets service', () => {
       })
       // The notes column (index 6) should be empty string
       const notesColIndex = mockSheetsRows.prestations.headers.indexOf('notes')
-      expect(capturedBody.values[0][notesColIndex]).toBe('')
+      expect(capturedBodies[0].values[0][notesColIndex]).toBe('')
     })
   })
 
@@ -339,10 +341,10 @@ describe('googleSheets service', () => {
 
   describe('addPaiement', () => {
     it('appends with optional fields as empty strings', async () => {
-      let capturedBody: any = null
+      const capturedBodies: any[] = []
       server.use(
         http.post(`${SHEETS_BASE}/:id/values/:range*`, async ({ request }) => {
-          capturedBody = await request.json()
+          capturedBodies.push(await request.json())
           return HttpResponse.json({ updates: { updatedRows: 1 } })
         })
       )
@@ -352,15 +354,15 @@ describe('googleSheets service', () => {
         total: 1000,
         _rowNumber: -1,
       })
-      expect(capturedBody.values[0]).toContain('REF001')
-      expect(capturedBody.values[0]).toContain(1000)
+      expect(capturedBodies[0].values[0]).toContain('REF001')
+      expect(capturedBodies[0].values[0]).toContain(1000)
     })
 
     it('sends notes in the row', async () => {
-      let capturedBody: any = null
+      const capturedBodies: any[] = []
       server.use(
         http.post(`${SHEETS_BASE}/:id/values/:range*`, async ({ request }) => {
-          capturedBody = await request.json()
+          capturedBodies.push(await request.json())
           return HttpResponse.json({ updates: { updatedRows: 1 } })
         })
       )
@@ -371,14 +373,14 @@ describe('googleSheets service', () => {
         notes: 'Note paiement',
         _rowNumber: -1,
       })
-      expect(capturedBody.values[0]).toContain('Note paiement')
+      expect(capturedBodies[0].values[0]).toContain('Note paiement')
     })
 
     it('sends empty string when notes is undefined', async () => {
-      let capturedBody: any = null
+      const capturedBodies: any[] = []
       server.use(
         http.post(`${SHEETS_BASE}/:id/values/:range*`, async ({ request }) => {
-          capturedBody = await request.json()
+          capturedBodies.push(await request.json())
           return HttpResponse.json({ updates: { updatedRows: 1 } })
         })
       )
@@ -389,16 +391,16 @@ describe('googleSheets service', () => {
         _rowNumber: -1,
       })
       const notesColIndex = mockSheetsRows.paiements.headers.indexOf('notes')
-      expect(capturedBody.values[0][notesColIndex]).toBe('')
+      expect(capturedBodies[0].values[0][notesColIndex]).toBe('')
     })
   })
 
   describe('addDepense', () => {
     it('appends depense row', async () => {
-      let capturedBody: any = null
+      const capturedBodies: any[] = []
       server.use(
         http.post(`${SHEETS_BASE}/:id/values/:range*`, async ({ request }) => {
-          capturedBody = await request.json()
+          capturedBodies.push(await request.json())
           return HttpResponse.json({ updates: { updatedRows: 1 } })
         })
       )
@@ -409,8 +411,8 @@ describe('googleSheets service', () => {
         description: 'Test',
         _rowNumber: -1,
       })
-      expect(capturedBody.values[0]).toContain('Mon compte')
-      expect(capturedBody.values[0]).toContain(200)
+      expect(capturedBodies[0].values[0]).toContain('Mon compte')
+      expect(capturedBodies[0].values[0]).toContain(200)
     })
   })
 

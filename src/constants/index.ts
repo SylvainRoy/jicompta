@@ -16,6 +16,7 @@ export const SHEET_TABS = {
   PRESTATION: 'Prestation',
   PAIEMENT: 'Paiement',
   DEPENSE: 'Depense',
+  JOURNAL: 'Journal',
 } as const;
 
 // Google Sheets Column Mapping

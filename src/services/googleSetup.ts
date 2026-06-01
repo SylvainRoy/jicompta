@@ -214,6 +214,14 @@ export async function createSpreadsheet(folderId: string): Promise<string> {
       },
       {
         properties: {
+          title: 'Journal',
+          gridProperties: {
+            frozenRowCount: 1,
+          },
+        },
+      },
+      {
+        properties: {
           title: '_Meta',
           hidden: true,
         },
@@ -247,6 +255,10 @@ export async function createSpreadsheet(folderId: string): Promise<string> {
     {
       range: 'Depense!A1:D1',
       values: [['date', 'compte', 'montant', 'description']],
+    },
+    {
+      range: 'Journal!A1:G1',
+      values: [['timestamp', 'action', 'entite', 'identifiant', 'description', 'avant', 'apres']],
     },
     {
       range: '_Meta!A1:B2',
@@ -554,6 +566,44 @@ const MIGRATIONS: Migration[] = [
       if (formatRequests.length > 0) {
         await sheetsRequest(`/${spreadsheetId}:batchUpdate`, 'POST', {
           requests: formatRequests,
+        });
+      }
+    },
+  },
+  {
+    version: 4,
+    name: 'add_journal_sheet',
+    run: async (spreadsheetId: string) => {
+      const spreadsheet = await sheetsRequest(`/${spreadsheetId}?includeGridData=false`);
+      const sheets = spreadsheet.sheets || [];
+      if (sheets.some((s: any) => s.properties.title === 'Journal')) return;
+
+      await sheetsRequest(`/${spreadsheetId}:batchUpdate`, 'POST', {
+        requests: [{
+          addSheet: {
+            properties: {
+              title: 'Journal',
+              gridProperties: { frozenRowCount: 1 },
+            },
+          },
+        }],
+      });
+
+      await sheetsRequest(`/${spreadsheetId}/values/Journal!A1:G1?valueInputOption=RAW`, 'PUT', {
+        values: [['timestamp', 'action', 'entite', 'identifiant', 'description', 'avant', 'apres']],
+      });
+
+      const updated = await sheetsRequest(`/${spreadsheetId}?includeGridData=false`);
+      const journalSheet = updated.sheets.find((s: any) => s.properties.title === 'Journal');
+      if (journalSheet) {
+        await sheetsRequest(`/${spreadsheetId}:batchUpdate`, 'POST', {
+          requests: [{
+            repeatCell: {
+              range: { sheetId: journalSheet.properties.sheetId, startRowIndex: 0, endRowIndex: 1 },
+              cell: { userEnteredFormat: { textFormat: { bold: true } } },
+              fields: 'userEnteredFormat.textFormat.bold',
+            },
+          }],
         });
       }
     },
