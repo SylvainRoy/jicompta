@@ -18,6 +18,7 @@ import TypesPrestations from '@/pages/TypesPrestations';
 import Prestations from '@/pages/Prestations';
 import Paiements from '@/pages/Paiements';
 import Depenses from '@/pages/Depenses';
+import Journal from '@/pages/Journal';
 import Settings from '@/pages/Settings';
 import { ROUTES } from '@/constants';
 
@@ -97,6 +98,17 @@ function App() {
                 <ProtectedRoute>
                   <Layout>
                     <Depenses />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path={ROUTES.JOURNAL}
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <Journal />
                   </Layout>
                 </ProtectedRoute>
               }

@@ -79,6 +79,23 @@ export function isValidISODate(isoDate: string): boolean {
 }
 
 /**
+ * Format an ISO timestamp (e.g. 2026-06-16T14:30:00.000Z) for display
+ * in French: "16/06/2026 à 14:30". Falls back to the raw string if unparseable.
+ */
+export function formatDateTimeForDisplay(isoTimestamp: string): string {
+  if (!isoTimestamp) return '';
+  const date = new Date(isoTimestamp);
+  if (isNaN(date.getTime())) return isoTimestamp;
+
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = date.getFullYear();
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  return `${day}/${month}/${year} à ${hours}:${minutes}`;
+}
+
+/**
  * Format date for input[type="date"] (YYYY-MM-DD)
  */
 export function formatDateForInput(date: Date | string): string {

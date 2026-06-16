@@ -15,6 +15,7 @@ import type {
   Prestation,
   Paiement,
   Depense,
+  JournalLogEntry,
   GoogleSheetsResponse,
 } from '@/types';
 
@@ -317,6 +318,49 @@ async function appendJournalEntry(entry: JournalEntry): Promise<void> {
     await appendRange(`${SHEET_TABS.JOURNAL}!A:G`, [row]);
   } catch {
     // Journal writes must never break normal operations
+  }
+}
+
+/** Parse a JSON snapshot cell into an object, tolerating empty/invalid values */
+function parseSnapshot(value: string): Record<string, unknown> | null {
+  if (!value) return null;
+  try {
+    const parsed = JSON.parse(value);
+    return parsed && typeof parsed === 'object' ? (parsed as Record<string, unknown>) : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Read all journal entries, most recent first.
+ */
+export async function getJournal(): Promise<GoogleSheetsResponse<JournalLogEntry>> {
+  try {
+    const { columns, rows } = await readSheetWithHeaders(SHEET_TABS.JOURNAL);
+
+    const entries: JournalLogEntry[] = [];
+
+    rows.forEach((row) => {
+      const timestamp = getCellString(row, columns, 'timestamp');
+      const action = getCellString(row, columns, 'action');
+      if (!timestamp && !action) return;
+
+      entries.push({
+        timestamp,
+        action: (action || 'MODIFICATION') as JournalLogEntry['action'],
+        entite: getCellString(row, columns, 'entite'),
+        identifiant: getCellString(row, columns, 'identifiant'),
+        description: getCellString(row, columns, 'description'),
+        avant: parseSnapshot(getCellString(row, columns, 'avant')),
+        apres: parseSnapshot(getCellString(row, columns, 'apres')),
+      });
+    });
+
+    // Sheet stores entries chronologically (appended); show newest first
+    return { data: entries.reverse() };
+  } catch (error) {
+    return { data: [], error: String(error) };
   }
 }
 

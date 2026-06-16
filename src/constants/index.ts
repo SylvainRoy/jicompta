@@ -132,6 +132,7 @@ export const ROUTES = {
   DEPENSES: '/depenses',
   DEPENSES_NEW: '/depenses/new',
   DEPENSES_EDIT: '/depenses/:id',
+  JOURNAL: '/journal',
   SETTINGS: '/settings',
 } as const;
 

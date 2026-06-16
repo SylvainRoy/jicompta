@@ -50,6 +50,18 @@ export interface Depense {
   _rowNumber?: number; // Internal: actual row number in Google Sheets
 }
 
+export type JournalAction = 'AJOUT' | 'MODIFICATION' | 'SUPPRESSION';
+
+export interface JournalLogEntry {
+  timestamp: string; // ISO datetime when the action happened
+  action: JournalAction;
+  entite: string; // e.g. "Client", "Prestation", "Paiement", "Depense"
+  identifiant: string; // human identifier (client name, payment reference, ...)
+  description: string; // ready-to-read French description of the action
+  avant: Record<string, unknown> | null; // snapshot before the change
+  apres: Record<string, unknown> | null; // snapshot after the change
+}
+
 // ============================================
 // UI State Models
 // ============================================
