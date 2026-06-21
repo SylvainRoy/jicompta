@@ -180,7 +180,7 @@ describe('googleSheets service', () => {
     it('sends POST with correct values', async () => {
       const capturedBodies: any[] = []
       server.use(
-        http.post(`${SHEETS_BASE}/:id/values/:range*`, async ({ request }) => {
+        http.put(`${SHEETS_BASE}/:id/values/:range*`, async ({ request }) => {
           capturedBodies.push(await request.json())
           return HttpResponse.json({ updates: { updatedRows: 1 } })
         })
@@ -234,7 +234,7 @@ describe('googleSheets service', () => {
     it('appends with correct values', async () => {
       const capturedBodies: any[] = []
       server.use(
-        http.post(`${SHEETS_BASE}/:id/values/:range*`, async ({ request }) => {
+        http.put(`${SHEETS_BASE}/:id/values/:range*`, async ({ request }) => {
           capturedBodies.push(await request.json())
           return HttpResponse.json({ updates: { updatedRows: 1 } })
         })
@@ -264,7 +264,7 @@ describe('googleSheets service', () => {
     it('sends associatif as TRUE/FALSE string', async () => {
       const capturedBodies: any[] = []
       server.use(
-        http.post(`${SHEETS_BASE}/:id/values/:range*`, async ({ request }) => {
+        http.put(`${SHEETS_BASE}/:id/values/:range*`, async ({ request }) => {
           capturedBodies.push(await request.json())
           return HttpResponse.json({ updates: { updatedRows: 1 } })
         })
@@ -283,7 +283,7 @@ describe('googleSheets service', () => {
     it('sends notes in the row', async () => {
       const capturedBodies: any[] = []
       server.use(
-        http.post(`${SHEETS_BASE}/:id/values/:range*`, async ({ request }) => {
+        http.put(`${SHEETS_BASE}/:id/values/:range*`, async ({ request }) => {
           capturedBodies.push(await request.json())
           return HttpResponse.json({ updates: { updatedRows: 1 } })
         })
@@ -303,7 +303,7 @@ describe('googleSheets service', () => {
     it('sends empty string when notes is undefined', async () => {
       const capturedBodies: any[] = []
       server.use(
-        http.post(`${SHEETS_BASE}/:id/values/:range*`, async ({ request }) => {
+        http.put(`${SHEETS_BASE}/:id/values/:range*`, async ({ request }) => {
           capturedBodies.push(await request.json())
           return HttpResponse.json({ updates: { updatedRows: 1 } })
         })
@@ -343,7 +343,7 @@ describe('googleSheets service', () => {
     it('appends with optional fields as empty strings', async () => {
       const capturedBodies: any[] = []
       server.use(
-        http.post(`${SHEETS_BASE}/:id/values/:range*`, async ({ request }) => {
+        http.put(`${SHEETS_BASE}/:id/values/:range*`, async ({ request }) => {
           capturedBodies.push(await request.json())
           return HttpResponse.json({ updates: { updatedRows: 1 } })
         })
@@ -361,7 +361,7 @@ describe('googleSheets service', () => {
     it('sends notes in the row', async () => {
       const capturedBodies: any[] = []
       server.use(
-        http.post(`${SHEETS_BASE}/:id/values/:range*`, async ({ request }) => {
+        http.put(`${SHEETS_BASE}/:id/values/:range*`, async ({ request }) => {
           capturedBodies.push(await request.json())
           return HttpResponse.json({ updates: { updatedRows: 1 } })
         })
@@ -379,7 +379,7 @@ describe('googleSheets service', () => {
     it('sends empty string when notes is undefined', async () => {
       const capturedBodies: any[] = []
       server.use(
-        http.post(`${SHEETS_BASE}/:id/values/:range*`, async ({ request }) => {
+        http.put(`${SHEETS_BASE}/:id/values/:range*`, async ({ request }) => {
           capturedBodies.push(await request.json())
           return HttpResponse.json({ updates: { updatedRows: 1 } })
         })
@@ -399,7 +399,7 @@ describe('googleSheets service', () => {
     it('appends depense row', async () => {
       const capturedBodies: any[] = []
       server.use(
-        http.post(`${SHEETS_BASE}/:id/values/:range*`, async ({ request }) => {
+        http.put(`${SHEETS_BASE}/:id/values/:range*`, async ({ request }) => {
           capturedBodies.push(await request.json())
           return HttpResponse.json({ updates: { updatedRows: 1 } })
         })

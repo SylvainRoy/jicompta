@@ -155,11 +155,20 @@ function buildEmptyRow(columns: ColumnMap): unknown[] {
 }
 
 /**
- * Get the append range for a sheet (e.g., "Clients!A:E")
+ * Append a row by writing it to an explicit, column-A-anchored range.
+ *
+ * We deliberately do NOT use the Sheets values.append endpoint here: its
+ * table-detection can place appended rows starting at a column other than A
+ * (observed in production as rows shifted ~5 columns right, leaving the row
+ * unreadable by our header-based column map and invisible in the UI). Writing
+ * to an explicit `A{n}:{lastCol}{n}` range makes placement deterministic.
  */
-function getAppendRange(sheetTab: string, columns: ColumnMap): string {
-  const maxCol = Math.max(...Object.values(columns), -1);
-  return `${sheetTab}!A:${columnLetter(maxCol)}`;
+async function appendRowSafely(sheetTab: string, row: unknown[]): Promise<void> {
+  const lastCol = columnLetter(Math.max(row.length - 1, 0));
+  // Count existing rows (header + data; the API trims trailing empties).
+  const existing = await readRange(`${sheetTab}!A1:Z`);
+  const nextRow = existing.length + 1; // 1-based row number to write into
+  await writeRange(`${sheetTab}!A${nextRow}:${lastCol}${nextRow}`, [row]);
 }
 
 /**
@@ -252,22 +261,6 @@ async function writeRange(range: string, values: unknown[][]): Promise<void> {
   }
 }
 
-/**
- * Append values to a sheet
- */
-async function appendRange(range: string, values: unknown[][]): Promise<void> {
-  try {
-    await sheetsRequest(
-      `/values/${encodeURIComponent(range)}:append?valueInputOption=RAW`,
-      'POST',
-      { values }
-    );
-  } catch (error) {
-    console.error('Error appending range:', error);
-    throw error;
-  }
-}
-
 // ==================== JOURNAL ====================
 
 type JournalAction = 'AJOUT' | 'MODIFICATION' | 'SUPPRESSION';
@@ -315,7 +308,7 @@ async function appendJournalEntry(entry: JournalEntry): Promise<void> {
       entry.avant ? JSON.stringify(entry.avant) : '',
       entry.apres ? JSON.stringify(entry.apres) : '',
     ];
-    await appendRange(`${SHEET_TABS.JOURNAL}!A:G`, [row]);
+    await appendRowSafely(SHEET_TABS.JOURNAL, row);
   } catch {
     // Journal writes must never break normal operations
   }
@@ -408,7 +401,7 @@ export async function addClient(client: Client): Promise<void> {
     adresse: client.adresse || '',
     numero_siret: client.numero_siret || '',
   });
-  await appendRange(getAppendRange(SHEET_TABS.CLIENTS, columns), [row]);
+  await appendRowSafely(SHEET_TABS.CLIENTS, row);
   await appendJournalEntry({
     action: 'AJOUT',
     entite: 'Client',
@@ -498,7 +491,7 @@ export async function addTypePrestation(type: TypePrestation): Promise<void> {
     nom: type.nom,
     montant_suggere: type.montant_suggere,
   });
-  await appendRange(getAppendRange(SHEET_TABS.TYPE_PRESTATION, columns), [row]);
+  await appendRowSafely(SHEET_TABS.TYPE_PRESTATION, row);
   await appendJournalEntry({
     action: 'AJOUT',
     entite: 'TypePrestation',
@@ -599,7 +592,7 @@ export async function addPrestation(prestation: Prestation): Promise<void> {
     associatif: prestation.associatif ? 'TRUE' : 'FALSE',
     notes: prestation.notes || '',
   });
-  await appendRange(getAppendRange(SHEET_TABS.PRESTATION, columns), [row]);
+  await appendRowSafely(SHEET_TABS.PRESTATION, row);
   await appendJournalEntry({
     action: 'AJOUT',
     entite: 'Prestation',
@@ -730,7 +723,7 @@ export async function addPaiement(paiement: Paiement): Promise<void> {
     recu: paiement.recu || '',
     notes: paiement.notes || '',
   });
-  await appendRange(getAppendRange(SHEET_TABS.PAIEMENT, columns), [row]);
+  await appendRowSafely(SHEET_TABS.PAIEMENT, row);
   await appendJournalEntry({
     action: 'AJOUT',
     entite: 'Paiement',
@@ -828,7 +821,7 @@ export async function addDepense(depense: Depense): Promise<void> {
     montant: depense.montant,
     description: depense.description,
   });
-  await appendRange(getAppendRange(SHEET_TABS.DEPENSE, columns), [row]);
+  await appendRowSafely(SHEET_TABS.DEPENSE, row);
   await appendJournalEntry({
     action: 'AJOUT',
     entite: 'Depense',
