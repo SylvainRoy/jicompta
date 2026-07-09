@@ -12,6 +12,10 @@ import {
   restoreFromBackup, deleteBackup, LATEST_SCHEMA_VERSION, loadRepositories, removeRepository,
   type Backup, type SetupConfig,
 } from '@/services/googleSetup';
+import {
+  getClients, getTypesPrestations, getPrestations, getPaiements, getDepenses,
+} from '@/services/googleSheets';
+import { auditDatabase, type AuditIssue } from '@/utils/auditDatabase';
 import Button from '@/components/common/Button';
 import { formatDateForDisplay } from '@/utils/dateFormatter';
 
@@ -28,6 +32,10 @@ export default function Settings() {
   const [showRestoreConfirm, setShowRestoreConfirm] = useState<Backup | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<Backup | null>(null);
+
+  // Database audit
+  const [isAuditing, setIsAuditing] = useState(false);
+  const [auditIssues, setAuditIssues] = useState<AuditIssue[] | null>(null);
 
   // Repository management
   const [repositories, setRepositories] = useState<SetupConfig[]>([]);
@@ -153,6 +161,44 @@ export default function Settings() {
       notifyError('Échec de la suppression de la sauvegarde');
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  const handleAudit = async () => {
+    setIsAuditing(true);
+    setAuditIssues(null);
+    try {
+      info('Audit de la base de données en cours...');
+      // Fetch fresh data directly from Google Sheets to audit the current state
+      const [clientsRes, typesRes, prestationsRes, paiementsRes, depensesRes] = await Promise.all([
+        getClients(),
+        getTypesPrestations(),
+        getPrestations(),
+        getPaiements(),
+        getDepenses(),
+      ]);
+
+      const issues = auditDatabase({
+        clients: clientsRes.data,
+        typesPrestations: typesRes.data,
+        prestations: prestationsRes.data,
+        paiements: paiementsRes.data,
+        depenses: depensesRes.data,
+      });
+
+      setAuditIssues(issues);
+      const nbErreurs = issues.filter((i) => i.severity === 'erreur').length;
+      const nbAvertissements = issues.length - nbErreurs;
+      if (issues.length === 0) {
+        success('Audit terminé: aucune incohérence détectée');
+      } else {
+        warning(`Audit terminé: ${nbErreurs} erreur(s), ${nbAvertissements} avertissement(s)`);
+      }
+    } catch (error) {
+      console.error('Audit failed:', error);
+      notifyError('Échec de l\'audit de la base de données');
+    } finally {
+      setIsAuditing(false);
     }
   };
 
@@ -557,6 +603,69 @@ export default function Settings() {
                           Supprimer
                         </button>
                       </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Database Audit Section */}
+            <div className="mt-6 pt-6 border-t border-gray-200">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="text-sm font-medium text-gray-900">Audit de la base de données</h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Vérifiez la cohérence des données: références croisées, doublons, totaux des paiements, formats
+                  </p>
+                </div>
+                <Button
+                  onClick={handleAudit}
+                  variant="primary"
+                  disabled={isAuditing}
+                >
+                  {isAuditing ? 'Audit en cours...' : '🔍 Auditer la base'}
+                </Button>
+              </div>
+
+              {auditIssues !== null && auditIssues.length === 0 && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3">
+                  <svg className="w-6 h-6 text-green-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <p className="text-sm text-green-800">
+                    Aucune incohérence détectée. La base de données est cohérente.
+                  </p>
+                </div>
+              )}
+
+              {auditIssues !== null && auditIssues.length > 0 && (
+                <div className="space-y-4">
+                  <div className="flex gap-3 text-sm">
+                    <span className="px-3 py-1 font-semibold text-red-800 bg-red-100 rounded-full">
+                      {auditIssues.filter((i) => i.severity === 'erreur').length} erreur(s)
+                    </span>
+                    <span className="px-3 py-1 font-semibold text-orange-800 bg-orange-100 rounded-full">
+                      {auditIssues.filter((i) => i.severity === 'avertissement').length} avertissement(s)
+                    </span>
+                  </div>
+                  {[...new Set(auditIssues.map((i) => i.categorie))].map((categorie) => (
+                    <div key={categorie} className="border border-gray-200 rounded-lg p-4">
+                      <h4 className="text-sm font-medium text-gray-900 mb-2">{categorie}</h4>
+                      <ul className="space-y-1">
+                        {auditIssues
+                          .filter((i) => i.categorie === categorie)
+                          .map((issue, idx) => (
+                            <li key={idx} className="flex items-start gap-2 text-sm">
+                              <span
+                                className={`flex-shrink-0 mt-1.5 w-2 h-2 rounded-full ${
+                                  issue.severity === 'erreur' ? 'bg-red-500' : 'bg-orange-400'
+                                }`}
+                                title={issue.severity}
+                              />
+                              <span className="text-gray-700">{issue.message}</span>
+                            </li>
+                          ))}
+                      </ul>
                     </div>
                   ))}
                 </div>
