@@ -451,17 +451,34 @@ export async function generateTaxReport(
     currentIndex += summaryText.length;
 
     // Add monthly breakdown
+    // Expenses by month: only "Mon compte" expenses count towards the bénéfice,
+    // matching the exclusion of associative prestations from revenue
+    const expensesByMonth: Record<string, number> = {};
+    for (let month = 1; month <= 12; month++) {
+      const monthKey = String(month).padStart(2, '0');
+      expensesByMonth[monthKey] = 0;
+    }
+    depenses.forEach((d) => {
+      if (d.compte !== MON_COMPTE || !d.date) return;
+      const [depenseYear, depenseMonth] = d.date.split('-');
+      if (parseInt(depenseYear, 10) !== year) return;
+      expensesByMonth[depenseMonth] = (expensesByMonth[depenseMonth] || 0) + (Number(d.montant) || 0);
+    });
+
     const monthNames = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
                         'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
-    let monthlyText = 'REVENUS PAR MOIS\n\n';
+    let monthlyText = 'REVENUS, DÉPENSES ET BÉNÉFICE PAR MOIS\n\n';
     let totalByMonth = 0;
+    let totalExpenses = 0;
     for (let month = 1; month <= 12; month++) {
       const monthKey = String(month).padStart(2, '0');
       const revenue = revenueByMonth[monthKey] || 0;
-      monthlyText += `${monthNames[month - 1]}: ${formatCurrency(revenue)}\n`;
+      const expense = expensesByMonth[monthKey] || 0;
+      monthlyText += `${monthNames[month - 1]}: revenus ${formatCurrency(revenue)}, dépenses ${formatCurrency(expense)}, bénéfice ${formatCurrency(revenue - expense)}\n`;
       totalByMonth += revenue;
+      totalExpenses += expense;
     }
-    monthlyText += `\nTOTAL: ${formatCurrency(totalByMonth)}\n\n`;
+    monthlyText += `\nTOTAL: revenus ${formatCurrency(totalByMonth)}, dépenses ${formatCurrency(totalExpenses)}, bénéfice ${formatCurrency(totalByMonth - totalExpenses)}\n\n`;
 
     requests.push({
       insertText: {
@@ -473,18 +490,22 @@ export async function generateTaxReport(
 
     // Add quarterly breakdown
     const quarterNames = ['T1 (Janvier - Mars)', 'T2 (Avril - Juin)', 'T3 (Juillet - Septembre)', 'T4 (Octobre - Décembre)'];
-    let quarterlyText = 'REVENUS PAR TRIMESTRE\n\n';
+    let quarterlyText = 'REVENUS, DÉPENSES ET BÉNÉFICE PAR TRIMESTRE\n\n';
     let totalByQuarter = 0;
+    let totalExpensesByQuarter = 0;
     for (let q = 0; q < 4; q++) {
       let quarterRevenue = 0;
+      let quarterExpenses = 0;
       for (let m = 1; m <= 3; m++) {
         const monthKey = String(q * 3 + m).padStart(2, '0');
         quarterRevenue += revenueByMonth[monthKey] || 0;
+        quarterExpenses += expensesByMonth[monthKey] || 0;
       }
-      quarterlyText += `${quarterNames[q]}: ${formatCurrency(quarterRevenue)}\n`;
+      quarterlyText += `${quarterNames[q]}: revenus ${formatCurrency(quarterRevenue)}, dépenses ${formatCurrency(quarterExpenses)}, bénéfice ${formatCurrency(quarterRevenue - quarterExpenses)}\n`;
       totalByQuarter += quarterRevenue;
+      totalExpensesByQuarter += quarterExpenses;
     }
-    quarterlyText += `\nTOTAL: ${formatCurrency(totalByQuarter)}\n\n`;
+    quarterlyText += `\nTOTAL: revenus ${formatCurrency(totalByQuarter)}, dépenses ${formatCurrency(totalExpensesByQuarter)}, bénéfice ${formatCurrency(totalByQuarter - totalExpensesByQuarter)}\n\n`;
 
     requests.push({
       insertText: {
@@ -708,6 +729,7 @@ export async function generateTaxReport(
       `- Les prestations associatives ne génèrent pas de revenu et ne sont pas incluses dans le chiffre d'affaires\n` +
       `- Les prestations associatives créditent le compte du client associé\n` +
       `- L'état des comptes montre les soldes de tous les comptes (prestations associatives - dépenses)\n` +
+      `- Les dépenses et le bénéfice par mois et par trimestre ne comptabilisent que les dépenses du compte personnel (${MON_COMPTE})\n` +
       `- Tous les totaux (par mois, par client, par type, par mode, prestations, paiements) correspondent au chiffre d'affaires encaissé\n` +
       `- Montants en EUR\n` +
       `- Rapport généré le ${formatDateForDisplay(new Date().toISOString().split('T')[0])}\n`;
