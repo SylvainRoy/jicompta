@@ -131,13 +131,16 @@ export function auditDatabase(data: AuditData): AuditIssue[] {
     issues.push(erreur(CATEGORIES.DOUBLONS, `Référence de paiement "${ref}" présente ${count} fois`));
   });
 
-  // The same prestation cannot be given twice to the same client on the same day
+  // The same prestation cannot be given twice to the same client on the same day (unless notes differ)
   findDuplicates(
     prestations
       .filter((p) => p.date && p.nom_client && p.type_prestation)
-      .map((p) => `${p.date}|${p.nom_client}|${p.type_prestation}`)
+      .map((p) => `${p.date}|${p.nom_client}|${p.type_prestation}|${(p.notes || '').trim()}`)
   ).forEach((count, key) => {
-    const [date, nomClient, type] = key.split('|');
+    const parts = key.split('|');
+    const date = parts[0];
+    const nomClient = parts[1];
+    const type = parts[2];
     issues.push(erreur(CATEGORIES.DOUBLONS,
       `Prestation "${type}" pour ${nomClient} présente ${count} fois le ${formatDateForDisplay(date)}`));
   });

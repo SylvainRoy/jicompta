@@ -117,6 +117,23 @@ describe('auditDatabase', () => {
       expect(dup!.severity).toBe('erreur');
     });
 
+    it('allows the same prestation type on the same day if notes differ', () => {
+      const data = baseData();
+      data.prestations[0].notes = 'Note A';
+      data.prestations.push({ ...data.prestations[0], notes: 'Note B', paiement_id: undefined });
+      expect(auditDatabase(data)).toEqual([]);
+    });
+
+    it('detects duplicate prestations if notes are identical or empty/undefined', () => {
+      const data = baseData();
+      data.prestations[0].notes = 'Note commune';
+      data.prestations.push({ ...data.prestations[0], notes: 'Note commune ', paiement_id: undefined }); // space will be trimmed
+      const issues = auditDatabase(data);
+      const dup = issues.find((i) => i.message.includes('présente 2 fois le 10/01/2026'));
+      expect(dup).toBeDefined();
+      expect(dup!.severity).toBe('erreur');
+    });
+
     it('allows the same prestation type on different days', () => {
       const data = baseData();
       data.prestations.push({ ...data.prestations[0], date: '2026-01-11', paiement_id: undefined });
