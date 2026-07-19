@@ -13,7 +13,7 @@ import {
   type Backup, type SetupConfig,
 } from '@/services/googleSetup';
 import {
-  getClients, getTypesPrestations, getPrestations, getPaiements, getDepenses,
+  getClients, getTypesPrestations, getPrestations, getPaiements, getDepenses, logAudit,
 } from '@/services/googleSheets';
 import { auditDatabase, type AuditIssue } from '@/utils/auditDatabase';
 import Button from '@/components/common/Button';
@@ -194,6 +194,9 @@ export default function Settings() {
       } else {
         warning(`Audit terminé: ${nbErreurs} erreur(s), ${nbAvertissements} avertissement(s)`);
       }
+
+      // Record the audit in the journal
+      await logAudit(nbErreurs, nbAvertissements);
     } catch (error) {
       console.error('Audit failed:', error);
       notifyError('Échec de l\'audit de la base de données');

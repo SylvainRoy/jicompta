@@ -50,7 +50,7 @@ export interface Depense {
   _rowNumber?: number; // Internal: actual row number in Google Sheets
 }
 
-export type JournalAction = 'AJOUT' | 'MODIFICATION' | 'SUPPRESSION';
+export type JournalAction = 'AJOUT' | 'MODIFICATION' | 'SUPPRESSION' | 'AUDIT';
 
 export interface JournalLogEntry {
   timestamp: string; // ISO datetime when the action happened

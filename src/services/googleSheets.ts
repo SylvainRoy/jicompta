@@ -263,7 +263,7 @@ async function writeRange(range: string, values: unknown[][]): Promise<void> {
 
 // ==================== JOURNAL ====================
 
-type JournalAction = 'AJOUT' | 'MODIFICATION' | 'SUPPRESSION';
+type JournalAction = 'AJOUT' | 'MODIFICATION' | 'SUPPRESSION' | 'AUDIT';
 
 interface JournalEntry {
   action: JournalAction;
@@ -355,6 +355,24 @@ export async function getJournal(): Promise<GoogleSheetsResponse<JournalLogEntry
   } catch (error) {
     return { data: [], error: String(error) };
   }
+}
+
+/**
+ * Record a database audit in the journal.
+ */
+export async function logAudit(nbErreurs: number, nbAvertissements: number): Promise<void> {
+  const description = nbErreurs === 0 && nbAvertissements === 0
+    ? "Audit de la base de données : aucune incohérence détectée"
+    : `Audit de la base de données : ${nbErreurs} erreur(s) et ${nbAvertissements} avertissement(s) détecté(s)`;
+
+  await appendJournalEntry({
+    action: 'AUDIT',
+    entite: 'Audit',
+    identifiant: 'Base de données',
+    description,
+    avant: null,
+    apres: { erreurs: nbErreurs, avertissements: nbAvertissements },
+  });
 }
 
 // ==================== CLIENTS ====================

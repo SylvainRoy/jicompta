@@ -18,6 +18,7 @@ import {
   addPaiement,
   getDepenses,
   addDepense,
+  logAudit,
   clearColumnMapCache,
 } from '@/services/googleSheets'
 
@@ -413,6 +414,41 @@ describe('googleSheets service', () => {
       })
       expect(capturedBodies[0].values[0]).toContain('Mon compte')
       expect(capturedBodies[0].values[0]).toContain(200)
+    })
+  })
+
+  // ==================== logAudit ====================
+
+  describe('logAudit', () => {
+    it('appends an audit log entry to the Journal sheet', async () => {
+      const capturedBodies: any[] = []
+      server.use(
+        http.get(`${SHEETS_BASE}/:id/values/:range*`, ({ request }) => {
+          const path = decodeURIComponent(new URL(request.url).pathname)
+          if (path.includes('Journal')) {
+            return HttpResponse.json({
+              values: [['timestamp', 'action', 'entite', 'identifiant', 'description', 'avant', 'apres']]
+            })
+          }
+        }),
+        http.put(`${SHEETS_BASE}/:id/values/:range*`, async ({ request }) => {
+          const path = decodeURIComponent(new URL(request.url).pathname)
+          if (path.includes('Journal')) {
+            capturedBodies.push(await request.json())
+            return HttpResponse.json({ updates: { updatedRows: 1 } })
+          }
+        })
+      )
+
+      await logAudit(2, 5)
+
+      expect(capturedBodies).toHaveLength(1)
+      const values = capturedBodies[0].values[0]
+      expect(values).toContain('AUDIT')
+      expect(values).toContain('Audit')
+      expect(values).toContain('Base de données')
+      expect(values).toContain('Audit de la base de données : 2 erreur(s) et 5 avertissement(s) détecté(s)')
+      expect(values).toContain(JSON.stringify({ erreurs: 2, avertissements: 5 }))
     })
   })
 

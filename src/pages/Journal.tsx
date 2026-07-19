@@ -23,18 +23,21 @@ const ACTION_LABELS: Record<JournalAction, string> = {
   AJOUT: 'Ajout',
   MODIFICATION: 'Modification',
   SUPPRESSION: 'Suppression',
+  AUDIT: 'Audit',
 };
 
 const ACTION_BADGE: Record<JournalAction, string> = {
   AJOUT: 'bg-green-100 text-green-800',
   MODIFICATION: 'bg-blue-100 text-blue-800',
   SUPPRESSION: 'bg-red-100 text-red-800',
+  AUDIT: 'bg-purple-100 text-purple-800',
 };
 
 const ACTION_DOT: Record<JournalAction, string> = {
   AJOUT: 'bg-green-500',
   MODIFICATION: 'bg-blue-500',
   SUPPRESSION: 'bg-red-500',
+  AUDIT: 'bg-purple-500',
 };
 
 /** Friendly French label for each known entity type */
@@ -44,6 +47,7 @@ const ENTITE_LABELS: Record<string, string> = {
   Paiement: 'Paiement',
   Depense: 'Dépense',
   TypePrestation: 'Type de prestation',
+  Audit: 'Audit',
 };
 
 /** Friendly French label for each known field name */
@@ -70,6 +74,8 @@ const FIELD_LABELS: Record<string, string> = {
   recu: 'Reçu',
   compte: 'Compte',
   description: 'Description',
+  erreurs: 'Erreurs',
+  avertissements: 'Avertissements',
 };
 
 function fieldLabel(key: string): string {
@@ -100,7 +106,7 @@ interface FieldChange {
 function getChanges(entry: JournalLogEntry): FieldChange[] {
   const { action, avant, apres } = entry;
 
-  if (action === 'AJOUT' && apres) {
+  if ((action === 'AJOUT' || action === 'AUDIT') && apres) {
     return Object.entries(apres)
       .filter(([, v]) => v !== null && v !== undefined && v !== '')
       .map(([field, v]) => ({ field, avant: '', apres: v }));
@@ -283,6 +289,7 @@ export default function Journal() {
                 <option value="AJOUT">Ajouts</option>
                 <option value="MODIFICATION">Modifications</option>
                 <option value="SUPPRESSION">Suppressions</option>
+                <option value="AUDIT">Audits</option>
               </select>
               <select
                 value={entiteFilter}
