@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { auditDatabase, type AuditData } from '@/utils/auditDatabase';
+import { auditDatabase, auditDatabaseReport, type AuditData } from '@/utils/auditDatabase';
 import type { Prestation, Paiement, Depense } from '@/types';
 
 function baseData(): AuditData {
@@ -266,4 +266,46 @@ describe('auditDatabase', () => {
       expect(auditDatabase(data)).toEqual([]);
     });
   });
+
+  describe('auditDatabaseReport', () => {
+    it('returns full report with detailed checks listing when database is consistent', () => {
+      const report = auditDatabaseReport(baseData());
+      expect(report.issues).toEqual([]);
+      expect(report.totalChecks).toBeGreaterThan(0);
+      expect(report.passedChecks).toBe(report.totalChecks);
+      expect(report.errorCount).toBe(0);
+      expect(report.warningCount).toBe(0);
+
+      // Verify all categories and checks are present with 'succes' status
+      expect(report.categories.length).toBe(5);
+      report.categories.forEach((cat) => {
+        expect(cat.status).toBe('succes');
+        expect(cat.checks.length).toBeGreaterThan(0);
+        cat.checks.forEach((chk) => {
+          expect(chk.status).toBe('succes');
+          expect(chk.issues).toEqual([]);
+          expect(chk.title).toBeTruthy();
+        });
+      });
+    });
+
+    it('identifies failing checks and categorizes them correctly in the report', () => {
+      const data = baseData();
+      // Introduce an invalid client reference and a duplicate client name
+      data.prestations[0].nom_client = 'Inconnu';
+      data.clients.push({ nom: 'Alice', email: 'alice2@example.com' });
+
+      const report = auditDatabaseReport(data);
+      expect(report.passedChecks).toBeLessThan(report.totalChecks);
+      expect(report.errorCount).toBeGreaterThan(0);
+
+      const refCat = report.categories.find((c) => c.categorie === 'Références croisées');
+      expect(refCat?.status).toBe('erreur');
+
+      const clientRefCheck = refCat?.checks.find((c) => c.id === 'ref_client');
+      expect(clientRefCheck?.status).toBe('erreur');
+      expect(clientRefCheck?.issues[0].message).toContain('le client "Inconnu" n\'existe pas');
+    });
+  });
 });
+

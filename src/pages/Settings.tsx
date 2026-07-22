@@ -15,7 +15,7 @@ import {
 import {
   getClients, getTypesPrestations, getPrestations, getPaiements, getDepenses, logAudit,
 } from '@/services/googleSheets';
-import { auditDatabase, type AuditIssue } from '@/utils/auditDatabase';
+import { auditDatabaseReport, type AuditReport } from '@/utils/auditDatabase';
 import Button from '@/components/common/Button';
 import { formatDateForDisplay } from '@/utils/dateFormatter';
 
@@ -35,7 +35,7 @@ export default function Settings() {
 
   // Database audit
   const [isAuditing, setIsAuditing] = useState(false);
-  const [auditIssues, setAuditIssues] = useState<AuditIssue[] | null>(null);
+  const [auditReport, setAuditReport] = useState<AuditReport | null>(null);
 
   // Repository management
   const [repositories, setRepositories] = useState<SetupConfig[]>([]);
@@ -166,7 +166,7 @@ export default function Settings() {
 
   const handleAudit = async () => {
     setIsAuditing(true);
-    setAuditIssues(null);
+    setAuditReport(null);
     try {
       info('Audit de la base de données en cours...');
       // Fetch fresh data directly from Google Sheets to audit the current state
@@ -178,7 +178,7 @@ export default function Settings() {
         getDepenses(),
       ]);
 
-      const issues = auditDatabase({
+      const report = auditDatabaseReport({
         clients: clientsRes.data,
         typesPrestations: typesRes.data,
         prestations: prestationsRes.data,
@@ -186,17 +186,15 @@ export default function Settings() {
         depenses: depensesRes.data,
       });
 
-      setAuditIssues(issues);
-      const nbErreurs = issues.filter((i) => i.severity === 'erreur').length;
-      const nbAvertissements = issues.length - nbErreurs;
-      if (issues.length === 0) {
-        success('Audit terminé: aucune incohérence détectée');
+      setAuditReport(report);
+      if (report.issues.length === 0) {
+        success(`Audit terminé : aucune incohérence détectée (${report.totalChecks} vérifications réussies)`);
       } else {
-        warning(`Audit terminé: ${nbErreurs} erreur(s), ${nbAvertissements} avertissement(s)`);
+        warning(`Audit terminé : ${report.errorCount} erreur(s), ${report.warningCount} avertissement(s) (${report.passedChecks}/${report.totalChecks} vérifications valides)`);
       }
 
       // Record the audit in the journal
-      await logAudit(nbErreurs, nbAvertissements);
+      await logAudit(report.errorCount, report.warningCount);
     } catch (error) {
       console.error('Audit failed:', error);
       notifyError('Échec de l\'audit de la base de données');
@@ -630,47 +628,144 @@ export default function Settings() {
                 </Button>
               </div>
 
-              {auditIssues !== null && auditIssues.length === 0 && (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3">
-                  <svg className="w-6 h-6 text-green-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <p className="text-sm text-green-800">
-                    Aucune incohérence détectée. La base de données est cohérente.
-                  </p>
-                </div>
-              )}
-
-              {auditIssues !== null && auditIssues.length > 0 && (
+              {auditReport !== null && (
                 <div className="space-y-4">
-                  <div className="flex gap-3 text-sm">
-                    <span className="px-3 py-1 font-semibold text-red-800 bg-red-100 rounded-full">
-                      {auditIssues.filter((i) => i.severity === 'erreur').length} erreur(s)
-                    </span>
-                    <span className="px-3 py-1 font-semibold text-orange-800 bg-orange-100 rounded-full">
-                      {auditIssues.filter((i) => i.severity === 'avertissement').length} avertissement(s)
-                    </span>
-                  </div>
-                  {[...new Set(auditIssues.map((i) => i.categorie))].map((categorie) => (
-                    <div key={categorie} className="border border-gray-200 rounded-lg p-4">
-                      <h4 className="text-sm font-medium text-gray-900 mb-2">{categorie}</h4>
-                      <ul className="space-y-1">
-                        {auditIssues
-                          .filter((i) => i.categorie === categorie)
-                          .map((issue, idx) => (
-                            <li key={idx} className="flex items-start gap-2 text-sm">
-                              <span
-                                className={`flex-shrink-0 mt-1.5 w-2 h-2 rounded-full ${
-                                  issue.severity === 'erreur' ? 'bg-red-500' : 'bg-orange-400'
-                                }`}
-                                title={issue.severity}
-                              />
-                              <span className="text-gray-700">{issue.message}</span>
-                            </li>
-                          ))}
-                      </ul>
+                  {/* Status Summary Banner */}
+                  {auditReport.issues.length === 0 ? (
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <svg className="w-6 h-6 text-green-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <div>
+                          <p className="text-sm font-semibold text-green-900">
+                            Base de données 100% conforme
+                          </p>
+                          <p className="text-xs text-green-700 mt-0.5">
+                            {auditReport.passedChecks} sur {auditReport.totalChecks} vérifications effectuées avec succès.
+                          </p>
+                        </div>
+                      </div>
+                      <span className="px-3 py-1 text-xs font-semibold text-green-800 bg-green-200 rounded-full">
+                        {auditReport.passedChecks}/{auditReport.totalChecks} OK
+                      </span>
                     </div>
-                  ))}
+                  ) : (
+                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 flex flex-wrap items-center justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        <svg className="w-6 h-6 text-amber-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                        <div>
+                          <p className="text-sm font-semibold text-amber-900">
+                            Incohérences détectées dans la base de données
+                          </p>
+                          <p className="text-xs text-amber-700 mt-0.5">
+                            {auditReport.passedChecks} sur {auditReport.totalChecks} vérifications réussies.
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex gap-2 text-xs">
+                        {auditReport.errorCount > 0 && (
+                          <span className="px-3 py-1 font-semibold text-red-800 bg-red-100 rounded-full">
+                            {auditReport.errorCount} erreur(s)
+                          </span>
+                        )}
+                        {auditReport.warningCount > 0 && (
+                          <span className="px-3 py-1 font-semibold text-orange-800 bg-orange-100 rounded-full">
+                            {auditReport.warningCount} avertissement(s)
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* List of Audited Categories & Individual Checks */}
+                  <div className="space-y-3">
+                    <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                      Détail des vérifications ({auditReport.totalChecks} contrôles)
+                    </h4>
+
+                    {auditReport.categories.map((cat) => (
+                      <div key={cat.categorie} className="border border-gray-200 rounded-lg overflow-hidden bg-white">
+                        <div className="bg-gray-50 px-4 py-2.5 border-b border-gray-200 flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <h5 className="text-sm font-semibold text-gray-900">{cat.categorie}</h5>
+                            <span className="text-xs text-gray-500">
+                              ({cat.checks.filter((c) => c.status === 'succes').length}/{cat.checks.length} validés)
+                            </span>
+                          </div>
+                          {cat.status === 'succes' ? (
+                            <span className="px-2.5 py-0.5 text-xs font-medium text-green-800 bg-green-100 rounded-full flex items-center gap-1">
+                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                              </svg>
+                              Conforme
+                            </span>
+                          ) : cat.status === 'erreur' ? (
+                            <span className="px-2.5 py-0.5 text-xs font-medium text-red-800 bg-red-100 rounded-full">
+                              Erreur
+                            </span>
+                          ) : (
+                            <span className="px-2.5 py-0.5 text-xs font-medium text-orange-800 bg-orange-100 rounded-full">
+                              Avertissement
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="divide-y divide-gray-100 p-2">
+                          {cat.checks.map((check) => (
+                            <div key={check.id} className="p-2.5 text-sm">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  {check.status === 'succes' && (
+                                    <span className="flex-shrink-0 text-green-600 font-bold">✓</span>
+                                  )}
+                                  {check.status === 'erreur' && (
+                                    <span className="flex-shrink-0 text-red-600 font-bold">✕</span>
+                                  )}
+                                  {check.status === 'avertissement' && (
+                                    <span className="flex-shrink-0 text-orange-500 font-bold">⚠️</span>
+                                  )}
+                                  <span
+                                    className={`font-medium ${
+                                      check.status === 'succes'
+                                        ? 'text-gray-700'
+                                        : check.status === 'erreur'
+                                        ? 'text-red-900'
+                                        : 'text-orange-900'
+                                    }`}
+                                  >
+                                    {check.title}
+                                  </span>
+                                </div>
+                                {check.status === 'succes' && (
+                                  <span className="text-xs text-green-600 font-medium bg-green-50 px-2 py-0.5 rounded">
+                                    OK
+                                  </span>
+                                )}
+                              </div>
+
+                              {check.issues.length > 0 && (
+                                <ul className="mt-2 ml-6 space-y-1">
+                                  {check.issues.map((issue, idx) => (
+                                    <li key={idx} className="flex items-start gap-2 text-xs">
+                                      <span
+                                        className={`flex-shrink-0 mt-1 w-1.5 h-1.5 rounded-full ${
+                                          issue.severity === 'erreur' ? 'bg-red-500' : 'bg-orange-400'
+                                        }`}
+                                      />
+                                      <span className="text-gray-600">{issue.message}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
