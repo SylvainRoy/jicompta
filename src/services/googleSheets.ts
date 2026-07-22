@@ -18,6 +18,7 @@ import type {
   JournalLogEntry,
   GoogleSheetsResponse,
 } from '@/types';
+import type { AuditIssue, AuditReport } from '@/utils/auditDatabase';
 
 const BASE_URL = 'https://sheets.googleapis.com/v4/spreadsheets';
 
@@ -359,11 +360,52 @@ export async function getJournal(): Promise<GoogleSheetsResponse<JournalLogEntry
 
 /**
  * Record a database audit in the journal.
+ * Accepts either:
+ * - AuditIssue[] or AuditReport (containing detailed error and warning messages)
+ * - nbErreurs, nbAvertissements numbers (for backward compatibility)
  */
-export async function logAudit(nbErreurs: number, nbAvertissements: number): Promise<void> {
+export async function logAudit(
+  input: AuditIssue[] | AuditReport | number,
+  nbAvertissementsParam?: number
+): Promise<void> {
+  let nbErreurs = 0;
+  let nbAvertissements = 0;
+  let erreursList: string[] = [];
+  let avertissementsList: string[] = [];
+
+  if (typeof input === 'number') {
+    nbErreurs = input;
+    nbAvertissements = nbAvertissementsParam ?? 0;
+  } else {
+    const issues: AuditIssue[] = Array.isArray(input) ? input : input.issues;
+    const erreurs = issues.filter((i) => i.severity === 'erreur');
+    const avertissements = issues.filter((i) => i.severity === 'avertissement');
+
+    nbErreurs = erreurs.length;
+    nbAvertissements = avertissements.length;
+    erreursList = erreurs.map((i) => i.message);
+    avertissementsList = avertissements.map((i) => i.message);
+  }
+
   const description = nbErreurs === 0 && nbAvertissements === 0
     ? "Audit de la base de données : aucune incohérence détectée"
     : `Audit de la base de données : ${nbErreurs} erreur(s) et ${nbAvertissements} avertissement(s) détecté(s)`;
+
+  const apresData: Record<string, unknown> = {};
+
+  if (typeof input === 'number') {
+    apresData.erreurs = nbErreurs;
+    apresData.avertissements = nbAvertissements;
+  } else if (nbErreurs === 0 && nbAvertissements === 0) {
+    apresData.statut = "Aucune incohérence détectée (base 100% conforme)";
+  } else {
+    if (nbErreurs > 0) {
+      apresData.erreurs = erreursList;
+    }
+    if (nbAvertissements > 0) {
+      apresData.avertissements = avertissementsList;
+    }
+  }
 
   await appendJournalEntry({
     action: 'AUDIT',
@@ -371,7 +413,7 @@ export async function logAudit(nbErreurs: number, nbAvertissements: number): Pro
     identifiant: 'Base de données',
     description,
     avant: null,
-    apres: { erreurs: nbErreurs, avertissements: nbAvertissements },
+    apres: apresData,
   });
 }
 

@@ -76,6 +76,9 @@ const FIELD_LABELS: Record<string, string> = {
   description: 'Description',
   erreurs: 'Erreurs',
   avertissements: 'Avertissements',
+  statut: 'Statut',
+  nb_erreurs: "Nombre d'erreurs",
+  nb_avertissements: "Nombre d'avertissements",
 };
 
 function fieldLabel(key: string): string {
@@ -371,6 +374,12 @@ export default function Journal() {
                                               </span>{' '}
                                               → <span className="text-gray-900">{displayValue(change.apres)}</span>
                                             </span>
+                                          ) : Array.isArray(entry.action === 'SUPPRESSION' ? change.avant : change.apres) ? (
+                                            <ul className="mt-1 ml-4 list-disc space-y-1 text-gray-800">
+                                              {((entry.action === 'SUPPRESSION' ? change.avant : change.apres) as unknown[]).map((item, idx) => (
+                                                <li key={idx}>{displayValue(item)}</li>
+                                              ))}
+                                            </ul>
                                           ) : (
                                             <span className="text-gray-900">
                                               {displayValue(

@@ -450,6 +450,41 @@ describe('googleSheets service', () => {
       expect(values).toContain('Audit de la base de données : 2 erreur(s) et 5 avertissement(s) détecté(s)')
       expect(values).toContain(JSON.stringify({ erreurs: 2, avertissements: 5 }))
     })
+
+    it('appends audit log entry with detailed error and warning messages', async () => {
+      const capturedBodies: any[] = []
+      server.use(
+        http.get(`${SHEETS_BASE}/:id/values/:range*`, ({ request }) => {
+          const path = decodeURIComponent(new URL(request.url).pathname)
+          if (path.includes('Journal')) {
+            return HttpResponse.json({
+              values: [['timestamp', 'action', 'entite', 'identifiant', 'description', 'avant', 'apres']]
+            })
+          }
+        }),
+        http.put(`${SHEETS_BASE}/:id/values/:range*`, async ({ request }) => {
+          const path = decodeURIComponent(new URL(request.url).pathname)
+          if (path.includes('Journal')) {
+            capturedBodies.push(await request.json())
+            return HttpResponse.json({ updates: { updatedRows: 1 } })
+          }
+        })
+      )
+
+      await logAudit([
+        { severity: 'erreur', categorie: 'Références croisées', message: 'Client "Inconnu" n\'existe pas' },
+        { severity: 'avertissement', categorie: 'Formats', message: 'Email "bad-email" invalide' },
+      ])
+
+      expect(capturedBodies).toHaveLength(1)
+      const values = capturedBodies[0].values[0]
+      expect(values).toContain('AUDIT')
+      expect(values).toContain('Audit de la base de données : 1 erreur(s) et 1 avertissement(s) détecté(s)')
+      expect(values).toContain(JSON.stringify({
+        erreurs: ['Client "Inconnu" n\'existe pas'],
+        avertissements: ['Email "bad-email" invalide'],
+      }))
+    })
   })
 
   // ==================== Auth guard ====================

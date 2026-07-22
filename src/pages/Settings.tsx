@@ -194,7 +194,7 @@ export default function Settings() {
       }
 
       // Record the audit in the journal
-      await logAudit(report.errorCount, report.warningCount);
+      await logAudit(report);
     } catch (error) {
       console.error('Audit failed:', error);
       notifyError('Échec de l\'audit de la base de données');
